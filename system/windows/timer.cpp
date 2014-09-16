@@ -22,54 +22,51 @@
 
 #include <WinSock2.h>
 
-#include "Timer.h"
+#include "hbm/system/timer.h"
 
 namespace hbm {
-	namespace devscan {
+	Timer::Timer(unsigned int period_s)
+		: m_fd(CreateWaitableTimer(NULL, FALSE, NULL))
+	{
+		set(period_s);
+	}
 
-		Timer::Timer(unsigned int period_s)
-			: m_fd(CreateWaitableTimer(NULL, FALSE, NULL))
-		{
-			set(period_s);
+	Timer::~Timer()
+	{
+		CloseHandle(m_fd);
+	}
+
+	void Timer::set(unsigned int period_s)
+	{
+		LARGE_INTEGER dueTime;
+
+		dueTime.QuadPart = period_s*1000*1000*10; // in 100ns
+		BOOL Result = SetWaitableTimer(
+			m_fd,
+			&dueTime,
+			period_s*1000, // in ms
+			NULL,
+			NULL,
+			FALSE
+			);
+		if(Result==0) {
+			throw hbm::exception::exception("could not set waitable timer");
 		}
+	}
 
-		Timer::~Timer()
-		{
-			CloseHandle(m_fd);
-		}
+	ssize_t Timer::receive()
+	{
+		return 0;
+	}
 
-		void Timer::set(unsigned int period_s)
-		{
-			LARGE_INTEGER dueTime;
+	int Timer::stop()
+	{
+		CancelWaitableTimer(m_fd);
+		return 0;
+	}
 
-			dueTime.QuadPart = period_s*1000*1000*10; // in 100ns
-			BOOL Result = SetWaitableTimer(
-				m_fd,
-				&dueTime,
-				period_s*1000, // in ms
-				NULL,
-				NULL,
-				FALSE
-				);
-			if(Result==0) {
-				throw hbm::exception::exception("could not set waitable timer");
-			}
-		}
-
-		ssize_t Timer::receive()
-		{
-			return 0;
-		}
-
-		int Timer::stop()
-		{
-			CancelWaitableTimer(m_fd);
-			return 0;
-		}
-
-		event Timer::getFd() const
-		{
-			return m_fd;
-		}
+	event Timer::getFd() const
+	{
+		return m_fd;
 	}
 }

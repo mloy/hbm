@@ -25,7 +25,11 @@
 #include <unordered_map>
 
 #ifdef _WIN32
+#include <WinSock2.h>
 #include <Windows.h>
+#ifndef ssize_t
+#define ssize_t int
+#endif
 typedef HANDLE event;
 #else
 typedef int event;
