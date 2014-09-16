@@ -34,36 +34,38 @@
 #include "netadapter.h"
 
 namespace hbm {
-	/// Informationen ueber alle verfuegbaren IP-Schnittstellen.
-	class NetadapterList
-	{
-	public:
-		/// interface index is the key
-		typedef std::map < unsigned int, Netadapter > tAdapters;
-		typedef std::vector < Netadapter > tAdapterArray;
+	namespace communication {
+		/// Informationen ueber alle verfuegbaren IP-Schnittstellen.
+		class NetadapterList
+		{
+		public:
+			/// interface index is the key
+			typedef std::map < unsigned int, Netadapter > tAdapters;
+			typedef std::vector < Netadapter > tAdapterArray;
 
-		NetadapterList();
+			NetadapterList();
 
-		tAdapters get() const;
+			tAdapters get() const;
 
-		/// the same order as returned by get()
-		tAdapterArray getArray() const;
+			/// the same order as returned by get()
+			tAdapterArray getArray() const;
 
-		/// \throws hbm::exception
-		Netadapter getAdapterByName(const std::string& adapterName) const;
+			/// \throws hbm::exception
+			Netadapter getAdapterByName(const std::string& adapterName) const;
 
-		/// get adapter by interface index
-		/// \throws hbm::exception
-		Netadapter getAdapterByInterfaceIndex(unsigned int interfaceIndex) const;
+			/// get adapter by interface index
+			/// \throws hbm::exception
+			Netadapter getAdapterByInterfaceIndex(unsigned int interfaceIndex) const;
 
-		void update();
+			void update();
 
-	private:
+		private:
 
-		void enumAdapters();
+			void enumAdapters();
 
-		tAdapters m_adapters;
-		mutable boost::mutex m_adaptersMtx;
-	};
+			tAdapters m_adapters;
+			mutable boost::mutex m_adaptersMtx;
+		};
+	}
 }
 #endif

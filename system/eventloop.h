@@ -43,37 +43,39 @@ typedef int event;
 #include "hbm/exception/exception.hpp"
 
 namespace hbm {
-	typedef boost::function < ssize_t () > eventHandler_t;
+	namespace system {
+		typedef boost::function < ssize_t () > eventHandler_t;
 
 
-	/// \warning not thread-safe
-	class EventLoop {
-	public:
-		/// \throws hbm::exception
-		EventLoop();
-		virtual ~EventLoop();
-		void addEvent(event fd, eventHandler_t eventHandler);
+		/// \warning not thread-safe
+		class EventLoop {
+		public:
+			/// \throws hbm::exception
+			EventLoop();
+			virtual ~EventLoop();
+			void addEvent(event fd, eventHandler_t eventHandler);
 
-		void eraseEvent(event fd);
+			void eraseEvent(event fd);
 
-		void clear();
+			void clear();
 
-		int execute(boost::posix_time::milliseconds timeToWait=boost::posix_time::milliseconds(0));
-	private:
-		struct eventInfo_t {
-			event fd;
-			eventHandler_t eventHandler;
+			int execute(boost::posix_time::milliseconds timeToWait=boost::posix_time::milliseconds(0));
+		private:
+			struct eventInfo_t {
+				event fd;
+				eventHandler_t eventHandler;
+			};
+
+			/// fd is the key
+	#ifdef _WIN32
+			typedef std::vector < eventInfo_t > eventInfos_t;
+	#else
+			typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
+			int m_epollfd;
+	#endif
+
+			eventInfos_t m_eventInfos;
 		};
-
-		/// fd is the key
-#ifdef _WIN32
-		typedef std::vector < eventInfo_t > eventInfos_t;
-#else
-		typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
-		int m_epollfd;
-#endif
-
-		eventInfos_t m_eventInfos;
-	};
+	}
 }
 #endif

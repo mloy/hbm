@@ -29,99 +29,101 @@
 #include "hbm/system/eventloop.h"
 
 namespace hbm {
-	EventLoop::EventLoop()
-		: m_epollfd(epoll_create(1)) // parameter is ignored but must be greater than 0
-	{
-		if(m_epollfd==-1) {
-			throw hbm::exception::exception(std::string("epoll_create failed)") + strerror(errno));
-		}
-	}
-
-	EventLoop::~EventLoop()
-	{
-		close(m_epollfd);
-	}
-
-	void EventLoop::addEvent(event fd, eventHandler_t eventHandler)
-	{
-		eraseEvent(fd);
-
-		eventInfo_t evi;
-		evi.fd = fd;
-		evi.eventHandler = eventHandler;
-
-		eventInfo_t& eviRef = m_eventInfos[fd] = evi;
-
-
-		struct epoll_event ev;
-		ev.events = EPOLLIN;
-		ev.data.ptr = &eviRef;
-		if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, eviRef.fd, &ev) == -1) {
-			syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
-		}
-	}
-
-	void EventLoop::eraseEvent(event fd)
-	{
-		eventInfos_t::iterator iter = m_eventInfos.find(fd);
-		if(iter!=m_eventInfos.end()) {
-			const eventInfo_t& eviRef = iter->second;
-			epoll_ctl(m_epollfd, EPOLL_CTL_DEL, eviRef.fd, NULL);
-			m_eventInfos.erase(iter);
-		}
-	}
-
-	void EventLoop::clear()
-	{
-		for (eventInfos_t::iterator iter = m_eventInfos.begin(); iter!=m_eventInfos.end(); ++iter) {
-			const eventInfo_t& eviRef = iter->second;
-			epoll_ctl(m_epollfd, EPOLL_CTL_DEL, eviRef.fd, NULL);
-		}
-		m_eventInfos.clear();
-	}
-
-	int EventLoop::execute(boost::posix_time::milliseconds timeToWait)
-	{
-		if(m_eventInfos.empty()) {
-			return -1;
-		}
-
-		int timeout = -1;
-		ssize_t nbytes = 0;
-		boost::posix_time::ptime endTime;
-		if(timeToWait!=boost::posix_time::milliseconds(0)) {
-			endTime = boost::get_system_time() + timeToWait;
-		}
-
-		int nfds;
-		static const unsigned int MAXEVENTS = 16;
-		struct epoll_event events[MAXEVENTS];
-
-		do {
-			if(endTime!=boost::posix_time::not_a_date_time) {
-				boost::posix_time::time_duration timediff = endTime-boost::get_system_time();
-
-				timeout =static_cast< int > (timediff.total_milliseconds());
-				if(timeout<0) {
-					break;
-				}
+	namespace system {
+		EventLoop::EventLoop()
+			: m_epollfd(epoll_create(1)) // parameter is ignored but must be greater than 0
+		{
+			if(m_epollfd==-1) {
+				throw hbm::exception::exception(std::string("epoll_create failed)") + strerror(errno));
 			}
-			nfds = epoll_wait(m_epollfd, events, MAXEVENTS, timeout);
-			if((nfds==0) || (nfds==-1)) {
-				// 0: time out!
-				break;
+		}
+
+		EventLoop::~EventLoop()
+		{
+			close(m_epollfd);
+		}
+
+		void EventLoop::addEvent(event fd, eventHandler_t eventHandler)
+		{
+			eraseEvent(fd);
+
+			eventInfo_t evi;
+			evi.fd = fd;
+			evi.eventHandler = eventHandler;
+
+			eventInfo_t& eviRef = m_eventInfos[fd] = evi;
+
+
+			struct epoll_event ev;
+			ev.events = EPOLLIN;
+			ev.data.ptr = &eviRef;
+			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, eviRef.fd, &ev) == -1) {
+				syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
+			}
+		}
+
+		void EventLoop::eraseEvent(event fd)
+		{
+			eventInfos_t::iterator iter = m_eventInfos.find(fd);
+			if(iter!=m_eventInfos.end()) {
+				const eventInfo_t& eviRef = iter->second;
+				epoll_ctl(m_epollfd, EPOLL_CTL_DEL, eviRef.fd, NULL);
+				m_eventInfos.erase(iter);
+			}
+		}
+
+		void EventLoop::clear()
+		{
+			for (eventInfos_t::iterator iter = m_eventInfos.begin(); iter!=m_eventInfos.end(); ++iter) {
+				const eventInfo_t& eviRef = iter->second;
+				epoll_ctl(m_epollfd, EPOLL_CTL_DEL, eviRef.fd, NULL);
+			}
+			m_eventInfos.clear();
+		}
+
+		int EventLoop::execute(boost::posix_time::milliseconds timeToWait)
+		{
+			if(m_eventInfos.empty()) {
+				return -1;
 			}
 
-			for (int n = 0; n < nfds; ++n) {
-				if(events[n].events & EPOLLIN) {
-					eventInfo_t* pEventInfo = reinterpret_cast < eventInfo_t* > (events[n].data.ptr);
-					nbytes = pEventInfo->eventHandler();
-					if(nbytes<0) {
+			int timeout = -1;
+			ssize_t nbytes = 0;
+			boost::posix_time::ptime endTime;
+			if(timeToWait!=boost::posix_time::milliseconds(0)) {
+				endTime = boost::get_system_time() + timeToWait;
+			}
+
+			int nfds;
+			static const unsigned int MAXEVENTS = 16;
+			struct epoll_event events[MAXEVENTS];
+
+			do {
+				if(endTime!=boost::posix_time::not_a_date_time) {
+					boost::posix_time::time_duration timediff = endTime-boost::get_system_time();
+
+					timeout =static_cast< int > (timediff.total_milliseconds());
+					if(timeout<0) {
 						break;
 					}
 				}
-			}
-		} while (nbytes>=0);
-		return 0;
+				nfds = epoll_wait(m_epollfd, events, MAXEVENTS, timeout);
+				if((nfds==0) || (nfds==-1)) {
+					// 0: time out!
+					break;
+				}
+
+				for (int n = 0; n < nfds; ++n) {
+					if(events[n].events & EPOLLIN) {
+						eventInfo_t* pEventInfo = reinterpret_cast < eventInfo_t* > (events[n].data.ptr);
+						nbytes = pEventInfo->eventHandler();
+						if(nbytes<0) {
+							break;
+						}
+					}
+				}
+			} while (nbytes>=0);
+			return 0;
+		}
 	}
 }

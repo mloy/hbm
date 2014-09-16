@@ -28,52 +28,54 @@
 #include "hbm/system/timer.h"
 
 namespace hbm {
-	Timer::Timer()
-		: m_fd(timerfd_create(CLOCK_MONOTONIC, 0))
-	{
-		if (m_fd<0) {
-			throw hbm::exception::exception("could not create timer fd");
-		}
-	}
-
-	Timer::Timer(unsigned int period_s)
-		: m_fd(timerfd_create(CLOCK_MONOTONIC, 0))
-	{
-		if (m_fd<0) {
-			throw hbm::exception::exception("could not create timer fd");
+	namespace system {
+		Timer::Timer()
+			: m_fd(timerfd_create(CLOCK_MONOTONIC, 0))
+		{
+			if (m_fd<0) {
+				throw hbm::exception::exception("could not create timer fd");
+			}
 		}
 
-		set(period_s);
-	}
+		Timer::Timer(unsigned int period_s)
+			: m_fd(timerfd_create(CLOCK_MONOTONIC, 0))
+		{
+			if (m_fd<0) {
+				throw hbm::exception::exception("could not create timer fd");
+			}
 
-	Timer::~Timer()
-	{
-		close(m_fd);
-	}
+			set(period_s);
+		}
 
-	void Timer::set(unsigned int period_s)
-	{
-		struct itimerspec timespec;
-		memset (&timespec, 0, sizeof(timespec));
-		timespec.it_value.tv_sec = period_s;
-		timespec.it_interval.tv_sec = period_s;
+		Timer::~Timer()
+		{
+			close(m_fd);
+		}
 
-		timerfd_settime(m_fd, 0, &timespec, nullptr);
-	}
+		void Timer::set(unsigned int period_s)
+		{
+			struct itimerspec timespec;
+			memset (&timespec, 0, sizeof(timespec));
+			timespec.it_value.tv_sec = period_s;
+			timespec.it_interval.tv_sec = period_s;
 
-	ssize_t Timer::receive()
-	{
-		uint64_t timerEventCount;
-		return read(m_fd, &timerEventCount, sizeof(timerEventCount));
-	}
+			timerfd_settime(m_fd, 0, &timespec, nullptr);
+		}
 
-	int Timer::stop()
-	{
-		return ::close(m_fd);
-	}
+		ssize_t Timer::receive()
+		{
+			uint64_t timerEventCount;
+			return read(m_fd, &timerEventCount, sizeof(timerEventCount));
+		}
 
-	event Timer::getFd() const
-	{
-		return m_fd;
+		int Timer::stop()
+		{
+			return ::close(m_fd);
+		}
+
+		event Timer::getFd() const
+		{
+			return m_fd;
+		}
 	}
 }

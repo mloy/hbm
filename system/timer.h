@@ -36,35 +36,37 @@ typedef int event;
 #include "hbm/exception/exception.hpp"
 
 namespace hbm {
-	class Timer {
-	public:
-		/// \throws hbm::exception
-		Timer();
-		/// \throws hbm::exception
-		Timer(unsigned int period_s);
-		~Timer();
+	namespace system {
+		class Timer {
+		public:
+			/// \throws hbm::exception
+			Timer();
+			/// \throws hbm::exception
+			Timer(unsigned int period_s);
+			~Timer();
 
-		void set(unsigned int period_s);
+			void set(unsigned int period_s);
 
-		/// we are not interested in the number of events
-		ssize_t receive();
+			/// we are not interested in the number of events
+			ssize_t receive();
 
-		/// to poll
-#ifdef _WIN32
-		event getFd() const;
-#else
-		event getFd() const;
-#endif
+			/// to poll
+	#ifdef _WIN32
+			event getFd() const;
+	#else
+			event getFd() const;
+	#endif
 
-		int stop();
+			int stop();
 
-	private:
-		/// must not be copied
-		Timer(const Timer& op);
-		/// must not be assigned
-		Timer operator=(const Timer& op);
+		private:
+			/// must not be copied
+			Timer(const Timer& op);
+			/// must not be assigned
+			Timer operator=(const Timer& op);
 
-		event m_fd;
-	};
+			event m_fd;
+		};
+	}
 }
 #endif
