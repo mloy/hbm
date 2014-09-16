@@ -22,9 +22,9 @@
 #ifndef _EventLoop_H
 #define _EventLoop_H
 
-#include <unordered_map>
 
 #ifdef _WIN32
+#include <vector>
 #include <WinSock2.h>
 #include <Windows.h>
 #ifndef ssize_t
@@ -32,6 +32,8 @@
 #endif
 typedef HANDLE event;
 #else
+#include <unordered_map>
+
 typedef int event;
 #endif
 
@@ -64,9 +66,13 @@ namespace hbm {
 		};
 
 		/// fd is the key
-		typedef std::unordered_map <int, eventInfo_t > eventInfos_t;
-
+#ifdef _WIN32
+		typedef std::vector < eventInfo_t > eventInfos_t;
+#else
+		typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
 		int m_epollfd;
+#endif
+
 		eventInfos_t m_eventInfos;
 	};
 }
