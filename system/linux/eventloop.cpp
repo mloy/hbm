@@ -83,10 +83,6 @@ namespace hbm {
 
 		int EventLoop::execute(boost::posix_time::milliseconds timeToWait)
 		{
-			if(m_eventInfos.empty()) {
-				return -1;
-			}
-
 			int timeout = -1;
 			ssize_t nbytes = 0;
 			boost::posix_time::ptime endTime;
