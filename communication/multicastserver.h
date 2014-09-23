@@ -36,6 +36,8 @@
 #include <arpa/inet.h>
 #endif
 
+#include "hbm/sys/eventloop.h"
+
 #include "netadapter.h"
 #include "netadapterlist.h"
 
@@ -106,17 +108,7 @@ namespace hbm {
 			ssize_t receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, int &ttl);
 
 			/// poll this to get informed about received messages
-	#ifdef _WIN32
-			WSAEVENT getFd() const
-			{
-				return m_event;
-			}
-	#else
-			int getFd() const
-			{
-				return m_ReceiveSocket;
-			}
-	#endif
+			event getFd() const;
 
 		private:
 

@@ -82,6 +82,18 @@ namespace hbm {
 	#endif
 		}
 
+#ifdef _WIN32
+		event MulticastServer::getFd() const
+		{
+			return m_event;
+		}
+#else
+		event MulticastServer::getFd() const
+		{
+			return m_ReceiveSocket;
+		}
+#endif
+
 		int MulticastServer::setupReceiveSocket()
 		{
 			{
