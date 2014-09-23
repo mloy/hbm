@@ -32,10 +32,10 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread_time.hpp>
 
-#include "hbm/system/eventloop.h"
+#include "hbm/sys/eventloop.h"
 
 namespace hbm {
-	namespace system {
+	namespace sys {
 		/// \throws hbm::exception
 		EventLoop::EventLoop()
 		{
