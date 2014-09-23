@@ -25,7 +25,7 @@
 
 #include "hbm/exception/exception.hpp"
 
-#include "hbm/system/timer.h"
+#include "hbm/sys/timer.h"
 
 namespace hbm {
 	namespace system {

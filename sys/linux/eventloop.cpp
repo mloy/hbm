@@ -26,10 +26,10 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread_time.hpp>
 
-#include "hbm/system/eventloop.h"
+#include "hbm/sys/eventloop.h"
 
 namespace hbm {
-	namespace system {
+	namespace sys {
 		EventLoop::EventLoop()
 			: m_epollfd(epoll_create(1)) // parameter is ignored but must be greater than 0
 		{

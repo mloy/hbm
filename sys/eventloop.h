@@ -43,7 +43,7 @@ typedef int event;
 #include "hbm/exception/exception.hpp"
 
 namespace hbm {
-	namespace system {
+	namespace sys {
 		typedef boost::function < ssize_t () > eventHandler_t;
 
 
