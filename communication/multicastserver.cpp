@@ -54,7 +54,7 @@
 
 namespace hbm {
 	namespace communication {
-		MulticastServer::MulticastServer(const std::string& address, unsigned int port, const NetadapterList &netadapterList)
+		MulticastServer::MulticastServer(const std::string& address, unsigned int port)
 			: m_address(address)
 			, m_port(port)
 			, m_ReceiveSocket(-1)
@@ -63,7 +63,6 @@ namespace hbm {
 			, m_event(WSACreateEvent())
 	#endif
 			, m_receiveAddr()
-			, m_netadapterList(netadapterList)
 		{
 
 	#ifdef _WIN32
@@ -258,7 +257,7 @@ namespace hbm {
 
 		void MulticastServer::addAllInterfaces()
 		{
-			NetadapterList::tAdapters adapters = m_netadapterList.get();
+			NetadapterList::tAdapters adapters = NetadapterList().get();
 			for (NetadapterList::tAdapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
 
@@ -271,7 +270,7 @@ namespace hbm {
 
 		void MulticastServer::dropAllInterfaces()
 		{
-			NetadapterList::tAdapters adapters = m_netadapterList.get();
+			NetadapterList::tAdapters adapters = NetadapterList().get();
 			for (NetadapterList::tAdapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
 
@@ -450,7 +449,7 @@ namespace hbm {
 
 		void MulticastServer::send(const void* pData, size_t length, unsigned int ttl) const
 		{
-			NetadapterList::tAdapters adapters = m_netadapterList.get();
+			NetadapterList::tAdapters adapters = NetadapterList().get();
 
 			for (NetadapterList::tAdapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const Netadapter& adapter = iter->second;

@@ -63,7 +63,7 @@ namespace hbm {
 		{
 		public:
 			/// @param address the multicast group
-			MulticastServer(const std::string& address, unsigned int port, const NetadapterList& netadapterList);
+			MulticastServer(const std::string& address, unsigned int port);
 
 			virtual ~MulticastServer();
 
@@ -129,8 +129,6 @@ namespace hbm {
 	#endif
 
 			struct sockaddr_in m_receiveAddr;
-
-			const NetadapterList& m_netadapterList;
 		};
 	}
 }
