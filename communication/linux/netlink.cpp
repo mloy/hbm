@@ -32,6 +32,7 @@
 #include <cstring>
 
 #include "hbm/communication/netlink.h"
+#include "hbm/communication/netadapterlist.h"
 #include "hbm/exception/exception.hpp"
 
 namespace hbm {
@@ -75,7 +76,7 @@ namespace hbm {
 		return ::recvmsg(m_fd, &msg, 0);
 	}
 
-	void Netlink::process(char *pReadBuffer, size_t bufferSize, communication::NetadapterList &netadapterlist, communication::MulticastServer &mcs) const
+	void Netlink::process(char *pReadBuffer, size_t bufferSize, communication::MulticastServer &mcs) const
 	{
 		for (struct nlmsghdr *nh = reinterpret_cast <struct nlmsghdr *> (pReadBuffer); NLMSG_OK (nh, bufferSize); nh = NLMSG_NEXT (nh, bufferSize)) {
 			if (nh->nlmsg_type == NLMSG_DONE) {
@@ -85,7 +86,7 @@ namespace hbm {
 				::syslog(LOG_ERR, "error processing netlink events");
 				break;
 			} else {
-				netadapterlist.update();
+				communication::NetadapterList netadapterlist;
 				switch(nh->nlmsg_type) {
 				case RTM_NEWADDR:
 					{
@@ -142,12 +143,12 @@ namespace hbm {
 		}
 	}
 
-	ssize_t Netlink::receiveAndProcess(communication::NetadapterList &netadapterlist, communication::MulticastServer &mcs) const
+	ssize_t Netlink::receiveAndProcess(communication::MulticastServer &mcs) const
 	{
 		char readBuffer[communication::MAX_DATAGRAM_SIZE];
 		ssize_t nBytes = receive(readBuffer, sizeof(readBuffer));
 		if (nBytes>0) {
-			process(readBuffer, nBytes, netadapterlist, mcs);
+			process(readBuffer, nBytes, mcs);
 		}
 		return nBytes;
 	}
