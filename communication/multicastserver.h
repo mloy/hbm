@@ -39,7 +39,6 @@
 #include "hbm/sys/eventloop.h"
 
 #include "netadapter.h"
-#include "netadapterlist.h"
 
 #ifdef _WIN32
 #ifndef ssize_t

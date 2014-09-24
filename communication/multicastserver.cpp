@@ -49,6 +49,7 @@
 #endif
 
 #include "hbm/exception/exception.hpp"
+#include "hbm/communication/netadapterlist.h"
 
 #include "multicastserver.h"
 
