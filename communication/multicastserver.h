@@ -95,7 +95,7 @@ namespace hbm {
 			int sendOverInterfaceByAddress(const std::string& interfaceIp, const std::string& data, unsigned int ttl=1) const;
 
 			/// @param[in,out] waitTime maximum time to wait.
-			ssize_t receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, boost::posix_time::milliseconds timeout);
+			ssize_t receiveTelegram(void* msgbuf, size_t len, int& receivingAdapterIndex, boost::posix_time::milliseconds timeout);
 
 			/// @param[out] ttl ttl in the ip header (the value set by the last sender(router))
 			ssize_t receiveTelegram(void* msgbuf, size_t len, int& receivingAdapterIndex, int &ttl);

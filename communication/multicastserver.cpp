@@ -211,7 +211,7 @@ namespace hbm {
 			return 0;
 		}
 
-		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, boost::posix_time::milliseconds timeout)
+		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, int& receivingAdapterIndex, boost::posix_time::milliseconds timeout)
 		{
 			int retval;
 	#ifdef _WIN32
@@ -240,7 +240,7 @@ namespace hbm {
 
 			if (retval > 0) {
 				int ttl;
-				retval = receiveTelegram(msgbuf, len, adapterIndex, ttl);
+				retval = receiveTelegram(msgbuf, len, receivingAdapterIndex, ttl);
 			}
 
 			return retval;
