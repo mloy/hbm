@@ -82,9 +82,9 @@ namespace hbm {
 			void stop();
 
 			/// Send over all interfaces
-			int send(const std::string& data, unsigned int ttl=1) const;
+			void send(const std::string& data, unsigned int ttl=1) const;
 
-			int send(const void *pData, size_t length, unsigned int ttl=1) const;
+			void send(const void *pData, size_t length, unsigned int ttl=1) const;
 
 			int sendOverInterfaceByInterfaceIndex(int interfaceIndex, const std::string& data, unsigned int ttl=1) const;
 			int sendOverInterfaceByInterfaceIndex(int interfaceIndex, const void* pData, size_t length, unsigned int ttl=1) const;
@@ -114,10 +114,6 @@ namespace hbm {
 			int setupReceiveSocket();
 
 			int dropOrAddInterface(const std::string& interfaceAddress, bool add);
-
-			/// send over specific interface
-			//int sendOverInterface(const Netadapter& adapter, const std::string& data, unsigned int ttl=1) const;
-			//int sendOverInterface(const Netadapter& adapter, const void* pData, size_t length, unsigned int ttl=1) const;
 
 			int sendOverInterfaceByAddress(const std::string& interfaceIp, const void* pData, size_t length, unsigned int ttl=1) const;
 

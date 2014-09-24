@@ -448,64 +448,25 @@ namespace hbm {
 			return nbytes;
 		}
 
-		int MulticastServer::send(const void* pData, size_t length, unsigned int ttl) const
+		void MulticastServer::send(const void* pData, size_t length, unsigned int ttl) const
 		{
-			int retVal = 0;
-			int retValIntern;
-
 			NetadapterList::tAdapters adapters = m_netadapterList.get();
 
 			for (NetadapterList::tAdapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const Netadapter& adapter = iter->second;
 
-				retValIntern = sendOverInterfaceByInterfaceIndex(adapter.getIndex(), pData, length, ttl);
-				if (retValIntern != 0) {
-					retVal = retValIntern;
-				}
+				sendOverInterfaceByInterfaceIndex(adapter.getIndex(), pData, length, ttl);
 			}
-
-			return retVal;
 		}
 
-		int MulticastServer::send(const std::string& data, unsigned int ttl) const
+		void MulticastServer::send(const std::string& data, unsigned int ttl) const
 		{
-			return send(data.c_str(), data.length(), ttl);
+			send(data.c_str(), data.length(), ttl);
 		}
-
-
-//		int MulticastServer::sendOverInterface(const Netadapter& adapter, const std::string& data, unsigned int ttl) const
-//		{
-//			if (data.empty()) {
-//				return 0;
-//			}
-
-//			int retVal = 0;
-
-//			const communication::addressesWithNetmask_t addressesWithNetmask = adapter.getIpv4Addresses();
-//			if(addressesWithNetmask.empty()) {
-//				return communication::ERR_ADAPTERISDOWN;
-//			} else {
-//				retVal = sendOverInterfaceByAddress(addressesWithNetmask.front().address, data, ttl);
-//			}
-
-//			return retVal;
-//		}
 
 		int MulticastServer::sendOverInterfaceByInterfaceIndex(int interfaceIndex, const std::string& data, unsigned int ttl) const
 		{
-			if (data.empty()) {
-				return 0;
-			}
-
 			return sendOverInterfaceByInterfaceIndex(interfaceIndex, data.c_str(), data.length());
-//			int retVal;
-//			try {
-//				communication::Netadapter adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
-//				retVal = sendOverInterface(adapter, data, ttl);
-//			} catch( const hbm::exception::exception&) {
-//				retVal = communication::ERR_INVALIDADAPTER;
-//			}
-//			return retVal;
 		}
 
 		int MulticastServer::sendOverInterfaceByInterfaceIndex(int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
@@ -524,6 +485,7 @@ namespace hbm {
 
 	#ifdef _WIN32
 			if (setsockopt(m_SendSocket, IPPROTO_IPV6, IPV6_MULTICAST_IF, reinterpret_cast < char* >(&interfaceIndex), sizeof(interfaceIndex))) {
+				return ERR_INVALIDADAPTER;
 			}
 	#else
 			if (setsockopt(m_SendSocket, IPPROTO_IPV6, IPV6_MULTICAST_IF, &interfaceIndex, sizeof(interfaceIndex))) {
@@ -538,7 +500,7 @@ namespace hbm {
 
 			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl))) {
 	#endif
-				::syslog(LOG_ERR, "Error setsockopt IPV6_MULTICAST_HOPS to %ufor interface %d!", ttl, interfaceIndex);
+				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_TTL to %ufor interface %d!", ttl, interfaceIndex);
 				return ERR_NO_SUCCESS;
 			}
 
@@ -570,39 +532,7 @@ namespace hbm {
 			}
 
 			return ERR_SUCCESS;
-//			if (pData==NULL) {
-//				return 0;
-//			}
-
-//			int retVal;
-//			try {
-//				Netadapter adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
-//				retVal = sendOverInterface(adapter, pData, length, ttl);
-//			} catch( const hbm::exception::exception&) {
-//				retVal = ERR_INVALIDADAPTER;
-//			}
-//			return retVal;
 		}
-
-//		int MulticastServer::sendOverInterface(const Netadapter& adapter, const void* pData, size_t length, unsigned int ttl) const
-//		{
-//			int retVal = ERR_SUCCESS;
-//			if(length>0) {
-//				if (pData==NULL) {
-//					retVal = ERR_NO_SUCCESS;
-//				} else {
-//					const communication::addressesWithNetmask_t addressesWithNetmask = adapter.getIpv4Addresses();
-//					if(addressesWithNetmask.empty()==false) {
-//						retVal = sendOverInterfaceByAddress(addressesWithNetmask.front().address, pData, length, ttl);
-//					} else {
-//						retVal = ERR_INVALIDADAPTER;
-//						::syslog(LOG_ERR, "%s interface %s does not have an ipv4 address!", __FUNCTION__, adapter.getName().c_str());
-//					}
-//				}
-//			}
-
-//			return retVal;
-//		}
 
 		int MulticastServer::sendOverInterfaceByAddress(const std::string& interfaceIp, const std::string& data, unsigned int ttl) const
 		{
