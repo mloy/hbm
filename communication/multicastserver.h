@@ -36,9 +36,8 @@
 #include <arpa/inet.h>
 #endif
 
-#include "hbm/sys/eventloop.h"
-
 #include "netadapter.h"
+#include "netadapterlist.h"
 
 #ifdef _WIN32
 #ifndef ssize_t
@@ -62,7 +61,7 @@ namespace hbm {
 		{
 		public:
 			/// @param address the multicast group
-			MulticastServer(const std::string& address, unsigned int port);
+			MulticastServer(const std::string& address, unsigned int port, const NetadapterList& netadapterList);
 
 			virtual ~MulticastServer();
 
@@ -81,26 +80,43 @@ namespace hbm {
 			void stop();
 
 			/// Send over all interfaces
-			void send(const std::string& data, unsigned int ttl=1) const;
+			int send(const std::string& data, unsigned int ttl=1) const;
 
-			void send(const void *pData, size_t length, unsigned int ttl=1) const;
+			int send(const void *pData, size_t length, unsigned int ttl=1) const;
 
-			int sendOverInterfaceByInterfaceIndex(int interfaceIndex, const std::string& data, unsigned int ttl=1) const;
-			int sendOverInterfaceByInterfaceIndex(int interfaceIndex, const void* pData, size_t length, unsigned int ttl=1) const;
+			/// send over specific interface
+			int sendOverInterface(const Netadapter& adapter, const std::string& data, unsigned int ttl=1) const;
+			int sendOverInterface(const Netadapter &adapter, const void* pData, size_t length, unsigned int ttl=1) const;
+
+			int sendOverInterface(int interfaceIndex, const std::string& data, unsigned int ttl=1) const;
+			int sendOverInterface(int interfaceIndex, const void* pData, size_t length, unsigned int ttl=1) const;
 
 
 			/// send over specific interface.
 			/// @param interfaceIp IP address of the interface to use
 			int sendOverInterfaceByAddress(const std::string& interfaceIp, const std::string& data, unsigned int ttl=1) const;
+			int sendOverInterfaceByAddress(const std::string& interfaceIp, const void* pData, size_t length, unsigned int ttl=1) const;
 
 			/// @param[in,out] waitTime maximum time to wait.
-			ssize_t receiveTelegram(void* msgbuf, size_t len, int& receivingAdapterIndex, boost::posix_time::milliseconds timeout);
+			ssize_t receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, boost::posix_time::milliseconds timeout);
+
+			ssize_t receiveTelegram(void* msgbuf, size_t len, Netadapter& adapter, int &ttl);
 
 			/// @param[out] ttl ttl in the ip header (the value set by the last sender(router))
-			ssize_t receiveTelegram(void* msgbuf, size_t len, int& receivingAdapterIndex, int &ttl);
+			ssize_t receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, int &ttl);
 
 			/// poll this to get informed about received messages
-			event getFd() const;
+	#ifdef _WIN32
+			WSAEVENT getFd() const
+			{
+				return m_event;
+			}
+	#else
+			int getFd() const
+			{
+				return m_ReceiveSocket;
+			}
+	#endif
 
 		private:
 
@@ -114,8 +130,6 @@ namespace hbm {
 
 			int dropOrAddInterface(const std::string& interfaceAddress, bool add);
 
-			int sendOverInterfaceByAddress(const std::string& interfaceIp, const void* pData, size_t length, unsigned int ttl=1) const;
-
 			/// The All Hosts multicast group addresses all hosts on the same network segment.
 			const std::string m_address;
 
@@ -128,6 +142,8 @@ namespace hbm {
 	#endif
 
 			struct sockaddr_in m_receiveAddr;
+
+			const NetadapterList& m_netadapterList;
 		};
 	}
 }

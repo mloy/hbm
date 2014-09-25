@@ -22,7 +22,7 @@
 
 #include <WinSock2.h>
 
-#include "hbm/sys/timer.h"
+#include "hbm/system/timer.h"
 
 namespace hbm {
 	namespace system {

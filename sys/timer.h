@@ -51,7 +51,11 @@ namespace hbm {
 			ssize_t receive();
 
 			/// to poll
+	#ifdef _WIN32
 			event getFd() const;
+	#else
+			event getFd() const;
+	#endif
 
 			int stop();
 

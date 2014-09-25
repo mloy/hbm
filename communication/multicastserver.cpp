@@ -49,13 +49,12 @@
 #endif
 
 #include "hbm/exception/exception.hpp"
-#include "hbm/communication/netadapterlist.h"
 
 #include "multicastserver.h"
 
 namespace hbm {
 	namespace communication {
-		MulticastServer::MulticastServer(const std::string& address, unsigned int port)
+		MulticastServer::MulticastServer(const std::string& address, unsigned int port, const NetadapterList &netadapterList)
 			: m_address(address)
 			, m_port(port)
 			, m_ReceiveSocket(-1)
@@ -64,6 +63,7 @@ namespace hbm {
 			, m_event(WSACreateEvent())
 	#endif
 			, m_receiveAddr()
+			, m_netadapterList(netadapterList)
 		{
 
 	#ifdef _WIN32
@@ -81,18 +81,6 @@ namespace hbm {
 			WSACloseEvent(m_event);
 	#endif
 		}
-
-#ifdef _WIN32
-		event MulticastServer::getFd() const
-		{
-			return m_event;
-		}
-#else
-		event MulticastServer::getFd() const
-		{
-			return m_ReceiveSocket;
-		}
-#endif
 
 		int MulticastServer::setupReceiveSocket()
 		{
@@ -174,7 +162,7 @@ namespace hbm {
 			//}
 
 			if (bind(m_ReceiveSocket, (struct sockaddr*)&m_receiveAddr, sizeof(m_receiveAddr)) < 0) {
-				::syslog(LOG_ERR, "Could not bind socket! Error %s", strerror(errno));
+				::syslog(LOG_ERR, "Could not bind socket!");
 				return -1;
 			}
 
@@ -184,7 +172,7 @@ namespace hbm {
 
 		int MulticastServer::setupSendSocket()
 		{
-			m_SendSocket = socket(AF_INET6, SOCK_DGRAM, 0);
+			m_SendSocket = socket(AF_INET, SOCK_DGRAM, 0);
 
 			if (m_SendSocket < 0) {
 				::syslog(LOG_ERR, "Could not create socket!");
@@ -211,7 +199,7 @@ namespace hbm {
 			return 0;
 		}
 
-		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, int& receivingAdapterIndex, boost::posix_time::milliseconds timeout)
+		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, boost::posix_time::milliseconds timeout)
 		{
 			int retval;
 	#ifdef _WIN32
@@ -240,7 +228,7 @@ namespace hbm {
 
 			if (retval > 0) {
 				int ttl;
-				retval = receiveTelegram(msgbuf, len, receivingAdapterIndex, ttl);
+				retval = receiveTelegram(msgbuf, len, adapterIndex, ttl);
 			}
 
 			return retval;
@@ -258,7 +246,7 @@ namespace hbm {
 
 		void MulticastServer::addAllInterfaces()
 		{
-			NetadapterList::tAdapters adapters = NetadapterList().get();
+			NetadapterList::tAdapters adapters = m_netadapterList.get();
 			for (NetadapterList::tAdapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
 
@@ -271,7 +259,7 @@ namespace hbm {
 
 		void MulticastServer::dropAllInterfaces()
 		{
-			NetadapterList::tAdapters adapters = NetadapterList().get();
+			NetadapterList::tAdapters adapters = m_netadapterList.get();
 			for (NetadapterList::tAdapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
 
@@ -360,7 +348,22 @@ namespace hbm {
 			return retVal;
 		}
 
-		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, int& receivingAdapterIndex, int& ttl)
+		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, Netadapter& adapter, int& ttl)
+		{
+			int interfaceIndex = 0;
+			ssize_t nbytes = receiveTelegram(msgbuf, len, interfaceIndex, ttl);
+			if(nbytes>0) {
+				try {
+					adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
+				} catch( const hbm::exception::exception&) {
+					::syslog(LOG_ERR, "%s no interface with index %d!", __FUNCTION__, interfaceIndex);
+					nbytes = -1;
+				}
+			}
+			return nbytes;
+		}
+
+		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, int& ttl)
 		{
 			// we do use recvmsg here because we get some additional information: The interface we received from.
 			ttl = 1;
@@ -432,7 +435,7 @@ namespace hbm {
 	#else
 						ppktinfo = reinterpret_cast <struct in_pktinfo*> (CMSG_DATA(pcmsghdr));
 	#endif
-						receivingAdapterIndex = ppktinfo->ipi_ifindex;
+						adapterIndex = ppktinfo->ipi_ifindex;
 					} else if(pcmsghdr->cmsg_type == IP_TTL) {
 						int* pTtl;
 						// returns the ttl from the received ip header (the value set by the last sender(router))
@@ -448,90 +451,99 @@ namespace hbm {
 			return nbytes;
 		}
 
-		void MulticastServer::send(const void* pData, size_t length, unsigned int ttl) const
+		int MulticastServer::send(const void* pData, size_t length, unsigned int ttl) const
 		{
-			NetadapterList::tAdapters adapters = NetadapterList().get();
+			int retVal = 0;
+			int retValIntern;
+
+			NetadapterList::tAdapters adapters = m_netadapterList.get();
 
 			for (NetadapterList::tAdapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const Netadapter& adapter = iter->second;
 
-				sendOverInterfaceByInterfaceIndex(adapter.getIndex(), pData, length, ttl);
-			}
-		}
-
-		void MulticastServer::send(const std::string& data, unsigned int ttl) const
-		{
-			send(data.c_str(), data.length(), ttl);
-		}
-
-		int MulticastServer::sendOverInterfaceByInterfaceIndex(int interfaceIndex, const std::string& data, unsigned int ttl) const
-		{
-			return sendOverInterfaceByInterfaceIndex(interfaceIndex, data.c_str(), data.length());
-		}
-
-		int MulticastServer::sendOverInterfaceByInterfaceIndex(int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
-		{
-			if (pData==NULL) {
-				if(length>0) {
-					return ERR_NO_SUCCESS;
-				} else {
-					return ERR_SUCCESS;
+				retValIntern = sendOverInterface(adapter, pData, length, ttl);
+				if (retValIntern != 0) {
+					retVal = retValIntern;
 				}
 			}
 
-			struct in_addr ifAddr;
-			memset(&ifAddr, 0, sizeof(ifAddr));
+			return retVal;
+		}
+
+		int MulticastServer::send(const std::string& data, unsigned int ttl) const
+		{
+			return send(data.c_str(), data.length(), ttl);
+		}
 
 
-	#ifdef _WIN32
-			if (setsockopt(m_SendSocket, IPPROTO_IPV6, IPV6_MULTICAST_IF, reinterpret_cast < char* >(&interfaceIndex), sizeof(interfaceIndex))) {
-				return ERR_INVALIDADAPTER;
-			}
-	#else
-			if (setsockopt(m_SendSocket, IPPROTO_IPV6, IPV6_MULTICAST_IF, &interfaceIndex, sizeof(interfaceIndex))) {
-				::syslog(LOG_ERR, "Error '%s' setsockopt IPV6_MULTICAST_IF for interface %d!", strerror(errno), interfaceIndex);
-				return ERR_INVALIDADAPTER;
-			}
-	#endif
-
-	#ifdef _WIN32
-			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_TTL, reinterpret_cast < char* >(&ttl), sizeof(ttl))) {
-	#else
-
-			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl))) {
-	#endif
-				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_TTL to %ufor interface %d!", ttl, interfaceIndex);
-				return ERR_NO_SUCCESS;
+		int MulticastServer::sendOverInterface(const Netadapter& adapter, const std::string& data, unsigned int ttl) const
+		{
+			if (data.empty()) {
+				return 0;
 			}
 
-			struct sockaddr_in sendAddr;
-			memset(&sendAddr, 0, sizeof(sendAddr));
-			sendAddr.sin_family = AF_INET;
-			sendAddr.sin_port = htons(m_port);
-	#ifdef _WIN32
-			sendAddr.sin_addr.s_addr = inet_addr(m_address.c_str());
+			int retVal = 0;
 
-			if (sendAddr.sin_addr.s_addr == INADDR_NONE) {
-	#else
-
-			if (inet_aton(m_address.c_str(), &sendAddr.sin_addr) == 0) {
-	#endif
-				::syslog(LOG_ERR, "Not a valid multicast IP address!");
-				return ERR_NO_SUCCESS;
+			const communication::addressesWithNetmask_t addressesWithNetmask = adapter.getIpv4Addresses();
+			if(addressesWithNetmask.empty()) {
+				return communication::ERR_ADAPTERISDOWN;
+			} else {
+				retVal = sendOverInterfaceByAddress(addressesWithNetmask.front().address, data, ttl);
 			}
 
-	#ifdef _WIN32
-			ssize_t nbytes = sendto(m_SendSocket, reinterpret_cast < const char* > (pData), static_cast < int > (length), 0, reinterpret_cast < struct sockaddr* >(&sendAddr), sizeof(sendAddr));
-	#else
-			ssize_t nbytes = sendto(m_SendSocket, pData, length, 0, reinterpret_cast < struct sockaddr* >(&sendAddr), sizeof(sendAddr));
-	#endif
+			return retVal;
+		}
 
-			if (static_cast < size_t >(nbytes) != length) {
-				::syslog(LOG_ERR, "error sending message over interface %d!", interfaceIndex);
-				return ERR_NO_SUCCESS;
+		int MulticastServer::sendOverInterface(int interfaceIndex, const std::string& data, unsigned int ttl) const
+		{
+			if (data.empty()) {
+				return 0;
 			}
 
-			return ERR_SUCCESS;
+			int retVal;
+			try {
+				communication::Netadapter adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
+				retVal = sendOverInterface(adapter, data, ttl);
+			} catch( const hbm::exception::exception&) {
+				retVal = communication::ERR_INVALIDADAPTER;
+			}
+			return retVal;
+		}
+
+		int MulticastServer::sendOverInterface(int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
+		{
+			if (pData==NULL) {
+				return 0;
+			}
+
+			int retVal;
+			try {
+				Netadapter adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
+				retVal = sendOverInterface(adapter, pData, length, ttl);
+			} catch( const hbm::exception::exception&) {
+				retVal = ERR_INVALIDADAPTER;
+			}
+			return retVal;
+		}
+
+		int MulticastServer::sendOverInterface(const Netadapter& adapter, const void* pData, size_t length, unsigned int ttl) const
+		{
+			int retVal = ERR_SUCCESS;
+			if(length>0) {
+				if (pData==NULL) {
+					retVal = ERR_NO_SUCCESS;
+				} else {
+					const communication::addressesWithNetmask_t addressesWithNetmask = adapter.getIpv4Addresses();
+					if(addressesWithNetmask.empty()==false) {
+						retVal = sendOverInterfaceByAddress(addressesWithNetmask.front().address, pData, length, ttl);
+					} else {
+						retVal = ERR_INVALIDADAPTER;
+						::syslog(LOG_ERR, "%s interface %s does not have an ipv4 address!", __FUNCTION__, adapter.getName().c_str());
+					}
+				}
+			}
+
+			return retVal;
 		}
 
 		int MulticastServer::sendOverInterfaceByAddress(const std::string& interfaceIp, const std::string& data, unsigned int ttl) const

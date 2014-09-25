@@ -23,6 +23,7 @@
 #define _NETLINK_H
 
 #include "hbm/exception/exception.hpp"
+#include "hbm/communication/netadapterlist.h"
 #include "hbm/communication/multicastserver.h"
 
 namespace hbm {
@@ -32,8 +33,8 @@ namespace hbm {
 		Netlink();
 		virtual ~Netlink();
 
-		/// receive events from netlink. Adapt mulicast server accordingly
-		ssize_t receiveAndProcess(communication::MulticastServer &mcs) const;
+		/// receive events from netlink. Adapt netadapter list and mulicast server accordingly
+		ssize_t receiveAndProcess(communication::NetadapterList &netadapterlist, communication::MulticastServer &mcs) const;
 
 		/// to poll
 		int getFd() const
@@ -47,7 +48,7 @@ namespace hbm {
 		ssize_t receive(char* pReadBuffer, size_t bufferSize) const;
 		/// \param[in, out] netadapterlist will be adapted when processing netlink events
 		/// \param[in, out] mcs will be adapted when processing netlink events
-		void process(char *pReadBuffer, size_t bufferSize, communication::MulticastServer &mcs) const;
+		void process(char *pReadBuffer, size_t bufferSize, communication::NetadapterList &netadapterlist, communication::MulticastServer &mcs) const;
 		int m_fd;
 	};
 }
