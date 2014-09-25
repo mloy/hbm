@@ -500,6 +500,7 @@ namespace hbm {
 				return 0;
 			}
 
+			// IPV6_MULTICAST_IF does not work. It is not possible to send via a desired interface index. We have to select the interface by IP address using IP_MULTICAST_IF
 			int retVal;
 			try {
 				communication::Netadapter adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
@@ -515,6 +516,8 @@ namespace hbm {
 			if (pData==NULL) {
 				return 0;
 			}
+
+			// IPV6_MULTICAST_IF does not work. It is not possible to send via a desired interface index. We have to select the interface by IP address using IP_MULTICAST_IF
 
 			int retVal;
 			try {
