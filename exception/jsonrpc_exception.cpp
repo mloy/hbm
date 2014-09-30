@@ -23,8 +23,7 @@
 #include <json/writer.h>
 
 #include "jsonrpc_exception.h"
-#include "common/jsonrpc_names.h"
-
+#include "hbm/jsonrpc/jsonrpc_defines.h"
 
 namespace hbm {
 	namespace exception {
