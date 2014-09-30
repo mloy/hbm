@@ -30,12 +30,12 @@
 
 namespace hbm {
 	namespace exception {
-		class jsonException : public hbm::exception::exception	{
+		class jsonrpcException : public hbm::exception::exception	{
 		public:
-			jsonException(int code, const std::string& message="");
-			jsonException(const Json::Value& error);
+			jsonrpcException(int code, const std::string& message="");
+			jsonrpcException(const Json::Value& error);
 
-			virtual ~jsonException() throw();
+			virtual ~jsonrpcException() throw();
 
 			const char* what() const throw();
 

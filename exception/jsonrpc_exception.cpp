@@ -22,13 +22,13 @@
 
 #include <json/writer.h>
 
-#include "jsonException.h"
-#include "common/JsonNames.h"
+#include "jsonrpc_exception.h"
+#include "common/jsonrpc_names.h"
 
 
 namespace hbm {
 	namespace exception {
-		jsonException::jsonException(const Json::Value& error)
+		jsonrpcException::jsonrpcException(const Json::Value& error)
 			: exception("")
 			, m_error_obj(error)
 			, m_localWhat()
@@ -39,32 +39,32 @@ namespace hbm {
 			m_localWhat += exception::what();
 		}
 
-		jsonException::jsonException( int code, const std::string& message)
+		jsonrpcException::jsonrpcException( int code, const std::string& message)
 			: exception("")
 			, m_error_obj()
 			, m_localWhat()
 		{
 			if(message.empty()==false) {
-				m_error_obj[json::ERR][json::MESSAGE] = message;
+				m_error_obj[jsonrpc::ERR][jsonrpc::MESSAGE] = message;
 			}
 
-			m_error_obj[json::ERR][json::CODE] = code;
+			m_error_obj[jsonrpc::ERR][jsonrpc::CODE] = code;
 			Json::FastWriter writer;
 			writer.omitEndingLineFeed();
 			m_localWhat = writer.write(m_error_obj);
 			m_localWhat += exception::what();
 		}
 
-		jsonException::~jsonException() throw()
+		jsonrpcException::~jsonrpcException() throw()
 		{
 		}
 
-		const Json::Value& jsonException::json() const
+		const Json::Value& jsonrpcException::json() const
 		{
 			return m_error_obj;
 		}
 
-		const char* jsonException::what() const throw()
+		const char* jsonrpcException::what() const throw()
 		{
 			return m_localWhat.c_str();
 		}
