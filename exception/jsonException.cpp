@@ -33,7 +33,9 @@ namespace hbm {
 			, m_error_obj(error)
 			, m_localWhat()
 		{
-			m_localWhat = Json::FastWriter().write(m_error_obj);
+			Json::FastWriter writer;
+			writer.omitEndingLineFeed();
+			m_localWhat = writer.write(m_error_obj);
 			m_localWhat += exception::what();
 		}
 
@@ -47,7 +49,9 @@ namespace hbm {
 			}
 
 			m_error_obj[json::ERR][json::CODE] = code;
-			m_localWhat = Json::FastWriter().write(m_error_obj);
+			Json::FastWriter writer;
+			writer.omitEndingLineFeed();
+			m_localWhat = writer.write(m_error_obj);
 			m_localWhat += exception::what();
 		}
 
