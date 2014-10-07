@@ -11,14 +11,14 @@
 
 
 
-#include "SocketNonblocking.h"
+#include "hbm/communication/socketnonblocking.h"
 
 
 /// Maximum time to wait for connecting
 const time_t TIMEOUT_CONNECT_S = 5;
 
 
-hbm::SocketNonblocking::SocketNonblocking()
+hbm::communication::SocketNonblocking::SocketNonblocking()
 	: m_fd(-1)
 	, m_bufferedReader()
 {
@@ -26,7 +26,7 @@ hbm::SocketNonblocking::SocketNonblocking()
 	WSAStartup(2, &wsaData);
 }
 
-hbm::SocketNonblocking::SocketNonblocking(const std::string& fileName)
+hbm::communication::SocketNonblocking::SocketNonblocking(const std::string& fileName)
 	: m_fd(-1)
 	, m_bufferedReader(fileName)
 {
@@ -34,12 +34,12 @@ hbm::SocketNonblocking::SocketNonblocking(const std::string& fileName)
 	WSAStartup(2, &wsaData);
 }
 
-hbm::SocketNonblocking::~SocketNonblocking()
+hbm::communication::SocketNonblocking::~SocketNonblocking()
 {
 	stop();
 }
 
-int hbm::SocketNonblocking::init()
+int hbm::communication::SocketNonblocking::init()
 {
 	int retVal = 0;
 	bool opt = true;
@@ -70,7 +70,7 @@ int hbm::SocketNonblocking::init()
 	return retVal;
 }
 
-int hbm::SocketNonblocking::connect(const std::string &address, const std::string& port)
+int hbm::communication::SocketNonblocking::connect(const std::string &address, const std::string& port)
 {
 	int retVal = init();
 
@@ -127,12 +127,12 @@ int hbm::SocketNonblocking::connect(const std::string &address, const std::strin
 }
 
 
-ssize_t hbm::SocketNonblocking::receive(void* pBlock, size_t size)
+ssize_t hbm::communication::SocketNonblocking::receive(void* pBlock, size_t size)
 {
   return m_bufferedReader.recv(m_fd, pBlock, size, 0);
 }
 
-ssize_t hbm::SocketNonblocking::receiveComplete(void* pBlock, size_t len)
+ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, size_t len)
 {
   size_t DataToGet = len;
   unsigned char* pDat = static_cast<unsigned char*>(pBlock);
@@ -172,7 +172,7 @@ ssize_t hbm::SocketNonblocking::receiveComplete(void* pBlock, size_t len)
 }
 
 
-int hbm::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool more)
+int hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool more)
 {
 	const uint8_t* pDat = reinterpret_cast<const uint8_t*>(pBlock);
 	size_t BytesLeft = size;
@@ -223,7 +223,7 @@ int hbm::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool more
 }
 
 
-void hbm::SocketNonblocking::stop()
+void hbm::communication::SocketNonblocking::stop()
 {
 	::shutdown(m_fd, SD_BOTH);
 	::closesocket(m_fd);
