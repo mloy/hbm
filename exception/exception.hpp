@@ -19,13 +19,6 @@
  * which is part of the standard terms and conditions of sale from HBM.
 */
 
-/*
-$HeadURL$
-$Revision$
-$Author$
-$Date$
-*/
-/// @file
 
 #ifndef HBM__EXCEPTION_H
 #define HBM__EXCEPTION_H
