@@ -31,8 +31,9 @@ namespace hbm {
 		class PidFile
 		{
 		public:
+			/// @param baseName name without path
 			/// \throws hbm::exception
-			PidFile(const std::string& programName);
+			PidFile(const std::string& baseName);
 			virtual ~PidFile();
 
 		private:

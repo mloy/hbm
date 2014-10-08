@@ -38,14 +38,14 @@
 
 namespace hbm {
 	namespace sys {
-		PidFile::PidFile(const std::string& programName)
+		PidFile::PidFile(const std::string& baseName)
 	#ifdef _HBM_HARDWARE
 			: m_pidFileName("/var/run/")
 	#else
 			: m_pidFileName()
 	#endif
 		{
-			m_pidFileName += programName + ".pid";
+			m_pidFileName += baseName + ".pid";
 			FILE* pidFile = ::fopen(m_pidFileName.c_str(), "w");
 
 			if (pidFile == NULL) {
