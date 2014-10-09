@@ -27,9 +27,11 @@
 #define LOG_ERR stderr
 #include <process.h>
 #define getpid _getpid
+#define basename(x) x
 #else
 #include <sys/types.h>
 #include <unistd.h>
+#include <libgen.h>
 #endif
 
 #include "hbm/exception/exception.hpp"
@@ -38,14 +40,15 @@
 
 namespace hbm {
 	namespace sys {
-		PidFile::PidFile(const std::string& baseName)
+		PidFile::PidFile(char* name)
 	#ifdef _HBM_HARDWARE
 			: m_pidFileName("/var/run/")
 	#else
 			: m_pidFileName()
 	#endif
 		{
-			m_pidFileName += baseName + ".pid";
+			m_pidFileName += basename(name);
+			m_pidFileName += ".pid";
 			FILE* pidFile = ::fopen(m_pidFileName.c_str(), "w");
 
 			if (pidFile == NULL) {
