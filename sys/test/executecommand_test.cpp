@@ -27,13 +27,34 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE executecommand tests
+
+#include <cstdio>
+#include <iostream>
 #include <boost/test/unit_test.hpp>
 
 #include "hbm/sys/executecommand.h"
 #include "hbm/exception/exception.hpp"
 
 
-BOOST_AUTO_TEST_CASE(write_read_and_compare)
+BOOST_AUTO_TEST_CASE(invalid_command)
 {
-	hbm::sys::executeCommand("yes");
+	static const std::string fileName = "bla";
+	int result = hbm::sys::executeCommand("/usr/bin/touc", fileName, "");
+	BOOST_CHECK(result==-1);
 }
+
+BOOST_AUTO_TEST_CASE(valid_command)
+{
+	static const std::string fileName = "bla";
+	int result = hbm::sys::executeCommand("/usr/bin/touch", fileName, "");
+	BOOST_CHECK(result==0);
+	result = ::remove(fileName.c_str());
+	BOOST_CHECK(result==0);
+}
+
+BOOST_AUTO_TEST_CASE(stdin_test)
+{
+	int result = hbm::sys::executeCommand("/usr/bin/xargs", "", "blub");
+	BOOST_CHECK(result==0);
+}
+

@@ -94,13 +94,13 @@ namespace hbm {
 					syslog(LOG_ERR, "error redirecting stdin");
 					return -1;
 				}
-				//syslog(LOG_INFO, "execute: %s %s", command.c_str(), param.c_str());
 				result = execl(command.c_str(), command.c_str(), param.c_str(), static_cast<char*>(NULL));
 				// if we get here at all, an error occurred, but we are in the child
 				// process, so just exit
-				syslog(LOG_ERR, "error executing %s '%s'", command.c_str(), strerror(errno));
-				exit(result);
+				syslog(LOG_ERR, "error executing '%s' '%s'", command.c_str(), strerror(errno));
+				exit(EXIT_FAILURE);
 			} else if ( cpid > 0 ) {
+				int waitStatus;
 				// Parent
 				close(pfd[PIPE_READ]); // close unused read end
 
@@ -111,12 +111,22 @@ namespace hbm {
 
 				//syslog(LOG_INFO, "wait for children...");
 				// wait for child to finish
-				wait(NULL);
-				//syslog(LOG_INFO, "done!");
+				wait(&waitStatus);
+
+				if(WIFEXITED(waitStatus)==false) {
+					// child process did not exit normally
+					return -1;
+				}
+
+				if(WEXITSTATUS(waitStatus)==EXIT_FAILURE) {
+					// child did exit with failure. Maybe the desired program could not be executed. Otherwise the executed program itself returned the error.
+					return -1;
+				}
 			} else {
 				//syslog(LOG_ERR, "failed to create child!");
 				close(pfd[PIPE_READ]);
 				close(pfd[PIPE_WRITE]);
+				return -1;
 			}
 		#endif
 			return 0;
