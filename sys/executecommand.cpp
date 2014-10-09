@@ -86,7 +86,6 @@ namespace hbm {
 			}
 			if (cpid == 0) {
 				// Child
-				int result;
 				close(pfd[PIPE_WRITE]); // close unused write end
 
 				// redirect stdin
@@ -94,7 +93,7 @@ namespace hbm {
 					syslog(LOG_ERR, "error redirecting stdin");
 					return -1;
 				}
-				result = execl(command.c_str(), command.c_str(), param.c_str(), static_cast<char*>(NULL));
+				execl(command.c_str(), command.c_str(), param.c_str(), static_cast<char*>(NULL));
 				// if we get here at all, an error occurred, but we are in the child
 				// process, so just exit
 				syslog(LOG_ERR, "error executing '%s' '%s'", command.c_str(), strerror(errno));
