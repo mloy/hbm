@@ -65,10 +65,16 @@ namespace hbm {
 		#endif
 		}
 
-		int executeCommand(const std::string& command, const std::string& param, const std::string& stdinString)
+		int executeCommand(const std::string& command, const params_t &params, const std::string& stdinString)
 		{
 		#ifdef _STANDARD_HARDWARE
-			std::cout << command << " " << param << " < " << stdinString << std::endl;
+			std::cout << command << " ";
+
+			for(params_t::const_iterator iter = params.begin(); iter!=params.end(); ++iter) {
+				std::cout << *iter << " ";
+			}
+
+			std::cout << " < " << stdinString << std::endl;
 		#else
 			static const unsigned int PIPE_READ = 0;
 			static const unsigned int PIPE_WRITE = 1;
@@ -89,11 +95,28 @@ namespace hbm {
 				close(pfd[PIPE_WRITE]); // close unused write end
 
 				// redirect stdin
-				if (dup2(pfd[PIPE_READ], STDIN_FILENO) == -1) {
-					syslog(LOG_ERR, "error redirecting stdin");
-					return -1;
+				if(pfd[PIPE_READ] != STDIN_FILENO) {
+					if (dup2(pfd[PIPE_READ], STDIN_FILENO) == -1) {
+						syslog(LOG_ERR, "error redirecting stdin");
+						return -1;
+					}
 				}
-				execl(command.c_str(), command.c_str(), param.c_str(), static_cast<char*>(NULL));
+
+				std::vector < char* > argv;
+
+				{
+					// basename is first argument
+					std::vector < char > commandBuffer(command.size());
+					memcpy(&commandBuffer[0], command.c_str(), command.size());
+					argv.push_back(basename(&commandBuffer[0]));
+				}
+
+				for(params_t::const_iterator iter = params.begin(); iter!=params.end(); ++iter) {
+					argv.push_back( const_cast < char* > ((*iter).c_str()));
+				}
+				argv.push_back(NULL);
+
+				execve(command.c_str(), &argv[0], NULL);
 				// if we get here at all, an error occurred, but we are in the child
 				// process, so just exit
 				syslog(LOG_ERR, "error executing '%s' '%s'", command.c_str(), strerror(errno));
@@ -104,25 +127,32 @@ namespace hbm {
 				close(pfd[PIPE_READ]); // close unused read end
 
 				// send data to stdin of child
-				//syslog(LOG_INFO, "piping data to stdin: '%s'", stdin.c_str());
-				write(pfd[PIPE_WRITE], stdinString.c_str(), stdinString.size());
+				const char* pStdinData = stdinString.c_str();
+				size_t stdinDataSize = stdinString.size();
+				while(stdinDataSize) {
+					ssize_t ret = write(pfd[PIPE_WRITE], pStdinData, stdinDataSize);
+					if (ret == -1) {
+						syslog(LOG_ERR, "error writing to stdin of child '%s'", command.c_str());
+					}
+					stdinDataSize -= ret;
+					pStdinData += ret;
+				}
 				close(pfd[PIPE_WRITE]);
 
-				//syslog(LOG_INFO, "wait for children...");
 				// wait for child to finish
-				wait(&waitStatus);
+				waitpid(cpid, &waitStatus, 0);
 
 				if(WIFEXITED(waitStatus)==false) {
 					// child process did not exit normally
 					return -1;
 				}
 
-				if(WEXITSTATUS(waitStatus)==EXIT_FAILURE) {
+				if(WEXITSTATUS(waitStatus)!=EXIT_SUCCESS) {
 					// child did exit with failure. Maybe the desired program could not be executed. Otherwise the executed program itself returned the error.
 					return -1;
 				}
 			} else {
-				//syslog(LOG_ERR, "failed to create child!");
+				syslog(LOG_ERR, "failed to create child!");
 				close(pfd[PIPE_READ]);
 				close(pfd[PIPE_WRITE]);
 				return -1;

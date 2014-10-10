@@ -1,17 +1,11 @@
 project("hbm_sys_test")
 cmake_minimum_required(VERSION 2.8)
-#include_directories(
-#	../../../../
-#	../../../
-#)
 
 include_directories(../../..)
 
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../../cmake)
 
-#include(QuantumxSettings)
-#include(QuantumxBoost)
 
 find_package(Boost ${QX_BOOST_VERSION}  COMPONENTS unit_test_framework)
 
@@ -45,6 +39,3 @@ add_test(executecommand_test executecommand.test
 --log_level=all
 --output_format=xml
 --log_sink=${CMAKE_BINARY_DIR}/executecommand_test.xml)
-
-
-
