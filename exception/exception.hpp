@@ -32,6 +32,8 @@
 #include <execinfo.h>
 #endif
 
+#include "hbm/debug/stack_trace.hpp"
+
 namespace hbm {
 	namespace exception {
 		/// base class for all exceptions raised/thrown by hbm-code.
@@ -49,25 +51,8 @@ namespace hbm {
 					: std::runtime_error(description)
 					, output(std::string(std::runtime_error::what()))
 				{
-#ifdef __GNUG__
-					void *backtrace_buffer[backtrace_size];
-					unsigned int num_functions = ::backtrace(backtrace_buffer, backtrace_size);
-					char **function_strings = ::backtrace_symbols(backtrace_buffer, num_functions);
-					if (function_strings != NULL) {
-						output.append("\n----------- stacktrace begin\n");
-						output.append("\n");
-						for (unsigned int i = 0; i < num_functions; ++i) {
-							output.append(function_strings[i]);
-							output.append("\n");
-						}
-						output.append("----------- stacktrace end\n");
-						::free(function_strings);
-					} else {
-						output.append("No backtrace!\n");
-					}
-#else
-					output.append("No backtrace!\n");
-#endif
+					output.append("\n");
+					output.append(hbm::debug::fillStackTrace());
 				}
 				virtual ~exception() throw() {}
 				virtual const char* what() const throw()
