@@ -173,8 +173,13 @@ namespace hbm {
 				throw hbm::exception::exception(msg);
 			} else {
 				char buffer[1024] = {'\0'};
-				fread(buffer, sizeof(buffer), 1, f);
-				retVal = buffer;
+				do {
+					size_t count = fread(buffer, 1, sizeof(buffer), f);
+					if (count==0) {
+						break;
+					}
+					retVal += std::string(buffer, count);
+				} while(true);
 				pclose(f);
 			}
 			#endif
