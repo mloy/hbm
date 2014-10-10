@@ -31,7 +31,7 @@ namespace hbm {
 
 		static const unsigned int backtrace_size = 100;
 
-		static std::string fillStackTrace()
+		static std::string fill_stack_trace()
 		{
 			std::string output;
 #ifdef __GNUG__

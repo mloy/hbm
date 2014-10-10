@@ -52,7 +52,7 @@ namespace hbm {
 					, output(std::string(std::runtime_error::what()))
 				{
 					output.append("\n");
-					output.append(hbm::debug::fillStackTrace());
+					output.append(hbm::debug::fill_stack_trace());
 				}
 				virtual ~exception() throw() {}
 				virtual const char* what() const throw()
