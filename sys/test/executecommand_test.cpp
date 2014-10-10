@@ -36,6 +36,16 @@
 #include "hbm/exception/exception.hpp"
 
 
+BOOST_AUTO_TEST_CASE(command_withparameters_test)
+{
+	static const std::string fileName = "bla";
+	::remove(fileName.c_str());
+	hbm::sys::executeCommand("/usr/bin/touch " + fileName);
+	int result = ::remove(fileName.c_str());
+	BOOST_CHECK(result==0);
+}
+
+
 BOOST_AUTO_TEST_CASE(invalid_command_test)
 {
 	static const std::string fileName = "bla";
@@ -71,6 +81,6 @@ BOOST_AUTO_TEST_CASE(answer_test)
 {
 	std::string cmd = "/bin/echo";
 	std::string arg = "hallo";
-	std::string result = hbm::sys::executeCommandWithAnswer(cmd + " " + arg);
-	BOOST_CHECK(result==arg);
+	std::string result = hbm::sys::executeCommand(cmd + " " + arg);
+	BOOST_CHECK(result.substr(0, result.size()-1)==arg);
 }

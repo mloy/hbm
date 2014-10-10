@@ -50,19 +50,29 @@
 
 namespace hbm {
 	namespace sys {
-		void executeCommand(const std::string& command)
+		std::string executeCommand(const std::string& command)
 		{
-		#ifdef _STANDARD_HARDWARE
+			std::string retVal;
+#ifdef _STANDARD_HARDWARE
 			std::cout << command << std::endl;
-		#else
+#else
 			FILE* f = popen(command.c_str(),"r");
 			if (f == NULL) {
 				std::string msg = std::string(__FUNCTION__) + "popen failed (cmd=" + command + ")!";
 				throw hbm::exception::exception(msg);
 			} else {
+				char buffer[1024];
+				do {
+					size_t count = fread(buffer, 1, sizeof(buffer), f);
+					if (count==0) {
+						break;
+					}
+					retVal += std::string(buffer, count);
+				} while(true);
 				pclose(f);
 			}
-		#endif
+#endif
+			return retVal;
 		}
 
 		int executeCommand(const std::string& command, const params_t &params, const std::string& stdinString)
@@ -159,32 +169,6 @@ namespace hbm {
 			}
 		#endif
 			return 0;
-		}
-
-		std::string executeCommandWithAnswer(const std::string& command)
-		{
-			std::string retVal;
-		#ifdef _STANDARD_HARDWARE
-			std::cout << command << std::endl;
-		#else
-			FILE* f = popen(command.c_str(),"r");
-			if (f == NULL) {
-				std::string msg = std::string(__FUNCTION__) + "popen failed (cmd=" + command + ")!";
-				throw hbm::exception::exception(msg);
-			} else {
-				char buffer[1024];
-				do {
-					size_t count = fread(buffer, 1, sizeof(buffer), f);
-					if (count==0) {
-						break;
-					}
-					retVal += std::string(buffer, count);
-				} while(true);
-				pclose(f);
-			}
-			#endif
-
-			return retVal;
 		}
 	}
 }

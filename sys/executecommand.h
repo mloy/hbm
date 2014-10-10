@@ -30,12 +30,9 @@ namespace hbm {
 	namespace sys {
 		typedef std::vector < std::string > params_t;
 		/// \throws hbm::exception
-		void executeCommand(const std::string& command);
+		std::string executeCommand(const std::string& command);
 
 		int executeCommand(const std::string& command, const params_t& params, const std::string& stdinString);
-
-		/// \throws hbm::exception
-		std::string executeCommandWithAnswer(const std::string& command);
 	}
 }
 #endif
