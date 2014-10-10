@@ -34,7 +34,7 @@ namespace hbm {
 		static std::string fillStackTrace()
 		{
 			std::string output;
-		#ifdef __GNUG__
+#ifdef __GNUG__
 			void *backtrace_buffer[backtrace_size];
 			unsigned int num_functions = ::backtrace(backtrace_buffer, backtrace_size);
 			char **function_strings = ::backtrace_symbols(backtrace_buffer, num_functions);
@@ -50,12 +50,10 @@ namespace hbm {
 			} else {
 				output.append("No backtrace!\n");
 			}
-		#else
+#else
 			output.append("No backtrace!\n");
-		#endif
-
+#endif
 			return output;
 		}
-
 	}
 }
