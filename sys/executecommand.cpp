@@ -172,7 +172,7 @@ namespace hbm {
 				std::string msg = std::string(__FUNCTION__) + "popen failed (cmd=" + command + ")!";
 				throw hbm::exception::exception(msg);
 			} else {
-				char buffer[1024] = {'\0'};
+				char buffer[1024];
 				do {
 					size_t count = fread(buffer, 1, sizeof(buffer), f);
 					if (count==0) {
