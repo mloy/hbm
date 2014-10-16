@@ -77,7 +77,7 @@ namespace hbm {
 
 		int executeCommand(const std::string& command, const params_t &params, const std::string& stdinString)
 		{
-		#ifdef _STANDARD_HARDWARE
+#ifdef _STANDARD_HARDWARE
 			std::cout << command << " ";
 
 			for(params_t::const_iterator iter = params.begin(); iter!=params.end(); ++iter) {
@@ -85,7 +85,7 @@ namespace hbm {
 			}
 
 			std::cout << " < " << stdinString << std::endl;
-		#else
+#else
 			static const unsigned int PIPE_READ = 0;
 			static const unsigned int PIPE_WRITE = 1;
 			int pfd[2];
@@ -136,6 +136,7 @@ namespace hbm {
 					ssize_t ret = write(pfd[PIPE_WRITE], pStdinData, stdinDataSize);
 					if (ret == -1) {
 						syslog(LOG_ERR, "error writing to stdin of child '%s'", command.c_str());
+						break;
 					}
 					stdinDataSize -= ret;
 					pStdinData += ret;
@@ -160,7 +161,7 @@ namespace hbm {
 				close(pfd[PIPE_WRITE]);
 				return -1;
 			}
-		#endif
+#endif
 			return 0;
 		}
 	}
