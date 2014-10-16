@@ -36,7 +36,7 @@ typedef int event;
 #include "hbm/exception/exception.hpp"
 
 namespace hbm {
-	namespace system {
+	namespace sys {
 		class Timer {
 		public:
 			/// \throws hbm::exception

@@ -28,7 +28,7 @@
 #include "hbm/sys/timer.h"
 
 namespace hbm {
-	namespace system {
+	namespace sys {
 		Timer::Timer()
 			: m_fd(timerfd_create(CLOCK_MONOTONIC, 0))
 		{
