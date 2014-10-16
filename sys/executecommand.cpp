@@ -113,14 +113,7 @@ namespace hbm {
 				}
 
 				std::vector < char* > argv;
-
-				{
-					// basename is first argument
-					std::vector < char > commandBuffer(command.size());
-					memcpy(&commandBuffer[0], command.c_str(), command.size());
-					argv.push_back(basename(&commandBuffer[0]));
-				}
-
+				argv.push_back(const_cast < char* > (command.c_str()));
 				for(params_t::const_iterator iter = params.begin(); iter!=params.end(); ++iter) {
 					argv.push_back( const_cast < char* > ((*iter).c_str()));
 				}
