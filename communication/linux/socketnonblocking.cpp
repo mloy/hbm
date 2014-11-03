@@ -53,23 +53,41 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 	int opt = 1;
 
 	// turn off Nagle algorithm
-	setsockopt(m_fd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt));
+	if (setsockopt(m_fd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+		syslog(LOG_ERR, "error turning off nagle algorithm");
+		return -1;
+	}
 
 	opt = 12;
 	// the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe;
 	// after the connection is marked to need keepalive, this counter is not used any further
-	setsockopt(m_fd, SOL_TCP, TCP_KEEPIDLE, reinterpret_cast<char*>(&opt), sizeof(opt));
+	if (setsockopt(m_fd, SOL_TCP, TCP_KEEPIDLE, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+		syslog(LOG_ERR, "error setting socket option TCP_KEEPIDLE");
+		return -1;
+}
+
 
 	opt = 3;
 	// the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
-	setsockopt(m_fd, SOL_TCP, TCP_KEEPINTVL, reinterpret_cast<char*>(&opt), sizeof(opt));
+	if (setsockopt(m_fd, SOL_TCP, TCP_KEEPINTVL, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+		syslog(LOG_ERR, "error setting socket option TCP_KEEPINTVL");
+		return -1;
+	}
+
 
 	opt = 2;
 	// the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
-	setsockopt(m_fd, SOL_TCP, TCP_KEEPCNT, reinterpret_cast<char*>(&opt), sizeof(opt));
+	if (setsockopt(m_fd, SOL_TCP, TCP_KEEPCNT, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+		syslog(LOG_ERR, "error setting socket option TCP_KEEPCNT");
+		return -1;
+	}
+
 
 	opt = 1;
-	setsockopt(m_fd, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<char*>(&opt), sizeof(opt));
+	if (setsockopt(m_fd, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+		syslog(LOG_ERR, "error setting socket option SO_KEEPALIVE");
+		return -1;
+	}
 
 	return 0;
 }
@@ -78,19 +96,17 @@ int hbm::communication::SocketNonblocking::init()
 {
 
 	m_fd = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-	if(m_fd==-1) {
+	if (m_fd==-1) {
 		return -1;
-	} else {
-		setSocketOptions();
 	}
 
-	return 0;
+	return setSocketOptions();
 }
 
 int hbm::communication::SocketNonblocking::connect(const std::string &address, const std::string& port)
 {
 	int retVal = init();
-	if(retVal<0) {
+	if (retVal<0) {
 		return retVal;
 	}
 
@@ -107,30 +123,6 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 		return -1;
 	}
 	retVal = connect(pResult->ai_addr, sizeof(sockaddr_in));
-//	int err = ::connect(m_fd, pResult->ai_addr, sizeof(sockaddr_in));
-//	if(err==-1) {
-//		if(errno == EINPROGRESS) {
-//			// success if errno equals EINPROGRESS
-//			struct pollfd pfd;
-//			pfd.fd = m_fd;
-//			pfd.events = POLLOUT;
-//			do {
-//				err = poll(&pfd, 1, TIMEOUT_CONNECT_S*1000);
-//			} while((err==-1) && (errno==EINTR) );
-//			if(err==1) {
-//				int value;
-//				socklen_t len = sizeof(value);
-//				getsockopt(m_fd, SOL_SOCKET, SO_ERROR, &value, &len);
-//				if(value!=0) {
-//					retVal = -1;
-//				}
-//			} else {
-//				retVal = -1;
-//			}
-//		} else {
-//			retVal = -1;
-//		}
-//	}
 
 	freeaddrinfo( pResult );
 
@@ -140,30 +132,31 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 int hbm::communication::SocketNonblocking::connect(const struct sockaddr* pSockAddr, socklen_t len)
 {
 	int err = ::connect(m_fd, pSockAddr, len);
-	if(err==-1) {
-		if(errno == EINPROGRESS) {
-			// success if errno equals EINPROGRESS
-			struct pollfd pfd;
-			pfd.fd = m_fd;
-			pfd.events = POLLOUT;
-			do {
-				err = poll(&pfd, 1, TIMEOUT_CONNECT_S*1000);
-			} while((err==-1) && (errno==EINTR) );
-			if(err==1) {
-				int value;
-				socklen_t len = sizeof(value);
-				getsockopt(m_fd, SOL_SOCKET, SO_ERROR, &value, &len);
-				if(value!=0) {
-					err = -1;
-				}
-			} else {
-				err = -1;
-			}
-		} else {
-			err = -1;
-		}
+	if(err==0) {
+		return 0;
 	}
-	return err;
+
+	// success if errno equals EINPROGRESS
+	if(errno != EINPROGRESS) {
+		return -1;
+	}
+	struct pollfd pfd;
+	pfd.fd = m_fd;
+	pfd.events = POLLOUT;
+	do {
+		err = poll(&pfd, 1, TIMEOUT_CONNECT_S*1000);
+	} while((err==-1) && (errno==EINTR) );
+	if(err!=1) {
+		return -1;
+	}
+
+	int value;
+	len = sizeof(value);
+	getsockopt(m_fd, SOL_SOCKET, SO_ERROR, &value, &len);
+	if(value!=0) {
+		return -1;
+	}
+	return 0;
 }
 
 int hbm::communication::SocketNonblocking::bind(uint16_t Port)
