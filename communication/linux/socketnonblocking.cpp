@@ -183,8 +183,6 @@ int hbm::communication::SocketNonblocking::bind(uint16_t Port)
 
 std::unique_ptr < hbm::communication::SocketNonblocking > hbm::communication::SocketNonblocking::acceptClient()
 {
-	std::unique_ptr < SocketNonblocking > retSocket;
-
 	sockaddr_in SockAddr;
 	// the length of the client's address
 	socklen_t socketAddressLen = sizeof(SockAddr);
