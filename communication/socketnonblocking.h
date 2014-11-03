@@ -6,6 +6,7 @@
 
 #ifdef _WIN32
 #include <WinSock2.h>
+#include <WS2tcpip.h>
 #undef max
 #undef min
 #else

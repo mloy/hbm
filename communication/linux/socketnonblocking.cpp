@@ -183,6 +183,7 @@ int hbm::communication::SocketNonblocking::bind(uint16_t Port)
 	int retVal = init();
 	if (retVal == -1) {
 		syslog(LOG_ERR, "%s: Socket initialization failed '%s'", __FUNCTION__ , strerror(errno));
+		return retVal;
 	}
 	retVal = ::bind(m_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
 	if (retVal == -1) {
@@ -223,6 +224,7 @@ std::unique_ptr < hbm::communication::SocketNonblocking > hbm::communication::So
 
 	if(err!=1) {
 		syslog(LOG_ERR, "%s: Poll failed!", __FUNCTION__);
+		return std::unique_ptr < SocketNonblocking >();
 #ifdef _WIN32
 	} else if(FD_ISSET(m_socketId, &fds)) {
 #else
@@ -381,7 +383,6 @@ bool hbm::communication::SocketNonblocking::isFirewire() const
 {
 	bool retVal = false;
 
-#ifndef _WIN32
 	struct ifreq ifr;
 	memset(&ifr, 0, sizeof(struct ifreq));
 
@@ -390,7 +391,4 @@ bool hbm::communication::SocketNonblocking::isFirewire() const
 			retVal = true;
 		}
 	}
-
-#endif
-	return retVal;
 }

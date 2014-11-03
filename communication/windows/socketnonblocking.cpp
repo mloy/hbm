@@ -26,6 +26,15 @@ hbm::communication::SocketNonblocking::SocketNonblocking()
 	WSAStartup(2, &wsaData);
 }
 
+hbm::communication::SocketNonblocking::SocketNonblocking(int fd)
+	: m_fd(fd)
+	, m_bufferedReader()
+{
+	WSADATA wsaData;
+	WSAStartup(2, &wsaData);
+}
+
+
 hbm::communication::SocketNonblocking::SocketNonblocking(const std::string& fileName)
 	: m_fd(-1)
 	, m_bufferedReader(fileName)
@@ -39,32 +48,40 @@ hbm::communication::SocketNonblocking::~SocketNonblocking()
 	stop();
 }
 
+int hbm::communication::SocketNonblocking::setSocketOptions()
+{
+	bool opt = true;
+
+	// switch to non blocking
+	u_long value = 1;
+	::ioctlsocket(m_fd, FIONBIO, &value);
+
+	// turn off nagle algorithm
+	setsockopt(m_fd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt));
+
+
+	// configure keep alive
+	DWORD len;
+	tcp_keepalive ka;
+	ka.keepaliveinterval = 1000; // probe interval in ms
+	ka.keepalivetime = 1000; // time of inactivity until first keep alive probe is being send in ms
+	// from MSDN: on windows vista and later, the number of probes is set to 10 and can not be changed
+	// time until recognition: keepaliveinterval + (keepalivetime*number of probes)
+	ka.onoff = 1;
+	WSAIoctl(m_fd, SIO_KEEPALIVE_VALS, &ka, sizeof(ka), NULL, 0, &len, NULL, NULL);
+
+	return 0;
+}
+
 int hbm::communication::SocketNonblocking::init()
 {
 	int retVal = 0;
-	bool opt = true;
 
 	m_fd = static_cast < int > (::socket(AF_INET, SOCK_STREAM, 0));
 	if(m_fd==-1) {
 		retVal=-1;
 	} else {
-		// switch to non blocking
-		u_long value = 1;
-		::ioctlsocket(m_fd, FIONBIO, &value);
-
-		// turn off nagle algorithm
-		setsockopt(m_fd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt));
-
-
-		// configure keep alive
-		DWORD len;
-		tcp_keepalive ka;
-		ka.keepaliveinterval = 1000; // probe interval in ms
-		ka.keepalivetime = 1000; // time of inactivity until first keep alive probe is being send in ms
-		// from MSDN: on windows vista and later, the number of probes is set to 10 and can not be changed
-		// time until recognition: keepaliveinterval + (keepalivetime*number of probes)
-		ka.onoff = 1;
-		WSAIoctl(m_fd, SIO_KEEPALIVE_VALS, &ka, sizeof(ka), NULL, 0, &len, NULL, NULL);
+		setSocketOptions();		
 	}
 
 	return retVal;
@@ -91,8 +108,18 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 	if( getaddrinfo(address.c_str(), port.c_str(), &hints, &pResult)!=0 ) {
 		return -1;
 	}
-	int err = ::connect(m_fd, pResult->ai_addr, sizeof(sockaddr_in));
+	
+	connect(pResult->ai_addr, sizeof(sockaddr_in));
+
 	freeaddrinfo( pResult );
+
+	return retVal;
+}
+
+int hbm::communication::SocketNonblocking::connect(const struct sockaddr* pSockAddr, socklen_t len)
+{
+	int err = ::connect(m_fd,pSockAddr, len);
+
 	// success if WSAGetLastError returns WSAEWOULDBLOCK
 	if((err == SOCKET_ERROR) && (WSAGetLastError() == WSAEWOULDBLOCK))
 	{
@@ -114,35 +141,133 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 			socklen_t len = sizeof(value);
 			getsockopt(m_fd, SOL_SOCKET, SO_ERROR, reinterpret_cast < char* > (&value), &len);
 			if(value!=0) {
-				retVal = -1;
+				err = -1;
 			}
 		} else {
-			retVal = -1;
+			err = -1;
 		}
 	} else {
-		retVal = -1;
+		err = -1;
 	}
 
+	return err;
+}
+
+int hbm::communication::SocketNonblocking::bind(uint16_t Port)
+{
+	//ipv6 does work for ipv4 too!
+	sockaddr_in6 address;
+
+	memset(&address, 0, sizeof(address));
+#ifdef _WIN32
+	address.sin6_family = AF_INET;
+#else
+	address.sin6_family = AF_INET;
+#endif
+	address.sin6_addr = in6addr_any;
+	address.sin6_port = htons(Port);
+
+	int retVal = init();
+	if (retVal == -1) {
+		//syslog(LOG_ERR, "%s: Socket initialization failed '%s'", __FUNCTION__ , strerror(errno));
+		return retVal;
+	}
+	retVal = ::bind(m_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+	//if (retVal == -1) {
+	//	syslog(LOG_ERR, "%s: Binding socket to port initialization failed '%s'", __FUNCTION__ , strerror(errno));
+	//}
 	return retVal;
 }
 
+std::unique_ptr < hbm::communication::SocketNonblocking > hbm::communication::SocketNonblocking::acceptClient()
+{
+	std::unique_ptr < SocketNonblocking > retSocket;
+
+	sockaddr_in SockAddr;
+	// the length of the client's address
+	socklen_t socketAddressLen = sizeof(SockAddr);
+
+	int err;
+
+#ifdef _WIN32
+	fd_set fds;
+
+	FD_ZERO(&fds);
+	FD_SET(m_fd,&fds);
+
+	// wir warten ohne timeout, bis etwas zu lesen ist
+	do {
+		err = select(static_cast < int >(m_fd) + 1, &fds, NULL, NULL, NULL);
+	} while((err==-1)&&(errno==WSAEINTR));
+#else
+	struct pollfd pfd;
+
+	pfd.fd = m_fd;
+	pfd.events = POLLIN;
+	do {
+		err = poll(&pfd, 1, -1);
+	} while((err==-1) && (errno==EINTR));
+#endif
+
+	if(err!=1) {
+		return std::unique_ptr < SocketNonblocking >();		
+#ifdef _WIN32
+	} else if(FD_ISSET(m_fd, &fds)) {
+#else
+	}	else if(pfd.revents & POLLIN) {
+#endif
+		// the new socket file descriptor returned by the accept system call
+#ifdef _WIN32
+		SOCKET clientFd;
+#else
+		int clientFd;
+#endif
+
+		clientFd = accept(m_fd, reinterpret_cast<sockaddr*>(&SockAddr), &socketAddressLen);
+		if (clientFd >= 0) {
+			std::unique_ptr < SocketNonblocking > p( new SocketNonblocking(clientFd));
+			p->setSocketOptions();
+			return p;
+		} else {
+			//syslog(LOG_ERR, "%s: Accept failed!", __FUNCTION__);
+		}
+	}
+	return std::unique_ptr < SocketNonblocking >();
+}
+
+int hbm::communication::SocketNonblocking::listenToClient(int numPorts)
+{
+	return listen(m_fd, numPorts);
+}
 
 ssize_t hbm::communication::SocketNonblocking::receive(void* pBlock, size_t size)
 {
   return m_bufferedReader.recv(m_fd, pBlock, size, 0);
 }
 
-ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, size_t len)
+ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, size_t len, int msTimeout)
 {
   size_t DataToGet = len;
   unsigned char* pDat = static_cast<unsigned char*>(pBlock);
   ssize_t numBytes = 0;
 
+
+	struct timeval timeVal;
+	struct timeval* pTimeVal;
   fd_set recvFds;
 
-  FD_ZERO(&recvFds);
+	FD_ZERO(&recvFds);
   FD_SET(m_fd,&recvFds);
   int err;
+
+	if(msTimeout>=0) {
+		timeVal.tv_sec = 0;
+		timeVal.tv_usec = msTimeout*1000;
+		pTimeVal = &timeVal;
+	} else {
+		pTimeVal = NULL;
+	}
+
 
 
   while (DataToGet > 0) {
@@ -156,9 +281,9 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
       return -1;
     } else {
       if(WSAGetLastError()==WSAEWOULDBLOCK) {
-	// wait until there is something to read or somthing bad happened
+	// wait until there is something to read or something bad happened
 	do {
-	  err = select(static_cast < int >(m_fd) + 1, &recvFds, NULL, NULL, NULL);
+	  err = select(static_cast < int >(m_fd) + 1, &recvFds, NULL, NULL, pTimeVal);
 	} while((err==-1) && (WSAGetLastError()!=WSAEINTR));
 	if(err!=1) {
 	  return -1;
@@ -223,9 +348,45 @@ int hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, size_t 
 }
 
 
+bool hbm::communication::SocketNonblocking::checkSockAddr(const struct ::sockaddr* pCheckSockAddr, socklen_t checkSockAddrLen) const
+{
+	struct sockaddr sockAddr;
+	socklen_t addrLen = sizeof(sockaddr_in);
+
+	char checkHost[256];
+	char ckeckService[8];
+
+	char host[256];
+	char service[8];
+	int err = getnameinfo(pCheckSockAddr, checkSockAddrLen, checkHost, sizeof(checkHost), ckeckService, sizeof(ckeckService), NI_NUMERICHOST | NI_NUMERICSERV);
+	if (err != 0) {
+		return false;
+	}
+
+	getpeername(m_fd, &sockAddr, &addrLen);
+
+	getnameinfo(&sockAddr, addrLen, host, sizeof(host), service, sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV);
+
+	if(
+		(strcmp(host, checkHost)==0) &&
+		(strcmp(service, ckeckService)==0)
+		)
+	{
+		return true;
+	}
+	return false;
+}
+
+
 void hbm::communication::SocketNonblocking::stop()
 {
 	::shutdown(m_fd, SD_BOTH);
 	::closesocket(m_fd);
 	m_fd = -1;
 }
+
+bool hbm::communication::SocketNonblocking::isFirewire() const
+{
+	return false;
+}
+
