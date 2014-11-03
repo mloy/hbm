@@ -391,4 +391,5 @@ bool hbm::communication::SocketNonblocking::isFirewire() const
 			retVal = true;
 		}
 	}
+	return retVal;
 }
