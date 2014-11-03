@@ -157,11 +157,7 @@ int hbm::communication::SocketNonblocking::bind(uint16_t Port)
 	sockaddr_in6 address;
 
 	memset(&address, 0, sizeof(address));
-#ifdef _WIN32
 	address.sin6_family = AF_INET;
-#else
-	address.sin6_family = AF_INET;
-#endif
 	address.sin6_addr = in6addr_any;
 	address.sin6_port = htons(Port);
 
@@ -183,7 +179,6 @@ std::unique_ptr < hbm::communication::SocketNonblocking > hbm::communication::So
 
 	int err;
 
-#ifdef _WIN32
 	fd_set fds;
 
 	FD_ZERO(&fds);
@@ -193,29 +188,12 @@ std::unique_ptr < hbm::communication::SocketNonblocking > hbm::communication::So
 	do {
 		err = select(static_cast < int >(m_fd) + 1, &fds, NULL, NULL, NULL);
 	} while((err==-1)&&(errno==WSAEINTR));
-#else
-	struct pollfd pfd;
-
-	pfd.fd = m_fd;
-	pfd.events = POLLIN;
-	do {
-		err = poll(&pfd, 1, -1);
-	} while((err==-1) && (errno==EINTR));
-#endif
 
 	if(err!=1) {
 		return std::unique_ptr < SocketNonblocking >();		
-#ifdef _WIN32
 	} else if(FD_ISSET(m_fd, &fds)) {
-#else
-	}	else if(pfd.revents & POLLIN) {
-#endif
 		// the new socket file descriptor returned by the accept system call
-#ifdef _WIN32
 		SOCKET clientFd;
-#else
-		int clientFd;
-#endif
 
 		clientFd = accept(m_fd, reinterpret_cast<sockaddr*>(&SockAddr), &socketAddressLen);
 		if (clientFd >= 0) {
