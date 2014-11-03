@@ -89,13 +89,6 @@ int hbm::communication::SocketNonblocking::init()
 
 int hbm::communication::SocketNonblocking::connect(const std::string &address, const std::string& port)
 {
-	int retVal = init();
-
-	if(retVal<0) {
-		return retVal;
-	}
-
-
 	struct addrinfo hints;
 	struct addrinfo* pResult = NULL;
 
@@ -109,7 +102,7 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 		return -1;
 	}
 	
-	connect(pResult->ai_addr, sizeof(sockaddr_in));
+	int retVal = connect(pResult->ai_addr, sizeof(sockaddr_in));
 
 	freeaddrinfo( pResult );
 
@@ -118,8 +111,13 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 
 int hbm::communication::SocketNonblocking::connect(const struct sockaddr* pSockAddr, socklen_t len)
 {
-	int err = ::connect(m_fd,pSockAddr, len);
+	int err = init();
 
+	if(err<0) {
+		return err;
+	}
+
+	err = ::connect(m_fd,pSockAddr, len);
 	// success if WSAGetLastError returns WSAEWOULDBLOCK
 	if((err == SOCKET_ERROR) && (WSAGetLastError() == WSAEWOULDBLOCK))
 	{
@@ -297,12 +295,12 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 }
 
 
-int hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool more)
+ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool more)
 {
 	const uint8_t* pDat = reinterpret_cast<const uint8_t*>(pBlock);
 	size_t BytesLeft = size;
 	int numBytes;
-	int retVal = 0;
+	ssize_t retVal = size;
 
 	fd_set recvFds;
 
