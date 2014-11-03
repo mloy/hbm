@@ -245,6 +245,79 @@ ssize_t hbm::communication::SocketNonblocking::receive(void* pBlock, size_t size
 
 ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, size_t len, int msTimeout)
 {
+//	if(len==0) {
+//		return 0;
+//	}
+//
+//	size_t DataToGet = len;
+//	uint8_t* pDat = static_cast<uint8_t*>(pBlock);
+//	ssize_t numBytes = 0;
+//	ssize_t result = len;
+//
+//#ifdef _WIN32
+//	fd_set recvFds;
+//	struct timeval timeVal;
+//	struct timeval* pTimeVal;
+//
+//	if(msTimeout>=0) {
+//		timeVal.tv_sec = 0;
+//		timeVal.tv_usec = msTimeout*1000;
+//		pTimeVal = &timeVal;
+//	} else {
+//		pTimeVal = NULL;
+//	}
+//
+//	FD_ZERO(&recvFds);
+//	FD_SET(m_fd,&recvFds);
+//#else
+//	struct pollfd pfd;
+//	pfd.fd = m_socketId;
+//	pfd.events = POLLIN;
+//#endif
+//	int err;
+//
+//
+//	while (DataToGet > 0) {
+//		// wir warten, bis etwas zu lesen ist
+//		err = select(static_cast < int >(m_fd) + 1, &recvFds, NULL, NULL, pTimeVal);
+//
+//		if(err==1) {
+//			if(FD_ISSET(m_fd, &recvFds)) {
+//				numBytes = recv(m_fd, reinterpret_cast<char*>(pDat), static_cast < int >(DataToGet), 0);
+//				if (numBytes > 0) {
+//					pDat += numBytes;
+//					DataToGet -= numBytes;
+//				} else if (numBytes==0) {
+//					// the peer has performed an orderly shutdown!
+//					DataToGet = 0;
+//					result = -1;
+//				} else {
+//					// error!
+//					// ignore "would block"
+//					if(WSAGetLastError()!=WSAEWOULDBLOCK) {
+//						DataToGet = 0;
+//						result = -1;
+//					}
+//				}
+//			}
+//		} else if(err==0) {
+//			result = -1;
+//			DataToGet = 0;
+//		} else {
+//			// -1: error
+//			// ignore EINTR
+//			if(WSAGetLastError()!=WSAEINTR) {
+//				result = -1;
+//				DataToGet = 0;
+//			}
+//			break;
+//		}
+//	}
+//
+//	return result;
+
+
+
   size_t DataToGet = len;
   unsigned char* pDat = static_cast<unsigned char*>(pBlock);
   ssize_t numBytes = 0;
