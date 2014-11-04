@@ -25,7 +25,7 @@
 #include "hbm/sys/timer.h"
 
 namespace hbm {
-	namespace system {
+	namespace sys {
 		Timer::Timer(unsigned int period_s)
 			: m_fd(CreateWaitableTimer(NULL, FALSE, NULL))
 		{
