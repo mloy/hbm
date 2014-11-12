@@ -87,7 +87,7 @@ namespace hbm {
 			ssize_t nbytes = 0;
 			boost::posix_time::ptime endTime;
 			if(timeToWait!=boost::posix_time::milliseconds(0)) {
-				endTime = boost::get_system_time() + timeToWait;
+				endTime = boost::posix_time::microsec_clock::universal_time() + timeToWait;
 			}
 
 			int nfds;
@@ -96,7 +96,8 @@ namespace hbm {
 
 			do {
 				if(endTime!=boost::posix_time::not_a_date_time) {
-					boost::posix_time::time_duration timediff = endTime-boost::get_system_time();
+
+					boost::posix_time::time_duration timediff = endTime-boost::posix_time::microsec_clock::universal_time();
 
 					timeout =static_cast< int > (timediff.total_milliseconds());
 					if(timeout<0) {
