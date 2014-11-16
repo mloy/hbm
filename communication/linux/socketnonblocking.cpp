@@ -105,11 +105,6 @@ int hbm::communication::SocketNonblocking::init()
 
 int hbm::communication::SocketNonblocking::connect(const std::string &address, const std::string& port)
 {
-	int retVal = init();
-	if (retVal<0) {
-		return retVal;
-	}
-
 	struct addrinfo hints;
 	struct addrinfo* pResult = NULL;
 
@@ -122,7 +117,7 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 	if( getaddrinfo(address.c_str(), port.c_str(), &hints, &pResult)!=0 ) {
 		return -1;
 	}
-	retVal = connect(pResult->ai_addr, sizeof(sockaddr_in));
+	int retVal = connect(pResult->ai_addr, sizeof(sockaddr_in));
 
 	freeaddrinfo( pResult );
 
@@ -131,13 +126,19 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 
 int hbm::communication::SocketNonblocking::connect(const struct sockaddr* pSockAddr, socklen_t len)
 {
-	int err = ::connect(m_fd, pSockAddr, len);
+	int err = init();
+	if (err<0) {
+		return err;
+	}
+
+	err = ::connect(m_fd, pSockAddr, len);
 	if(err==0) {
 		return 0;
 	}
 
 	// success if errno equals EINPROGRESS
 	if(errno != EINPROGRESS) {
+		syslog(LOG_ERR, "failed to connect '%s'", strerror(errno));
 		return -1;
 	}
 	struct pollfd pfd;
