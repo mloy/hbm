@@ -37,6 +37,7 @@ typedef int event;
 
 namespace hbm {
 	namespace sys {
+		/// a single-shot-timer. starts when setting the period. Event gets signaled when period is reached.
 		class Timer {
 		public:
 			/// \throws hbm::exception
