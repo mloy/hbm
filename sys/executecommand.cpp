@@ -24,7 +24,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#include <iostream>
+#ifdef _STANDARD_HARDWARE
+	#include <iostream>
+#endif
 #include <stdexcept>
 
 #include <sys/types.h>
