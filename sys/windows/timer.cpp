@@ -18,6 +18,7 @@
  * "General supply and license conditions for software"
  * which is part of the standard terms and conditions of sale from HBM.
 */
+//#include <iostream>
 #include <cstring>
 
 #include <WinSock2.h>
@@ -26,6 +27,14 @@
 
 namespace hbm {
 	namespace sys {
+		Timer::Timer()
+			: m_fd(CreateWaitableTimer(NULL, FALSE, NULL))
+		{
+			//set(0);
+			CancelWaitableTimer(m_fd);
+
+		}
+
 		Timer::Timer(unsigned int period_s)
 			: m_fd(CreateWaitableTimer(NULL, FALSE, NULL))
 		{
@@ -37,7 +46,7 @@ namespace hbm {
 			CloseHandle(m_fd);
 		}
 
-		void Timer::set(unsigned int period_s)
+		int Timer::set(unsigned int period_s)
 		{
 			LARGE_INTEGER dueTime;
 
@@ -51,12 +60,32 @@ namespace hbm {
 				FALSE
 				);
 			if(Result==0) {
-				throw hbm::exception::exception("could not set waitable timer");
+				return -1;
 			}
+			return 0;
 		}
 
-		ssize_t Timer::wait()
+		int Timer::wait()
 		{
+			//DWORD result = WaitForSingleObject(m_fd, 0);
+			DWORD result = WaitForSingleObject(m_fd, INFINITE);
+			switch (result) {
+			case WAIT_OBJECT_0:
+				return 1;
+				break;
+			case WAIT_ABANDONED:
+				return 0;
+				break;
+			case WAIT_FAILED:
+				std::cout << "FAILED" << std::endl;
+				break;
+			case WAIT_TIMEOUT:
+				std::cout << "WAIT_TIMEOUT" << std::endl;
+				break;
+			default:
+				return -1;
+				break;
+			}
 			return 0;
 		}
 
