@@ -18,7 +18,7 @@
  * "General supply and license conditions for software"
  * which is part of the standard terms and conditions of sale from HBM.
 */
-//#include <iostream>
+#include <iostream>
 #include <cstring>
 
 #include <WinSock2.h>
@@ -28,15 +28,14 @@
 namespace hbm {
 	namespace sys {
 		Timer::Timer()
-			: m_fd(CreateWaitableTimer(NULL, FALSE, NULL))
+			: m_fd(NULL)
+			, m_canceled(false)
 		{
-			//set(0);
-			CancelWaitableTimer(m_fd);
-
 		}
 
 		Timer::Timer(unsigned int period_s)
-			: m_fd(CreateWaitableTimer(NULL, FALSE, NULL))
+			: m_fd(NULL)
+			, m_canceled(false)
 		{
 			set(period_s);
 		}
@@ -48,6 +47,7 @@ namespace hbm {
 
 		int Timer::set(unsigned int period_s)
 		{
+			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
 			LARGE_INTEGER dueTime;
 
 			dueTime.QuadPart = period_s*1000*1000*10; // in 100ns
@@ -71,16 +71,10 @@ namespace hbm {
 			DWORD result = WaitForSingleObject(m_fd, INFINITE);
 			switch (result) {
 			case WAIT_OBJECT_0:
+				if (m_canceled) {
+					return 0;
+				}
 				return 1;
-				break;
-			case WAIT_ABANDONED:
-				return 0;
-				break;
-			case WAIT_FAILED:
-				std::cout << "FAILED" << std::endl;
-				break;
-			case WAIT_TIMEOUT:
-				std::cout << "WAIT_TIMEOUT" << std::endl;
 				break;
 			default:
 				return -1;
@@ -91,6 +85,7 @@ namespace hbm {
 
 		int Timer::cancel()
 		{
+			m_canceled = true;
 			CancelWaitableTimer(m_fd);
 			return 0;
 		}

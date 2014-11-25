@@ -52,11 +52,7 @@ namespace hbm {
 			int wait();
 
 			/// to poll
-	#ifdef _WIN32
 			event getFd() const;
-	#else
-			event getFd() const;
-	#endif
 
 			int cancel();
 
@@ -67,6 +63,11 @@ namespace hbm {
 			Timer operator=(const Timer& op);
 
 			event m_fd;
+#ifdef _WIN32
+			/// workaround for windows to determine whether the timer is stopped or got signaled
+			bool m_canceled;
+#endif
+
 		};
 	}
 }
