@@ -52,23 +52,39 @@ namespace hbm {
 			close(m_fd);
 		}
 
-		void Timer::set(unsigned int period_s)
+		int Timer::set(unsigned int period_s)
 		{
+			if (period_s==0) {
+				return -1;
+			}
 			struct itimerspec timespec;
 			memset (&timespec, 0, sizeof(timespec));
 			timespec.it_value.tv_sec = period_s;
 			timespec.it_interval.tv_sec = period_s;
 
-			timerfd_settime(m_fd, 0, &timespec, nullptr);
+			return timerfd_settime(m_fd, 0, &timespec, nullptr);
 		}
 
-		ssize_t Timer::receive()
+		int Timer::wait()
 		{
+			struct itimerspec currValue;
+			timerfd_gettime(m_fd, &currValue);
+			if(currValue.it_value.tv_sec==0 && currValue.it_value.tv_nsec==0) {
+				// not started!
+				return -1;
+			}
+
 			uint64_t timerEventCount;
-			return read(m_fd, &timerEventCount, sizeof(timerEventCount));
+			if (read(m_fd, &timerEventCount, sizeof(timerEventCount))<0) {
+				// timer was stopped!
+				return 0;
+			} else {
+				// to be compatible between windows and linux, we return 1 even if timer expired timerEventCount times.
+				return 1;
+			}
 		}
 
-		int Timer::stop()
+		int Timer::cancel()
 		{
 			return ::close(m_fd);
 		}

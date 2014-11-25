@@ -55,12 +55,12 @@ namespace hbm {
 			}
 		}
 
-		ssize_t Timer::receive()
+		ssize_t Timer::wait()
 		{
 			return 0;
 		}
 
-		int Timer::stop()
+		int Timer::cancel()
 		{
 			CancelWaitableTimer(m_fd);
 			return 0;
@@ -70,5 +70,5 @@ namespace hbm {
 		{
 			return m_fd;
 		}
-	}	
+	}
 }

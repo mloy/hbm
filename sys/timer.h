@@ -46,10 +46,10 @@ namespace hbm {
 			Timer(unsigned int period_s);
 			~Timer();
 
-			void set(unsigned int period_s);
+			int set(unsigned int period_s);
 
-			/// we are not interested in the number of events
-			ssize_t receive();
+			/// \return 0 if timer was stopped before expiration. 1 if timer has expired. -1 if timer was not started
+			int wait();
 
 			/// to poll
 	#ifdef _WIN32
@@ -58,7 +58,7 @@ namespace hbm {
 			event getFd() const;
 	#endif
 
-			int stop();
+			int cancel();
 
 		private:
 			/// must not be copied
