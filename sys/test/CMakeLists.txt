@@ -44,7 +44,7 @@ add_test(executecommand_test executecommand.test
 SET(TIMER_TEST
 	../linux/timer.cpp
 	../linux/eventloop.cpp
-	timertest.cpp
+	timer_test.cpp
 )
 set_source_files_properties(
 	${STRING_UTILS_TEST}
