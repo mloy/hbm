@@ -27,9 +27,6 @@
 	#include <vector>
 	#include <WinSock2.h>
 	#include <Windows.h>
-	#ifndef ssize_t
-		#define ssize_t int
-	#endif
 	typedef HANDLE event;
 #else
 	#include <unordered_map>
@@ -43,7 +40,7 @@
 
 namespace hbm {
 	namespace sys {
-		typedef std::function < ssize_t () > eventHandler_t;
+		typedef std::function < int () > eventHandler_t;
 
 
 		/// \warning not thread-safe
@@ -58,6 +55,7 @@ namespace hbm {
 
 			void clear();
 
+			/// \return 0 if given time to wait was reached. -1 eventloop stopped because one callback function returned error (-1).
 			int execute(boost::posix_time::milliseconds timeToWait=boost::posix_time::milliseconds(0));
 		private:
 			struct eventInfo_t {

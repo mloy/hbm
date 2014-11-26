@@ -83,7 +83,7 @@ namespace hbm {
 		int EventLoop::execute(boost::posix_time::milliseconds timeToWait)
 		{
 			int timeout = -1;
-			ssize_t nbytes = 0;
+			ssize_t result = 0;
 			boost::posix_time::ptime endTime;
 			if(timeToWait!=boost::posix_time::milliseconds(0)) {
 				endTime = boost::posix_time::microsec_clock::universal_time() + timeToWait;
@@ -98,7 +98,7 @@ namespace hbm {
 
 					boost::posix_time::time_duration timediff = endTime-boost::posix_time::microsec_clock::universal_time();
 
-					timeout =static_cast< int > (timediff.total_milliseconds());
+					timeout = static_cast< int > (timediff.total_milliseconds());
 					if(timeout<0) {
 						break;
 					}
@@ -112,13 +112,14 @@ namespace hbm {
 				for (int n = 0; n < nfds; ++n) {
 					if(events[n].events & EPOLLIN) {
 						eventInfo_t* pEventInfo = reinterpret_cast < eventInfo_t* > (events[n].data.ptr);
-						nbytes = pEventInfo->eventHandler();
-						if(nbytes<0) {
+						result = pEventInfo->eventHandler();
+						if(result<0) {
+							return -1;
 							break;
 						}
 					}
 				}
-			} while (nbytes>=0);
+			} while (result>=0);
 			return 0;
 		}
 	}
