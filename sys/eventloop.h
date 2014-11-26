@@ -24,27 +24,26 @@
 
 
 #ifdef _WIN32
-#include <vector>
-#include <WinSock2.h>
-#include <Windows.h>
-#ifndef ssize_t
-#define ssize_t int
-#endif
-typedef HANDLE event;
+	#include <vector>
+	#include <WinSock2.h>
+	#include <Windows.h>
+	#ifndef ssize_t
+		#define ssize_t int
+	#endif
+	typedef HANDLE event;
 #else
-#include <unordered_map>
-
-typedef int event;
+	#include <unordered_map>
+	typedef int event;
 #endif
+#include <functional>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/function.hpp>
 
 #include "hbm/exception/exception.hpp"
 
 namespace hbm {
 	namespace sys {
-		typedef boost::function < ssize_t () > eventHandler_t;
+		typedef std::function < ssize_t () > eventHandler_t;
 
 
 		/// \warning not thread-safe
