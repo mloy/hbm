@@ -20,7 +20,7 @@ SET(EXECUTECOMMAND_TEST
 	executecommand_test.cpp
 )
 set_source_files_properties(
-	${STRING_UTILS_TEST}
+	${EXECUTECOMMAND_TEST}
 	PROPERTIES COMPILE_FLAGS "-Wextra"
 )
 
@@ -43,11 +43,10 @@ add_test(executecommand_test executecommand.test
 
 SET(TIMER_TEST
 	../linux/timer.cpp
-	../linux/eventloop.cpp
 	timer_test.cpp
 )
 set_source_files_properties(
-	${STRING_UTILS_TEST}
+	${TIMER_TEST}
 	PROPERTIES COMPILE_FLAGS "-Wextra"
 )
 
@@ -67,3 +66,32 @@ add_test(timer_test timer.test
 --log_level=all
 --output_format=xml
 --log_sink=${CMAKE_BINARY_DIR}/timer_test.xml)
+
+
+
+SET(EVENTLOOP_TEST
+	../linux/eventloop.cpp
+	../linux/timer.cpp
+	eventloop_test.cpp
+)
+set_source_files_properties(
+	${EVENTLOOP_TEST}
+	PROPERTIES COMPILE_FLAGS "-Wextra"
+)
+
+add_executable(
+	eventloop.test
+	${EVENTLOOP_TEST}
+)
+
+target_link_libraries (
+	eventloop.test
+	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
+
+
+add_test(eventloop_test eventloop.test
+--report_level=no
+--log_level=all
+--output_format=xml
+--log_sink=${CMAKE_BINARY_DIR}/eventloop_test.xml)
