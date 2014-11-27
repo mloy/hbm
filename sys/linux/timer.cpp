@@ -37,14 +37,14 @@ namespace hbm {
 			}
 		}
 
-		Timer::Timer(unsigned int period_s)
+		Timer::Timer(unsigned int period_ms)
 			: m_fd(timerfd_create(CLOCK_MONOTONIC, 0))
 		{
 			if (m_fd<0) {
 				throw hbm::exception::exception("could not create timer fd");
 			}
 
-			set(period_s);
+			set(period_ms);
 		}
 
 		Timer::~Timer()
@@ -52,15 +52,20 @@ namespace hbm {
 			close(m_fd);
 		}
 
-		int Timer::set(unsigned int period_s)
+		int Timer::set(unsigned int period_ms)
 		{
-			if (period_s==0) {
+			if (period_ms==0) {
 				return -1;
 			}
 			struct itimerspec timespec;
 			memset (&timespec, 0, sizeof(timespec));
+			unsigned int period_s = period_ms / 1000;
+			unsigned int rest = period_ms % 1000;
+
 			timespec.it_value.tv_sec = period_s;
+			timespec.it_value.tv_nsec = rest * 1000 * 1000;
 			timespec.it_interval.tv_sec = period_s;
+			timespec.it_interval.tv_nsec = rest * 1000 * 1000;
 
 			return timerfd_settime(m_fd, 0, &timespec, nullptr);
 		}

@@ -33,20 +33,24 @@ typedef HANDLE event;
 typedef int event;
 #endif
 
+
 #include "hbm/exception/exception.hpp"
 
 namespace hbm {
 	namespace sys {
-		/// a single-shot-timer. starts when setting the period. Event gets signaled when period is reached.
+		/// A timer running periodically. Starts when setting the period. Event gets signaled when period is reached.
 		class Timer {
 		public:
 			/// \throws hbm::exception
 			Timer();
+
+			/// @param period_ms timer interval in ms
 			/// \throws hbm::exception
-			Timer(unsigned int period_s);
+			Timer(unsigned int period_ms);
 			~Timer();
 
-			int set(unsigned int period_s);
+			/// @param period_ms timer interval in ms
+			int set(unsigned int period_ms);
 
 			/// \return 0 if timer was stopped before expiration. 1 if timer has expired. -1 if timer was not started
 			int wait();

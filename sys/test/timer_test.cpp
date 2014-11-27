@@ -48,28 +48,46 @@ BOOST_AUTO_TEST_CASE(notstarted_test)
 
 BOOST_AUTO_TEST_CASE(wait_test)
 {
-	static const unsigned int timeToWait = 3;
+	static const unsigned int timeToWait = 3500;
 	hbm::sys::Timer timer;
 	std::chrono::time_point<std::chrono::steady_clock> start(std::chrono::steady_clock::now());
 	std::chrono::time_point<std::chrono::steady_clock> end;
-	timer.set(3);
+	timer.set(timeToWait);
 	ssize_t result = timer.wait();
 	end = std::chrono::steady_clock::now();
 	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (end - start);
-	unsigned int diff = abs((timeToWait*1000)-delta.count());
+	unsigned int diff = abs((timeToWait)-delta.count());
 
 	BOOST_CHECK(diff<5);
 	BOOST_CHECK(result==1);
 }
 
+BOOST_AUTO_TEST_CASE(wait_repeat_test)
+{
+	static const unsigned int timeToWait = 3500;
+	hbm::sys::Timer timer;
+	std::chrono::time_point<std::chrono::steady_clock> start(std::chrono::steady_clock::now());
+	std::chrono::time_point<std::chrono::steady_clock> end;
+	timer.set(timeToWait);
+	ssize_t result = timer.wait();
+	end = std::chrono::steady_clock::now();
+	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (end - start);
+	unsigned int diff = abs((timeToWait)-delta.count());
+
+	BOOST_CHECK(diff<5);
+	BOOST_CHECK(result==1);
+}
+
+
 BOOST_AUTO_TEST_CASE(stop_test)
 {
+	static const unsigned int timeToWait = 3000;
 	hbm::sys::Timer timer;
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	std::chrono::time_point<std::chrono::steady_clock> end;
 
 	start = std::chrono::steady_clock::now();
-	timer.set(3);
+	timer.set(timeToWait);
 	timer.cancel();
 	// timer is stopped, should return at once
 	ssize_t result = timer.wait();

@@ -33,11 +33,11 @@ namespace hbm {
 		{
 		}
 
-		Timer::Timer(unsigned int period_s)
+		Timer::Timer(unsigned int period_ms)
 			: m_fd(NULL)
 			, m_canceled(false)
 		{
-			set(period_s);
+			set(period_ms);
 		}
 
 		Timer::~Timer()
@@ -50,7 +50,7 @@ namespace hbm {
 			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
 			LARGE_INTEGER dueTime;
 
-			dueTime.QuadPart = period_s*1000*1000*10; // in 100ns
+			dueTime.QuadPart = period_s*1000*10; // in 100ns
 			BOOL Result = SetWaitableTimer(
 				m_fd,
 				&dueTime,
