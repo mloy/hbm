@@ -44,6 +44,19 @@ static ssize_t eventHandlerStop()
 	return -1;
 }
 
+static unsigned int eventsLeft;
+
+/// by returning error, the execute() method, that is doing the eventloop, exits
+static ssize_t eventHandlerStopAfterN()
+{
+	--eventsLeft;
+	if (eventsLeft==0) {
+		return -1;
+	} else {
+		return 0;
+	}
+}
+
 
 
 BOOST_AUTO_TEST_CASE(waitforend_test)
@@ -64,9 +77,9 @@ BOOST_AUTO_TEST_CASE(waitforend_test)
 
 BOOST_AUTO_TEST_CASE(timerevent_test)
 {
-	static const unsigned int timerCycle = 1;
+	static const unsigned int timerCycle = 1000;
 	static const unsigned int timerCount = 10;
-	static const boost::posix_time::milliseconds duration(timerCycle*3000);
+	static const boost::posix_time::milliseconds duration(timerCycle*3);
 	hbm::sys::EventLoop eventLoop;
 
 	hbm::sys::Timer timer(timerCycle);
@@ -75,3 +88,20 @@ BOOST_AUTO_TEST_CASE(timerevent_test)
 	int result = eventLoop.execute(duration);
 	BOOST_CHECK(result==-1);
 }
+
+BOOST_AUTO_TEST_CASE(severaltimerevents_test)
+{
+	static const unsigned int timerCycle = 1000;
+	static const unsigned int timerCount = 10;
+	static const boost::posix_time::milliseconds duration(timerCycle*3);
+	hbm::sys::EventLoop eventLoop;
+
+	eventsLeft = 2;
+
+	hbm::sys::Timer timer(timerCycle);
+	eventLoop.addEvent(timer.getFd(), &eventHandlerStop);
+
+	int result = eventLoop.execute(duration);
+	BOOST_CHECK(result==-1);
+}
+
