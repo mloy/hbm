@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(waitforend_test)
 
 
 	boost::posix_time::ptime startTime = boost::posix_time::microsec_clock::universal_time();
-	int result = eventLoop.execute(duration);
+	int result = eventLoop.execute_for(duration);
 	boost::posix_time::ptime endTime = boost::posix_time::microsec_clock::universal_time();
 
 	unsigned int delta = (endTime - startTime - duration).total_milliseconds();
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(timerevent_test)
 	hbm::sys::Timer timer(timerCycle);
 	eventLoop.addEvent(timer.getFd(), &eventHandlerStop);
 
-	int result = eventLoop.execute(duration);
+	int result = eventLoop.execute_for(duration);
 	BOOST_CHECK(result==-1);
 }
 
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(severaltimerevents_test)
 	hbm::sys::Timer timer(timerCycle);
 	eventLoop.addEvent(timer.getFd(), &eventHandlerStop);
 
-	int result = eventLoop.execute(duration);
+	int result = eventLoop.execute_for(duration);
 	BOOST_CHECK(result==-1);
 }
 

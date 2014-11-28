@@ -63,7 +63,38 @@ namespace hbm {
 			m_eventInfos.clear();
 		}
 
-		int EventLoop::execute(boost::posix_time::milliseconds timeToWait)
+		int EventLoop::execute()
+		{
+			ssize_t result = 0;
+
+			int nfds;
+			static const unsigned int MAXEVENTS = 16;
+			struct epoll_event events[MAXEVENTS];
+
+			do {
+				do {
+					nfds = epoll_wait(m_epollfd, events, MAXEVENTS, -1);
+				} while ((nfds==-1) && (errno==EINTR));
+
+				if((nfds==0) || (nfds==-1)) {
+					// 0: time out!
+					return nfds;
+				}
+
+				for (int n = 0; n < nfds; ++n) {
+					if(events[n].events & EPOLLIN) {
+						eventInfo_t* pEventInfo = reinterpret_cast < eventInfo_t* > (events[n].data.ptr);
+						result = pEventInfo->eventHandler();
+						if(result<0) {
+							break;
+						}
+					}
+				}
+			} while (result>=0);
+			return result;
+		}
+
+		int EventLoop::execute_for(boost::posix_time::milliseconds timeToWait)
 		{
 			int timeout = -1;
 			ssize_t result = 0;
