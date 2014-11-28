@@ -37,12 +37,36 @@ namespace hbm {
 			m_eventInfos.push_back(evi);
 		}
 
-		int EventLoop::execute(boost::posix_time::milliseconds timeToWait)
+
+		int EventLoop::execute()
 		{
-			if(m_eventInfos.empty()) {
-				return -1;
+			ssize_t nbytes = 0;
+
+			DWORD dwEvent;
+			std::vector < HANDLE > handles;
+
+			for (unsigned int i = 0; i<m_eventInfos.size(); ++i) {
+				handles.push_back(m_eventInfos[i].fd);
 			}
 
+			do {
+				dwEvent = WaitForMultipleObjects(handles.size(), &handles[0], FALSE, INFINITE);
+				if ((dwEvent == WAIT_FAILED) || (dwEvent == WAIT_TIMEOUT)) {
+					nbytes = -1;
+					break;
+				}
+
+				eventInfo_t& evi = m_eventInfos[WAIT_OBJECT_0 + dwEvent];
+				nbytes = evi.eventHandler();
+				if (nbytes<0) {
+					break;
+				}
+			} while (nbytes >= 0);
+			return 0;
+		}
+
+		int EventLoop::execute_for(boost::posix_time::milliseconds timeToWait)
+		{
 			int timeout = -1;
 			ssize_t nbytes = 0;
 			boost::posix_time::ptime endTime;
