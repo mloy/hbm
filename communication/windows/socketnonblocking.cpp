@@ -201,7 +201,7 @@ std::unique_ptr < hbm::communication::SocketNonblocking > hbm::communication::So
 
 		clientFd = accept(m_fd, reinterpret_cast<sockaddr*>(&SockAddr), &socketAddressLen);
 		if (clientFd >= 0) {
-			std::unique_ptr < SocketNonblocking > p( new SocketNonblocking(clientFd));
+			std::unique_ptr < SocketNonblocking > p( new SocketNonblocking(static_cast < int > (clientFd)));
 			p->setSocketOptions();
 			return p;
 		}
@@ -276,7 +276,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 	const uint8_t* pDat = reinterpret_cast<const uint8_t*>(pBlock);
 	size_t BytesLeft = size;
 	int numBytes;
-	ssize_t retVal = size;
+	ssize_t retVal = static_cast < ssize_t > (size);
 
 	fd_set recvFds;
 
