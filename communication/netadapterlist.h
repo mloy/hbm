@@ -8,8 +8,7 @@
 #include <vector>
 #include <map>
 #include <string>
-
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 #include "netadapter.h"
 
@@ -44,7 +43,7 @@ namespace hbm {
 			void enumAdapters();
 
 			tAdapters m_adapters;
-			mutable boost::mutex m_adaptersMtx;
+			mutable std::mutex m_adaptersMtx;
 		};
 	}
 }

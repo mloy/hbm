@@ -8,7 +8,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../../cmake)
 
 SET(CMAKE_CXX_FLAGS "-std=c++0x -pipe -fno-common -ggdb -pthread")
 
-find_package(Boost ${QX_BOOST_VERSION}  COMPONENTS unit_test_framework system)
+find_package(Boost ${QX_BOOST_VERSION}  COMPONENTS unit_test_framework)
 
 IF(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
@@ -33,7 +33,6 @@ add_executable(
 
 target_link_libraries (
 	multicastserver.test
-	${Boost_SYSTEM_LIBRARY}
 	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
@@ -42,5 +41,3 @@ add_test(multicastserver_test multicastserver.test
 --log_level=all
 --output_format=xml
 --log_sink=${CMAKE_BINARY_DIR}/multicastserver_test.xml)
-
-

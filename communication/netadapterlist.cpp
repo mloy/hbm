@@ -8,8 +8,8 @@
 #include <string>
 #include <stdint.h>
 #include <iterator>
-
-#include <boost/thread/locks.hpp>
+#include <mutex>
+#include <cstring>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -17,6 +17,7 @@
 #define syslog fprintf
 #define LOG_ERR stderr
 #else
+#include <unistd.h>
 #include <syslog.h>
 #include <net/if.h>
 #include <net/if_arp.h>
@@ -262,7 +263,7 @@ namespace hbm {
 			}
 
 			{
-				boost::lock_guard < boost::mutex > lock(m_adaptersMtx);
+				std::lock_guard < std::mutex > lock(m_adaptersMtx);
 				m_adapters = adapterMap;
 			}
 
@@ -272,13 +273,13 @@ namespace hbm {
 
 		NetadapterList::tAdapters NetadapterList::get() const
 		{
-			boost::lock_guard < boost::mutex > lock(m_adaptersMtx);
+			std::lock_guard < std::mutex > lock(m_adaptersMtx);
 			return m_adapters;
 		}
 
 		NetadapterList::tAdapterArray NetadapterList::getArray() const
 		{
-			boost::lock_guard < boost::mutex > lock(m_adaptersMtx);
+			std::lock_guard < std::mutex > lock(m_adaptersMtx);
 			tAdapterArray result;
 			result.reserve(m_adapters.size());
 
@@ -291,7 +292,7 @@ namespace hbm {
 
 		Netadapter NetadapterList::getAdapterByName(const std::string& adapterName) const
 		{
-			boost::lock_guard < boost::mutex > lock(m_adaptersMtx);
+			std::lock_guard < std::mutex > lock(m_adaptersMtx);
 
 			for (tAdapters::const_iterator iter = m_adapters.begin(); iter != m_adapters.end(); ++iter) {
 				if (iter->second.getName().compare(adapterName) == 0) {
@@ -305,7 +306,7 @@ namespace hbm {
 
 		Netadapter NetadapterList::getAdapterByInterfaceIndex(unsigned int interfaceIndex) const
 		{
-			boost::lock_guard < boost::mutex > lock(m_adaptersMtx);
+			std::lock_guard < std::mutex > lock(m_adaptersMtx);
 
 			tAdapters::const_iterator iter = m_adapters.find(interfaceIndex);
 			if(iter==m_adapters.end()) {
