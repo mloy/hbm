@@ -65,7 +65,7 @@ namespace hbm {
 
 		int EventLoop::execute_for(std::chrono::milliseconds timeToWait)
 		{
-			int timeout = -1;
+			int timeout;
 			ssize_t nbytes = 0;
 			std::chrono::steady_clock::time_point endTime;
 			endTime = std::chrono::steady_clock::now() + timeToWait;
@@ -83,9 +83,6 @@ namespace hbm {
 					std::chrono::milliseconds timediff = std::chrono::duration_cast < std::chrono::milliseconds > (endTime - std::chrono::steady_clock::now());
 
 					timeout =static_cast< int > (timediff.count());
-					if(timeout<0) {
-						break;
-					}
 				}
 				dwEvent = WaitForMultipleObjects(handles.size(), &handles[0], FALSE, timeout);
 				if( (dwEvent==WAIT_FAILED) || (dwEvent==WAIT_TIMEOUT) ) {
