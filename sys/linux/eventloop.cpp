@@ -2,11 +2,13 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
+#include <chrono>
+#include <cstring>
+#include <unistd.h>
 
 #include <syslog.h>
 #include <sys/epoll.h>
 
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 
 #include "hbm/sys/eventloop.h"
 
@@ -94,13 +96,13 @@ namespace hbm {
 			return result;
 		}
 
-		int EventLoop::execute_for(boost::posix_time::milliseconds timeToWait)
+		int EventLoop::execute_for(std::chrono::milliseconds timeToWait)
 		{
 			int timeout = -1;
 			ssize_t result = 0;
-			boost::posix_time::ptime endTime;
-			if(timeToWait!=boost::posix_time::milliseconds(0)) {
-				endTime = boost::posix_time::microsec_clock::universal_time() + timeToWait;
+			std::chrono::steady_clock::time_point endTime;
+			if(timeToWait!=std::chrono::milliseconds(0)) {
+				endTime = std::chrono::steady_clock::now() + timeToWait;
 			}
 
 			int nfds;
@@ -108,10 +110,11 @@ namespace hbm {
 			struct epoll_event events[MAXEVENTS];
 
 			do {
-				if(endTime!=boost::posix_time::not_a_date_time) {
-					boost::posix_time::time_duration timediff = endTime-boost::posix_time::microsec_clock::universal_time();
+				if(endTime!=std::chrono::steady_clock::time_point()) {
+					std::chrono::milliseconds timediff = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-std::chrono::steady_clock::now());
+					//std::chrono::milliseconds timediff = endTime-std::chrono::steady_clock::now();
 
-					timeout = static_cast< int > (timediff.total_milliseconds());
+					timeout = static_cast< int > (timediff.count());
 					if(timeout<0) {
 						return 0;
 					}

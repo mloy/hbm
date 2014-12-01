@@ -9,9 +9,9 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE eventloop tests
+#include <chrono>
 
 #include <boost/test/unit_test.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 
 #include "hbm/sys/eventloop.h"
 #include "hbm/sys/timer.h"
@@ -45,23 +45,23 @@ BOOST_AUTO_TEST_CASE(waitforend_test)
 {
 	hbm::sys::EventLoop eventLoop;
 
-	static const boost::posix_time::milliseconds duration(3000);
+	static const std::chrono::milliseconds duration(3000);
 
-
-	boost::posix_time::ptime startTime = boost::posix_time::microsec_clock::universal_time();
+	std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 	int result = eventLoop.execute_for(duration);
-	boost::posix_time::ptime endTime = boost::posix_time::microsec_clock::universal_time();
+	std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
 
-	unsigned int delta = (endTime - startTime - duration).total_milliseconds();
+	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-startTime-duration);
+
 	BOOST_CHECK(result==0);
-	BOOST_CHECK(delta<5);
+	BOOST_CHECK(delta.count()<5);
 }
 
 BOOST_AUTO_TEST_CASE(timerevent_test)
 {
 	static const unsigned int timerCycle = 1000;
 	static const unsigned int timerCount = 10;
-	static const boost::posix_time::milliseconds duration(timerCycle*3);
+	static const std::chrono::milliseconds duration(timerCycle*3);
 	hbm::sys::EventLoop eventLoop;
 
 	hbm::sys::Timer timer(timerCycle);
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(severaltimerevents_test)
 {
 	static const unsigned int timerCycle = 1000;
 	static const unsigned int timerCount = 10;
-	static const boost::posix_time::milliseconds duration(timerCycle*3);
+	static const std::chrono::milliseconds duration(timerCycle*3);
 	hbm::sys::EventLoop eventLoop;
 
 	eventsLeft = 2;

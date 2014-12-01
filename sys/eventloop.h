@@ -16,8 +16,7 @@
 	typedef int event;
 #endif
 #include <functional>
-
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <chrono>
 
 #include "hbm/exception/exception.hpp"
 
@@ -41,7 +40,7 @@ namespace hbm {
 			/// \return -1 eventloop stopped because one callback function returned error (-1).
 			int execute();
 			/// \return 0 if given time to wait was reached. -1 eventloop stopped because one callback function returned error (-1).
-			int execute_for(boost::posix_time::milliseconds timeToWait=boost::posix_time::milliseconds(0));
+			int execute_for(std::chrono::milliseconds timeToWait=std::chrono::milliseconds(0));
 		private:
 			struct eventInfo_t {
 				event fd;
