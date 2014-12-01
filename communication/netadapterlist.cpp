@@ -57,7 +57,7 @@ namespace hbm {
 			}
 
 			if (erradapt == ERROR_SUCCESS) {
-				boost::lock_guard < boost::mutex > lock(m_adaptersMtx);
+				std::lock_guard < std::mutex > lock(m_adaptersMtx);
 				m_adapters.clear();
 				// initialize the pointer we use the move through
 				// the list.
