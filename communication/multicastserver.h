@@ -7,8 +7,8 @@
 
 
 #include <string>
+#include <chrono>
 
-#include "boost/date_time/posix_time/posix_time.hpp"
 
 
 #ifdef _WIN32
@@ -81,7 +81,7 @@ namespace hbm {
 			int sendOverInterfaceByAddress(const std::string& interfaceIp, const void* pData, size_t length, unsigned int ttl=1) const;
 
 			/// @param[in,out] waitTime maximum time to wait.
-			ssize_t receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, boost::posix_time::milliseconds timeout);
+			ssize_t receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, std::chrono::milliseconds timeout);
 
 			ssize_t receiveTelegram(void* msgbuf, size_t len, Netadapter& adapter, int &ttl);
 

@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #endif
+#include <chrono>
 
 #include "hbm/exception/exception.hpp"
 
@@ -182,16 +183,21 @@ namespace hbm {
 			return 0;
 		}
 
-		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, boost::posix_time::milliseconds timeout)
+		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, std::chrono::milliseconds timeout)
 		{
+			int milliSeconds = timeout.count();
+
+
 			int retval;
 	#ifdef _WIN32
 			fd_set rfds;
 			FD_ZERO(&rfds);
 			FD_SET(m_ReceiveSocket, &rfds);
 			struct timeval waitTime;
-			waitTime.tv_sec = 0;
-			waitTime.tv_usec = static_cast < long > (timeout.total_milliseconds()*1000);
+			waitTime.tv_sec = milliSeconds / 1000;;
+			unsigned int rest = milliSeconds % 1000;
+
+			waitTime.tv_usec = static_cast < long > (rest*1000);
 
 			retval = select(static_cast < int > (m_ReceiveSocket) + 1, &rfds, NULL, NULL, &waitTime);
 	#else
@@ -200,7 +206,7 @@ namespace hbm {
 			pfd.events = POLLIN;
 
 			do {
-				retval = poll(&pfd, 1, timeout.total_milliseconds());
+				retval = poll(&pfd, 1, milliSeconds);
 			} while((retval==-1) && (errno==EINTR) );
 
 			if(pfd.revents & POLLNVAL) {
