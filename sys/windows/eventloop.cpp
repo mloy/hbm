@@ -68,9 +68,7 @@ namespace hbm {
 			int timeout = -1;
 			ssize_t nbytes = 0;
 			std::chrono::steady_clock::time_point endTime;
-			if (timeToWait != std::chrono::milliseconds()) {
-				endTime = std::chrono::steady_clock::now() + timeToWait;
-			}
+			endTime = std::chrono::steady_clock::now() + timeToWait;
 
 			DWORD dwEvent;
 			std::vector < HANDLE > handles;
