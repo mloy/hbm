@@ -98,7 +98,7 @@ namespace hbm {
 
 		int EventLoop::execute_for(std::chrono::milliseconds timeToWait)
 		{
-			int timeout = -1;
+			int timeout;
 			ssize_t result = 0;
 			std::chrono::steady_clock::time_point endTime;
 			if(timeToWait!=std::chrono::milliseconds(0)) {
@@ -110,15 +110,10 @@ namespace hbm {
 			struct epoll_event events[MAXEVENTS];
 
 			do {
-				if(endTime!=std::chrono::steady_clock::time_point()) {
-					std::chrono::milliseconds timediff = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-std::chrono::steady_clock::now());
-					//std::chrono::milliseconds timediff = endTime-std::chrono::steady_clock::now();
+				std::chrono::milliseconds timediff = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-std::chrono::steady_clock::now());
 
-					timeout = static_cast< int > (timediff.count());
-					if(timeout<0) {
-						return 0;
-					}
-				}
+				timeout = static_cast< int > (timediff.count());
+
 				do {
 					nfds = epoll_wait(m_epollfd, events, MAXEVENTS, timeout);
 				} while ((nfds==-1) && (errno==EINTR));
