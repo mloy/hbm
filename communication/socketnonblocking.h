@@ -30,10 +30,6 @@ namespace hbm
 		{
 		public:
 			SocketNonblocking();
-
-			/// use this variant to dump everything to a file
-			/// \throw std::runtime_error if file could not be opened
-			SocketNonblocking(const std::string& fileName);
 			virtual ~SocketNonblocking();
 
 			/// \return 0: success; -1: error
@@ -60,17 +56,7 @@ namespace hbm
 			/// @param @msTimeout -1 for infinite
 			ssize_t receiveComplete(void* pBlock, size_t len, int msTimeout = -1);
 
-	#ifdef _WIN32
-			event getFd() const
-			{
-				return m_event;
-			}
-	#else
-			event getFd() const
-			{
-				return m_fd;
-			}
-	#endif
+			event getFd() const;
 
 			bool isFirewire() const;
 

@@ -25,20 +25,8 @@ namespace hbm {
 	BufferedReader::BufferedReader()
 		: m_fillLevel(0)
 		, m_alreadyRead(0)
-		, m_dumpFile()
 	{
 	}
-
-	BufferedReader::BufferedReader(const std::string& fileName)
-		: m_fillLevel(0)
-		, m_alreadyRead(0)
-		, m_dumpFile(fileName, std::ios_base::binary)
-	{
-		if(!m_dumpFile) {
-			throw std::runtime_error("could not open dump file");
-		}
-	}
-
 
 	ssize_t BufferedReader::recv(int sockfd, void *buf, size_t desiredLen, int flags)
 	{
@@ -68,9 +56,6 @@ namespace hbm {
 			return retVal;
 		}
 
-		if(m_dumpFile) {
-			m_dumpFile.write(reinterpret_cast < char* > (m_buffer), retVal);
-		}
 		m_fillLevel = retVal;
 
 		// length to return is up to the desired length.

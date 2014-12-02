@@ -40,16 +40,14 @@ hbm::communication::SocketNonblocking::SocketNonblocking(int fd)
 {
 }
 
-
-hbm::communication::SocketNonblocking::SocketNonblocking(const std::string& fileName)
-	: m_fd(-1)
-	, m_bufferedReader(fileName)
-{
-}
-
 hbm::communication::SocketNonblocking::~SocketNonblocking()
 {
 	stop();
+}
+
+event hbm::communication::SocketNonblocking::getFd() const
+{
+	return m_fd;
 }
 
 int hbm::communication::SocketNonblocking::setSocketOptions()

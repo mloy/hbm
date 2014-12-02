@@ -28,6 +28,7 @@ hbm::communication::SocketNonblocking::SocketNonblocking()
 {
 	WSADATA wsaData;
 	WSAStartup(2, &wsaData);
+	m_event = WSACreateEvent();
 }
 
 hbm::communication::SocketNonblocking::SocketNonblocking(int fd)
@@ -36,20 +37,13 @@ hbm::communication::SocketNonblocking::SocketNonblocking(int fd)
 {
 	WSADATA wsaData;
 	WSAStartup(2, &wsaData);
-}
-
-
-hbm::communication::SocketNonblocking::SocketNonblocking(const std::string& fileName)
-	: m_fd(-1)
-	, m_bufferedReader(fileName)
-{
-	WSADATA wsaData;
-	WSAStartup(2, &wsaData);
+	m_event = WSACreateEvent();
 }
 
 hbm::communication::SocketNonblocking::~SocketNonblocking()
 {
 	stop();
+	WSACloseEvent(m_event);
 }
 
 int hbm::communication::SocketNonblocking::setSocketOptions()
@@ -87,6 +81,8 @@ int hbm::communication::SocketNonblocking::init()
 	} else {
 		setSocketOptions();		
 	}
+
+	WSAEventSelect(m_fd, m_event, FD_READ);
 
 	return retVal;
 }
@@ -155,6 +151,12 @@ int hbm::communication::SocketNonblocking::connect(const struct sockaddr* pSockA
 	return err;
 }
 
+
+event hbm::communication::SocketNonblocking::getFd() const
+{
+	return m_event;
+}
+
 int hbm::communication::SocketNonblocking::bind(uint16_t Port)
 {
 	//ipv6 does work for ipv4 too!
@@ -221,9 +223,9 @@ ssize_t hbm::communication::SocketNonblocking::receive(void* pBlock, size_t size
 
 ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, size_t len, int msTimeout)
 {
-  size_t DataToGet = len;
-  unsigned char* pDat = static_cast<unsigned char*>(pBlock);
-  ssize_t numBytes = 0;
+	size_t DataToGet = len;
+	unsigned char* pDat = static_cast<unsigned char*>(pBlock);
+	ssize_t numBytes = 0;
 
 
 	struct timeval timeVal;
@@ -235,8 +237,9 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
   int err;
 
 	if(msTimeout>=0) {
-		timeVal.tv_sec = 0;
-		timeVal.tv_usec = msTimeout*1000;
+		timeVal.tv_sec = msTimeout / 1000;
+		int rest = msTimeout % 1000;
+		timeVal.tv_usec = rest*1000;
 		pTimeVal = &timeVal;
 	} else {
 		pTimeVal = NULL;

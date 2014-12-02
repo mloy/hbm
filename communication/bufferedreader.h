@@ -25,10 +25,6 @@ namespace hbm {
 	public:
 		BufferedReader();
 
-		/// use this variant to dump everything to a file
-		/// \throw std::runtime_error
-		BufferedReader(const std::string& fileName);
-
 		/// behaves like ::recv
 		ssize_t recv(int sockfd, void *buf, size_t len, int flags);
 
@@ -39,7 +35,6 @@ namespace hbm {
 		unsigned char m_buffer[65536*4];
 		size_t m_fillLevel;
 		size_t m_alreadyRead;
-		std::ofstream m_dumpFile;
 	};
 }
 #endif // BUFFEREDREADER_H
