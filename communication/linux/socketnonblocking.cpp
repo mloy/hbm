@@ -344,7 +344,6 @@ bool hbm::communication::SocketNonblocking::checkSockAddr(const struct ::sockadd
 
 void hbm::communication::SocketNonblocking::stop()
 {
-	::shutdown(m_fd, SHUT_RDWR);
 	::close(m_fd);
 	m_fd = -1;
 }

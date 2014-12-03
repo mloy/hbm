@@ -41,3 +41,29 @@ add_test(multicastserver_test multicastserver.test
 --log_level=all
 --output_format=xml
 --log_sink=${CMAKE_BINARY_DIR}/multicastserver_test.xml)
+
+SET(SOCKETNONBLOCKING_TEST
+	../linux/socketnonblocking.cpp
+	../bufferedreader.cpp
+	socketnonblocking_test.cpp
+)
+set_source_files_properties(
+	${SOCKETNONBLOCKING_TEST}
+	PROPERTIES COMPILE_FLAGS "-Wextra"
+)
+
+add_executable(
+	socketnonblocking.test
+	${SOCKETNONBLOCKING_TEST}
+)
+
+target_link_libraries (
+	socketnonblocking.test
+	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
+
+add_test(socketnonblocking_test socketnonblocking.test
+--report_level=no
+--log_level=all
+--output_format=xml
+--log_sink=${CMAKE_BINARY_DIR}/socketnonblocking_test.xml)
