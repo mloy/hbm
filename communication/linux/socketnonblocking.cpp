@@ -114,7 +114,7 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-
+	hints.ai_protocol = 6; // Ip V6!
 
 	if( getaddrinfo(address.c_str(), port.c_str(), &hints, &pResult)!=0 ) {
 		return -1;
