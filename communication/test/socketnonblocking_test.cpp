@@ -105,8 +105,8 @@ BOOST_AUTO_TEST_CASE(start_send_stop_test)
 		memset(buffer, 0, sizeof(buffer));
 		caller.connect("127.0.0.1", std::to_string(PORT));
 		caller.sendBlock(MSG.c_str(), MSG.length(), false);
-		caller.receiveComplete(buffer, MSG.length());
-		BOOST_CHECK(MSG==std::string(buffer));
+		ssize_t result = caller.receiveComplete(buffer, MSG.length());
+		BOOST_CHECK(MSG==std::string(buffer, static_cast < size_t > (result)));
 		caller.stop();
 	}
 	caller.connect("127.0.0.1", std::to_string(PORT));

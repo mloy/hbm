@@ -22,7 +22,8 @@
 
 static std::string received;
 
-void receiveAndKeep(hbm::communication::MulticastServer* pMcs)
+
+static void receiveAndKeep(hbm::communication::MulticastServer* pMcs)
 {
 	ssize_t result;
 	do {
@@ -41,7 +42,7 @@ void receiveAndKeep(hbm::communication::MulticastServer* pMcs)
 	} while(result>=0);
 }
 
-void receiveAndDiscard(hbm::communication::MulticastServer* pMcs)
+static void receiveAndDiscard(hbm::communication::MulticastServer* pMcs)
 {
 	ssize_t result;
 	do {
@@ -75,7 +76,6 @@ BOOST_AUTO_TEST_CASE(start_send_stop_test)
 		mcsReceiver.start();
 		mcsReceiver.addAllInterfaces();
 		std::thread threadReceiver(std::bind(&receiveAndKeep, &mcsReceiver));
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		mcsSender.send(MSG.c_str(), MSG.length());
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		mcsReceiver.stop();
