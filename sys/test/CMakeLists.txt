@@ -72,6 +72,7 @@ add_test(timer_test timer.test
 SET(EVENTLOOP_TEST
 	../linux/eventloop.cpp
 	../linux/timer.cpp
+	../linux/notifier.cpp
 	eventloop_test.cpp
 )
 set_source_files_properties(

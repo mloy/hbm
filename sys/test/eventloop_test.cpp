@@ -15,6 +15,7 @@
 
 #include "hbm/sys/eventloop.h"
 #include "hbm/sys/timer.h"
+#include "hbm/sys/notifier.h"
 #include "hbm/exception/exception.hpp"
 
 
@@ -40,12 +41,30 @@ static ssize_t eventHandlerStopAfterN()
 }
 
 
+BOOST_AUTO_TEST_CASE(norify_test)
+{
+	int result;
+	hbm::sys::EventLoop eventLoop;
+	hbm::sys::Notifier notifier;
+	static const std::chrono::milliseconds duration(100);
+
+	// wait time out to happen
+	eventLoop.addEvent(notifier.getFd(), &eventHandlerStop);
+	result = eventLoop.execute_for(duration);
+	BOOST_CHECK(result==0);
+
+	// callback of notifier signals error
+	notifier.notify();
+	result = eventLoop.execute_for(duration);
+	BOOST_CHECK(result==-1);
+
+}
 
 BOOST_AUTO_TEST_CASE(waitforend_test)
 {
 	hbm::sys::EventLoop eventLoop;
 
-	static const std::chrono::milliseconds duration(3000);
+	static const std::chrono::milliseconds duration(100);
 
 	std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 	int result = eventLoop.execute_for(duration);
@@ -59,7 +78,7 @@ BOOST_AUTO_TEST_CASE(waitforend_test)
 
 BOOST_AUTO_TEST_CASE(timerevent_test)
 {
-	static const unsigned int timerCycle = 1000;
+	static const unsigned int timerCycle = 100;
 	static const unsigned int timerCount = 10;
 	static const std::chrono::milliseconds duration(timerCycle*3);
 	hbm::sys::EventLoop eventLoop;
@@ -73,7 +92,7 @@ BOOST_AUTO_TEST_CASE(timerevent_test)
 
 BOOST_AUTO_TEST_CASE(severaltimerevents_test)
 {
-	static const unsigned int timerCycle = 1000;
+	static const unsigned int timerCycle = 100;
 	static const unsigned int timerCount = 10;
 	static const std::chrono::milliseconds duration(timerCycle*3);
 	hbm::sys::EventLoop eventLoop;
@@ -86,4 +105,3 @@ BOOST_AUTO_TEST_CASE(severaltimerevents_test)
 	int result = eventLoop.execute_for(duration);
 	BOOST_CHECK(result==-1);
 }
-
