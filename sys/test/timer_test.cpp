@@ -32,8 +32,8 @@ BOOST_AUTO_TEST_CASE(wait_test)
 {
 	static const unsigned int timeToWait = 3500;
 	hbm::sys::Timer timer;
-	std::chrono::time_point<std::chrono::steady_clock> start(std::chrono::steady_clock::now());
-	std::chrono::time_point<std::chrono::steady_clock> end;
+	std::chrono::steady_clock::time_point start(std::chrono::steady_clock::now());
+	std::chrono::steady_clock::time_point end;
 	timer.set(timeToWait);
 	ssize_t result = timer.wait();
 	end = std::chrono::steady_clock::now();
@@ -48,8 +48,8 @@ BOOST_AUTO_TEST_CASE(stop_test)
 {
 	static const unsigned int timeToWait = 3000;
 	hbm::sys::Timer timer;
-	std::chrono::time_point<std::chrono::steady_clock> start;
-	std::chrono::time_point<std::chrono::steady_clock> end;
+	std::chrono::steady_clock::time_point start;
+	std::chrono::steady_clock::time_point end;
 
 	start = std::chrono::steady_clock::now();
 	timer.set(timeToWait);
