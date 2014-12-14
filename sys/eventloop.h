@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include "hbm/exception/exception.hpp"
+#include "hbm/sys/notifier.h"
 
 namespace hbm {
 	namespace sys {
@@ -41,6 +42,8 @@ namespace hbm {
 			int execute();
 			/// \return 0 if given time to wait was reached. -1 eventloop stopped because one callback function returned error (-1).
 			int execute_for(std::chrono::milliseconds timeToWait);
+
+			void stop();
 		private:
 			struct eventInfo_t {
 				event fd;
@@ -55,7 +58,9 @@ namespace hbm {
 			int m_epollfd;
 	#endif
 
+			Notifier m_stopNotifier;
 			eventInfos_t m_eventInfos;
+			eventInfo_t m_stopEvent;
 		};
 	}
 }

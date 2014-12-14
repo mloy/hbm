@@ -5,12 +5,14 @@
 #include <chrono>
 #include <cstring>
 #include <unistd.h>
+#include <functional>
 
 #include <syslog.h>
 #include <sys/epoll.h>
 
 
 #include "hbm/sys/eventloop.h"
+#include "hbm/sys/notifier.h"
 
 namespace hbm {
 	namespace sys {
@@ -19,6 +21,15 @@ namespace hbm {
 		{
 			if(m_epollfd==-1) {
 				throw hbm::exception::exception(std::string("epoll_create failed)") + strerror(errno));
+			}
+
+			m_stopEvent.fd = m_stopNotifier.getFd();
+
+			struct epoll_event ev;
+			ev.events = EPOLLIN;
+			ev.data.ptr = nullptr;
+			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_stopEvent.fd, &ev) == -1) {
+				syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
 			}
 		}
 
@@ -86,9 +97,12 @@ namespace hbm {
 				for (int n = 0; n < nfds; ++n) {
 					if(events[n].events & EPOLLIN) {
 						eventInfo_t* pEventInfo = reinterpret_cast < eventInfo_t* > (events[n].data.ptr);
+						if(pEventInfo==nullptr) {
+							return 0;
+						}
 						result = pEventInfo->eventHandler();
 						if(result<0) {
-							break;
+							return result;
 						}
 					}
 				}
@@ -134,6 +148,11 @@ namespace hbm {
 				}
 			} while (result>=0);
 			return result;
+		}
+
+		void EventLoop::stop()
+		{
+			m_stopNotifier.notify();
 		}
 	}
 }

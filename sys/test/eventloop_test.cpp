@@ -10,6 +10,8 @@
 
 #define BOOST_TEST_MODULE eventloop tests
 #include <chrono>
+#include <thread>
+#include <functional>
 
 #include <boost/test/unit_test.hpp>
 
@@ -59,6 +61,27 @@ BOOST_AUTO_TEST_CASE(norify_test)
 	BOOST_CHECK(result==-1);
 
 }
+
+/// start the eventloop in a separate thread wait some time and stop it.
+BOOST_AUTO_TEST_CASE(stop_test)
+{
+
+	hbm::sys::EventLoop eventLoop;
+
+	static const std::chrono::milliseconds waitDuration(300);
+
+	std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
+	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, &eventLoop));
+	std::this_thread::sleep_for(waitDuration);
+	eventLoop.stop();
+	worker.join();
+	std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
+
+	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-startTime-waitDuration);
+
+	BOOST_CHECK_MESSAGE(delta.count()<50, "unexpected wait difference of " << std::to_string(delta.count()) << "ms");
+}
+
 
 BOOST_AUTO_TEST_CASE(waitforend_test)
 {
