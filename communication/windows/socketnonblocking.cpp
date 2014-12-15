@@ -71,11 +71,11 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 	return 0;
 }
 
-int hbm::communication::SocketNonblocking::init()
+int hbm::communication::SocketNonblocking::init(int domain)
 {
 	int retVal = 0;
 
-	m_fd = static_cast < int > (::socket(AF_INET, SOCK_STREAM, 0));
+	m_fd = static_cast < int > (::socket(domain, SOCK_STREAM, 0));
 	if(m_fd==-1) {
 		retVal=-1;
 	} else {
@@ -102,16 +102,16 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 		return -1;
 	}
 	
-	int retVal = connect(pResult->ai_addr, sizeof(sockaddr_in));
+	int retVal = connect(pResult->ai_family, pResult->ai_addr, sizeof(sockaddr_in));
 
 	freeaddrinfo( pResult );
 
 	return retVal;
 }
 
-int hbm::communication::SocketNonblocking::connect(const struct sockaddr* pSockAddr, socklen_t len)
+int hbm::communication::SocketNonblocking::connect(int domain, const struct sockaddr* pSockAddr, socklen_t len)
 {
-	int err = init();
+	int err = init(domain);
 
 	if(err<0) {
 		return err;
@@ -163,11 +163,11 @@ int hbm::communication::SocketNonblocking::bind(uint16_t Port)
 	sockaddr_in6 address;
 
 	memset(&address, 0, sizeof(address));
-	address.sin6_family = AF_INET;
+	address.sin6_family = AF_INET6;
 	address.sin6_addr = in6addr_any;
 	address.sin6_port = htons(Port);
 
-	int retVal = init();
+	int retVal = init(address.sin6_family);
 	if (retVal == -1) {
 		return retVal;
 	}
