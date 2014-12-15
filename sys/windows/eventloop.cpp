@@ -69,7 +69,7 @@ namespace hbm {
 
 		int EventLoop::execute_for(std::chrono::milliseconds timeToWait)
 		{
-			int timeout;
+			DWORD timeout;
 			ssize_t nbytes = 0;
 			std::chrono::steady_clock::time_point endTime;
 			endTime = std::chrono::steady_clock::now() + timeToWait;
