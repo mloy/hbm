@@ -163,7 +163,7 @@ int hbm::communication::SocketNonblocking::bind(uint16_t Port)
 	sockaddr_in6 address;
 
 	memset(&address, 0, sizeof(address));
-	address.sin6_family = AF_INET6;
+	address.sin6_family = AF_INET;
 	address.sin6_addr = in6addr_any;
 	address.sin6_port = htons(Port);
 
