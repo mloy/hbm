@@ -34,7 +34,7 @@ namespace hbm
 
 			/// \return 0: success; -1: error
 			int connect(const std::string& address, const std::string& port);
-			int connect(const struct sockaddr* pSockAddr, socklen_t len);
+			int connect(int domain, const struct sockaddr* pSockAddr, socklen_t len);
 
 			/// for server side:bind socket to a port
 			int bind(uint16_t Port);
@@ -74,7 +74,7 @@ namespace hbm
 			SocketNonblocking& operator= (const SocketNonblocking& op);
 
 			/// \return 0 on success; -1 on error
-			int init();
+			int init(int domain);
 			int setSocketOptions();
 
 			int m_fd;

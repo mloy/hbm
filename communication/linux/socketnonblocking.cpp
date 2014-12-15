@@ -94,10 +94,10 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 	return 0;
 }
 
-int hbm::communication::SocketNonblocking::init()
+int hbm::communication::SocketNonblocking::init(int domain)
 {
 
-	m_fd = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	m_fd = ::socket(domain, SOCK_STREAM | SOCK_NONBLOCK, 0);
 	if (m_fd==-1) {
 		return -1;
 	}
@@ -119,16 +119,16 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 	if( getaddrinfo(address.c_str(), port.c_str(), &hints, &pResult)!=0 ) {
 		return -1;
 	}
-	int retVal = connect(pResult->ai_addr, sizeof(sockaddr_in));
+	int retVal = connect(pResult->ai_family, pResult->ai_addr, pResult->ai_addrlen);
 
 	freeaddrinfo( pResult );
 
 	return retVal;
 }
 
-int hbm::communication::SocketNonblocking::connect(const struct sockaddr* pSockAddr, socklen_t len)
+int hbm::communication::SocketNonblocking::connect(int domain, const struct sockaddr* pSockAddr, socklen_t len)
 {
-	int err = init();
+	int err = init(domain);
 	if (err<0) {
 		return err;
 	}
@@ -140,7 +140,7 @@ int hbm::communication::SocketNonblocking::connect(const struct sockaddr* pSockA
 
 	// success if errno equals EINPROGRESS
 	if(errno != EINPROGRESS) {
-		syslog(LOG_ERR, "failed to connect '%s'", strerror(errno));
+		syslog(LOG_ERR, "failed to connect errno=%d '%s'", errno, strerror(errno));
 		return -1;
 	}
 	struct pollfd pfd;
@@ -168,11 +168,11 @@ int hbm::communication::SocketNonblocking::bind(uint16_t Port)
 	sockaddr_in6 address;
 
 	memset(&address, 0, sizeof(address));
-	address.sin6_family = AF_INET;
+	address.sin6_family = AF_INET6;
 	address.sin6_addr = in6addr_any;
 	address.sin6_port = htons(Port);
 
-	int retVal = init();
+	int retVal = init(address.sin6_family);
 	if (retVal == -1) {
 		syslog(LOG_ERR, "%s: Socket initialization failed '%s'", __FUNCTION__ , strerror(errno));
 		return retVal;
