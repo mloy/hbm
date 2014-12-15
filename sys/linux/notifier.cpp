@@ -14,7 +14,7 @@
 namespace hbm {
 	namespace sys {
 		Notifier::Notifier()
-			: m_fd(eventfd(0, 0))
+			: m_fd(eventfd(0, EFD_SEMAPHORE))
 		{
 			if (m_fd<0) {
 				throw hbm::exception::exception("could not create event fd");
