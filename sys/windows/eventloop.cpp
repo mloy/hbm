@@ -20,6 +20,9 @@ namespace hbm {
 		/// \throws hbm::exception
 		EventLoop::EventLoop()
 		{
+			m_stopEvent.fd = m_stopNotifier.getFd();
+			m_stopEvent.eventHandler = nullptr;
+			m_eventInfos.push_back(m_stopEvent);
 		}
 
 		EventLoop::~EventLoop()
@@ -42,7 +45,6 @@ namespace hbm {
 
 			DWORD dwEvent;
 			std::vector < HANDLE > handles;
-
 			for (unsigned int i = 0; i<m_eventInfos.size(); ++i) {
 				handles.push_back(m_eventInfos[i].fd);
 			}
@@ -50,14 +52,16 @@ namespace hbm {
 			do {
 				dwEvent = WaitForMultipleObjects(handles.size(), &handles[0], FALSE, INFINITE);
 				if ((dwEvent == WAIT_FAILED) || (dwEvent == WAIT_TIMEOUT)) {
-					nbytes = -1;
-					break;
+					return -1;
 				}
 
 				eventInfo_t& evi = m_eventInfos[WAIT_OBJECT_0 + dwEvent];
+				if (evi.eventHandler == nullptr) {
+					return 0;
+				}
 				nbytes = evi.eventHandler();
 				if (nbytes<0) {
-					break;
+					return nbytes;
 				}
 			} while (nbytes >= 0);
 			return 0;
@@ -73,7 +77,6 @@ namespace hbm {
 			DWORD dwEvent;
 			std::vector < HANDLE > handles;
 
-			//for(eventInfos_t::iterator iter=m_eventInfos.begin(); iter!=m_eventInfos.end(); ++iter) {
 			for(unsigned int i=0; i<m_eventInfos.size(); ++i) {
 				handles.push_back(m_eventInfos[i].fd);
 			}
@@ -86,17 +89,26 @@ namespace hbm {
 				}
 				dwEvent = WaitForMultipleObjects(handles.size(), &handles[0], FALSE, timeout);
 				if( (dwEvent==WAIT_FAILED) || (dwEvent==WAIT_TIMEOUT) ) {
-					nbytes = -1;
+					return -1;
 					break;
 				}
 
 				eventInfo_t& evi = m_eventInfos[WAIT_OBJECT_0 + dwEvent];
+				if (evi.eventHandler == nullptr) {
+					return 0;
+				}
+
 				nbytes = evi.eventHandler();
 				if(nbytes<0) {
-					break;
+					return nbytes;
 				}
 			} while (nbytes>=0);
 			return 0;
+		}
+
+		void EventLoop::stop()
+		{
+			m_stopNotifier.notify();
 		}
 	}
 }
