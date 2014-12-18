@@ -185,7 +185,7 @@ namespace hbm {
 
 		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, std::chrono::milliseconds timeout)
 		{
-			int milliSeconds = timeout.count();
+			int milliSeconds = static_cast < int > (timeout.count());
 
 
 			int retval;
