@@ -87,6 +87,9 @@
     <ClCompile Include="..\windows\timer.cpp" />
     <ClCompile Include="eventloop_test.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\eventloop.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
