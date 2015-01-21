@@ -22,7 +22,6 @@ namespace hbm {
 	namespace string {
 		namespace test {
 
-			/// Test cases for the DeviceMonitor.
 			struct Fixture1
 			{
 			public:
@@ -69,7 +68,6 @@ namespace hbm {
 					}
 					return true;
 				}
-
 			};
 
 			BOOST_FIXTURE_TEST_SUITE( Fixture1_Test, Fixture1 )
@@ -87,7 +85,6 @@ namespace hbm {
 				Fixture1::equals(hbm::string::split("abc:defgh:ijkl", ":"), {"abc","defgh","ijkl"});
 				Fixture1::equals(hbm::string::split("1.2.3", "."), {"1","2","3"});
 			}
-
 
 			BOOST_AUTO_TEST_CASE( test_case_empty )
 			{
@@ -128,7 +125,6 @@ namespace hbm {
 				Fixture1::equals(hbm::string::split("...","."), {"","","",""});
 				Fixture1::equals(hbm::string::split(".", "."), {"",""});
 			}
-
 
 			BOOST_AUTO_TEST_SUITE_END()
 		}
