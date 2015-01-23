@@ -28,6 +28,21 @@ BOOST_AUTO_TEST_CASE(notstarted_test)
 }
 
 
+BOOST_AUTO_TEST_CASE(read_test)
+{
+	static const unsigned int timeToWait = 100;
+	hbm::sys::Timer timer;
+	std::chrono::steady_clock::time_point start(std::chrono::steady_clock::now());
+	std::chrono::steady_clock::time_point end;
+	timer.set(timeToWait);
+	ssize_t result = timer.read();
+	BOOST_CHECK(result==0);
+	// wait one timer cycle + epsilon
+	std::this_thread::sleep_for(std::chrono::milliseconds(timeToWait+10));
+	result = timer.read();
+	BOOST_CHECK(result==1);
+}
+
 BOOST_AUTO_TEST_CASE(wait_test)
 {
 	static const unsigned int timeToWait = 3500;
@@ -36,12 +51,12 @@ BOOST_AUTO_TEST_CASE(wait_test)
 	std::chrono::steady_clock::time_point end;
 	timer.set(timeToWait);
 	ssize_t result = timer.wait();
+	BOOST_CHECK(result==1);
 	end = std::chrono::steady_clock::now();
 	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (end - start);
 	unsigned int diff = abs((timeToWait)-delta.count());
 
 	BOOST_CHECK(diff<5);
-	BOOST_CHECK(result==1);
 }
 
 BOOST_AUTO_TEST_CASE(stop_test)
