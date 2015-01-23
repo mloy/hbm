@@ -2,6 +2,7 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
+#include <iostream>
 #include <chrono>
 #include <cstring>
 #include <unistd.h>
@@ -124,7 +125,11 @@ namespace hbm {
 			struct epoll_event events[MAXEVENTS];
 
 			do {
-				std::chrono::milliseconds timediff = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-std::chrono::steady_clock::now());
+				std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+				if(now>=endTime) {
+					return 0;
+				}
+				std::chrono::milliseconds timediff = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-now);
 
 				timeout = static_cast< int > (timediff.count());
 
