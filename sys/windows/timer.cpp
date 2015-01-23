@@ -52,7 +52,6 @@ namespace hbm {
 
 		int Timer::wait()
 		{
-			//DWORD result = WaitForSingleObject(m_fd, 0);
 			DWORD result = WaitForSingleObject(m_fd, INFINITE);
 			switch (result) {
 			case WAIT_OBJECT_0:
