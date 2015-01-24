@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <stdint.h>
 
 #include <WinSock2.h>
 
@@ -30,16 +31,17 @@ namespace hbm {
 			CloseHandle(m_fd);
 		}
 
-		int Timer::set(unsigned int period_s)
+		int Timer::set(unsigned int period_ms)
 		{
 			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
 			LARGE_INTEGER dueTime;
+			static const uint64_t multilpier = -10000; // negative because we want a relative time
 
-			dueTime.QuadPart = period_s*1000*10; // in 100ns
+			dueTime.QuadPart = period_ms*multilpier; // in 100ns
 			BOOL Result = SetWaitableTimer(
 				m_fd,
 				&dueTime,
-				period_s*1000, // in ms
+				period_ms, // in ms
 				NULL,
 				NULL,
 				FALSE
@@ -50,14 +52,35 @@ namespace hbm {
 			return 0;
 		}
 
-		int Timer::wait()
+		int Timer::read()
 		{
-			DWORD result = WaitForSingleObject(m_fd, INFINITE);
+			DWORD result = WaitForSingleObject(m_fd, 0);
 			switch (result) {
 			case WAIT_OBJECT_0:
 				if (m_canceled) {
 					return 0;
 				}
+				return 1;
+				break;
+			case WAIT_TIMEOUT:
+				return 0;
+				break;
+			default:
+				return -1;
+				break;
+			}
+			return 0;
+		}
+
+		int Timer::wait()
+		{
+			if (m_canceled) {
+				return 0;
+			}
+
+			DWORD result = WaitForSingleObject(m_fd, INFINITE);
+			switch (result) {
+			case WAIT_OBJECT_0:
 				return 1;
 				break;
 			default:
