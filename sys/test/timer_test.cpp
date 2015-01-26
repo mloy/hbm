@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(wait_test)
 	BOOST_CHECK(result==1);
 	end = std::chrono::steady_clock::now();
 	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (end - start);
-	unsigned int diff = abs((timeToWait)-delta.count());
+	uint64_t diff = abs((timeToWait)-delta.count());
 
 	BOOST_CHECK(diff<5);
 }
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(stop_test)
 
 	end = std::chrono::steady_clock::now();
 	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (end - start);
-	unsigned int diff = delta.count();
+	uint64_t diff = delta.count();
 	BOOST_CHECK(diff<5);
 	BOOST_CHECK(result==0);
 }
