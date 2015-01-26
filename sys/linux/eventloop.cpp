@@ -11,6 +11,8 @@
 #include <syslog.h>
 #include <sys/epoll.h>
 
+#include <errno.h>
+
 
 #include "hbm/sys/eventloop.h"
 #include "hbm/sys/notifier.h"
@@ -79,13 +81,11 @@ namespace hbm {
 
 		int EventLoop::execute()
 		{
-			ssize_t result = 0;
-
 			int nfds;
 			static const unsigned int MAXEVENTS = 16;
 			struct epoll_event events[MAXEVENTS];
 
-			do {
+			while (true) {
 				do {
 					nfds = epoll_wait(m_epollfd, events, MAXEVENTS, -1);
 				} while ((nfds==-1) && (errno==EINTR));
@@ -101,20 +101,18 @@ namespace hbm {
 						if(pEventInfo==nullptr) {
 							return 0;
 						}
-						result = pEventInfo->eventHandler();
+						ssize_t result = pEventInfo->eventHandler();
 						if(result<0) {
 							return result;
 						}
 					}
 				}
-			} while (result>=0);
-			return result;
+			}
 		}
 
 		int EventLoop::execute_for(std::chrono::milliseconds timeToWait)
 		{
 			int timeout;
-			ssize_t result = 0;
 			std::chrono::steady_clock::time_point endTime;
 			if(timeToWait!=std::chrono::milliseconds(0)) {
 				endTime = std::chrono::steady_clock::now() + timeToWait;
@@ -124,7 +122,7 @@ namespace hbm {
 			static const unsigned int MAXEVENTS = 16;
 			struct epoll_event events[MAXEVENTS];
 
-			do {
+			while (true) {
 				std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 				if(now>=endTime) {
 					return 0;
@@ -145,14 +143,13 @@ namespace hbm {
 				for (int n = 0; n < nfds; ++n) {
 					if(events[n].events & EPOLLIN) {
 						eventInfo_t* pEventInfo = reinterpret_cast < eventInfo_t* > (events[n].data.ptr);
-						result = pEventInfo->eventHandler();
+						ssize_t result = pEventInfo->eventHandler();
 						if(result<0) {
-							break;
+							return result;
 						}
 					}
 				}
-			} while (result>=0);
-			return result;
+			}
 		}
 
 		void EventLoop::stop()
