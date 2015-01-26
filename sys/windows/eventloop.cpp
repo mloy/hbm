@@ -55,14 +55,22 @@ namespace hbm {
 					return -1;
 				}
 
+
 				eventInfo_t& evi = m_eventInfos[WAIT_OBJECT_0 + dwEvent];
+
+				// this is a workaround because WSARecvMsg does not reset the event!
+				WSAResetEvent(evi.fd);
+
 				if (evi.eventHandler == nullptr) {
 					return 0;
 				}
-				nbytes = evi.eventHandler();
-				if (nbytes<0) {
-					return nbytes;
-				}
+				do {
+					// we do this until nothing is left. This is important because our call of WSARecvEvent above.
+					nbytes = evi.eventHandler();
+					if (nbytes < 0) {
+						return nbytes;
+					}
+				} while (nbytes > 0);
 			} while (nbytes >= 0);
 			return 0;
 		}
