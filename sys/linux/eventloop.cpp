@@ -49,19 +49,22 @@ namespace hbm {
 			evi.fd = fd;
 			evi.eventHandler = eventHandler;
 
-			eventInfo_t& eviRef = m_eventInfos[fd] = evi;
+			{
+				std::lock_guard < std::mutex > lock(m_eventInfosMtx);
+				eventInfo_t& eviRef = m_eventInfos[fd] = evi;
 
-
-			struct epoll_event ev;
-			ev.events = EPOLLIN;
-			ev.data.ptr = &eviRef;
-			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, eviRef.fd, &ev) == -1) {
-				syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
+				struct epoll_event ev;
+				ev.events = EPOLLIN;
+				ev.data.ptr = &eviRef;
+				if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
+					syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
+				}
 			}
 		}
 
 		void EventLoop::eraseEvent(event fd)
 		{
+			std::lock_guard < std::mutex > lock(m_eventInfosMtx);
 			eventInfos_t::iterator iter = m_eventInfos.find(fd);
 			if(iter!=m_eventInfos.end()) {
 				const eventInfo_t& eviRef = iter->second;
@@ -72,6 +75,7 @@ namespace hbm {
 
 		void EventLoop::clear()
 		{
+			std::lock_guard < std::mutex > lock(m_eventInfosMtx);
 			for (eventInfos_t::iterator iter = m_eventInfos.begin(); iter!=m_eventInfos.end(); ++iter) {
 				const eventInfo_t& eviRef = iter->second;
 				epoll_ctl(m_epollfd, EPOLL_CTL_DEL, eviRef.fd, NULL);
@@ -97,8 +101,10 @@ namespace hbm {
 
 				for (int n = 0; n < nfds; ++n) {
 					if(events[n].events & EPOLLIN) {
+						std::lock_guard < std::mutex > lock(m_eventInfosMtx);
 						eventInfo_t* pEventInfo = reinterpret_cast < eventInfo_t* > (events[n].data.ptr);
 						if(pEventInfo==nullptr) {
+							// stop notification!
 							return 0;
 						}
 						ssize_t result = pEventInfo->eventHandler();
@@ -143,6 +149,10 @@ namespace hbm {
 				for (int n = 0; n < nfds; ++n) {
 					if(events[n].events & EPOLLIN) {
 						eventInfo_t* pEventInfo = reinterpret_cast < eventInfo_t* > (events[n].data.ptr);
+						if(pEventInfo==nullptr) {
+							// stop notification!
+							return 0;
+						}
 						ssize_t result = pEventInfo->eventHandler();
 						if(result<0) {
 							return result;
