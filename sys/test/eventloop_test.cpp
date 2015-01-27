@@ -27,7 +27,6 @@
 /// by returning error, the execute() method, that is doing the eventloop, exits
 static ssize_t eventHandlerStop()
 {
-	std::cout << __FUNCTION__ << std::endl;
 	return -1;
 }
 

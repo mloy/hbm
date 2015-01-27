@@ -24,11 +24,11 @@ namespace hbm {
 
 			m_stopEvent.fd = m_stopNotifier.getFd();
 			m_stopEvent.eventHandler = nullptr;
-			m_eventInfos.push_back(m_stopEvent);
+			m_eventInfos[m_stopEvent.fd] = m_stopEvent;
 
 			m_changeEvent.fd = m_changeNotifier.getFd();
 			m_changeEvent.eventHandler = nullptr;
-			m_eventInfos.push_back(m_changeEvent);
+			m_eventInfos[m_changeEvent.fd] = m_changeEvent;
 		}
 
 		EventLoop::~EventLoop()
@@ -41,50 +41,21 @@ namespace hbm {
 			evi.fd = fd;
 			evi.eventHandler = eventHandler;
 
-			m_eventInfos.push_back(evi);
+			m_eventInfos[fd] = evi;
 
 			m_changeNotifier.notify();
+		}
+
+		void EventLoop::eraseEvent(event fd)
+		{
+			if (m_eventInfos.erase(fd)) {
+				m_changeNotifier.notify();
+			}
 		}
 
 		int EventLoop::execute()
 		{
 			return execute_for(std::chrono::milliseconds());
-			//ssize_t nbytes = 0;
-
-			//DWORD dwEvent;
-			//eventInfo_t evi;
-			//do {
-			//	std::vector < HANDLE > handles;
-			//	for (unsigned int i = 0; i < m_eventInfos.size(); ++i) {
-			//		handles.push_back(m_eventInfos[i].fd);
-			//	}
-
-			//	do {
-			//		dwEvent = WaitForMultipleObjects(handles.size(), &handles[0], FALSE, INFINITE);
-			//		if ((dwEvent == WAIT_FAILED) || (dwEvent == WAIT_TIMEOUT)) {
-			//			return -1;
-			//		}
-
-			//		evi = m_eventInfos[WAIT_OBJECT_0 + dwEvent];
-
-			//		// this is a workaround because WSARecvMsg does not reset the event!
-			//		WSAResetEvent(evi.fd);
-
-			//		if (evi.eventHandler == nullptr) {
-			//			// stop or change causes leaving the loop
-			//			break;
-			//		}
-			//		do {
-			//			// we do this until nothing is left. This is important because our call of WSARecvEvent above.
-			//			nbytes = evi.eventHandler();
-			//			if (nbytes < 0) {
-			//				return nbytes;
-			//			}
-			//		} while (nbytes > 0);
-			//	} while (nbytes >= 0);
-			//} while (evi.fd == m_changeNotifier.getFd()); // in case of change we start all over again!
-
-			//return 0;
 		}
 
 		int EventLoop::execute_for(std::chrono::milliseconds timeToWait)
@@ -97,11 +68,10 @@ namespace hbm {
 			DWORD dwEvent;
 			eventInfo_t evi;
 			do {
-				std::cout << "init" << std::endl;
 				std::vector < HANDLE > handles;
 
-				for (unsigned int i = 0; i < m_eventInfos.size(); ++i) {
-					handles.push_back(m_eventInfos[i].fd);
+				for (eventInfos_t::const_iterator iter = m_eventInfos.begin(); iter != m_eventInfos.end(); ++iter) {
+					handles.push_back(iter->first);
 				}
 
 				do {
@@ -117,25 +87,24 @@ namespace hbm {
 					}
 
 					if (dwEvent == WAIT_TIMEOUT) {
+						// stop because of timeout
 						return 0;
 						break;
 					}
 
-					evi = m_eventInfos[WAIT_OBJECT_0 + dwEvent];
+					event fd = handles[WAIT_OBJECT_0 + dwEvent];
+					evi = m_eventInfos[fd];
 					if (evi.eventHandler == nullptr) {
 						break;
 					}
 
 					nbytes = evi.eventHandler();
 					if (nbytes < 0) {
-						std::cout << "stopped!" << std::endl;
-
+						// stop because of error
 						return nbytes;
 					}
 				} while (nbytes >= 0);
 			} while (evi.fd == m_changeNotifier.getFd()); // in case of change we start all over again!
-
-			std::cout << "stopped!" << std::endl;
 
 
 			return 0;

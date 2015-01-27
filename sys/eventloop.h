@@ -6,13 +6,12 @@
 #define _EventLoop_H
 
 
+#include <unordered_map>
 #ifdef _WIN32
-	#include <vector>
 	#include <WinSock2.h>
 	#include <Windows.h>
 	typedef HANDLE event;
 #else
-	#include <unordered_map>
 	typedef int event;
 #endif
 #include <functional>
@@ -51,13 +50,12 @@ namespace hbm {
 			};
 
 			/// fd is the key
-#ifdef _WIN32
-			typedef std::vector < eventInfo_t > eventInfos_t;
-			Notifier m_changeNotifier;
-	#else
 			typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
+#ifdef _WIN32
+			Notifier m_changeNotifier;
+#else
 			int m_epollfd;
-	#endif
+#endif
 
 			Notifier m_stopNotifier;
 			eventInfos_t m_eventInfos;
