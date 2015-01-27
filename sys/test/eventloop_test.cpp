@@ -9,6 +9,7 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE eventloop tests
+#include <iostream>
 #include <chrono>
 #include <thread>
 #include <functional>
@@ -26,8 +27,16 @@
 /// by returning error, the execute() method, that is doing the eventloop, exits
 static ssize_t eventHandlerStop()
 {
+	std::cout << __FUNCTION__ << std::endl;
 	return -1;
 }
+
+static ssize_t eventHandlerPrint()
+{
+	std::cout << __FUNCTION__ << std::endl;
+	return 0;
+}
+
 
 static unsigned int eventsLeft;
 
@@ -41,7 +50,6 @@ static ssize_t eventHandlerStopAfterN()
 		return 0;
 	}
 }
-
 
 BOOST_AUTO_TEST_CASE(norify_test)
 {
@@ -93,10 +101,10 @@ BOOST_AUTO_TEST_CASE(waitforend_test)
 	int result = eventLoop.execute_for(duration);
 	std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
 
-	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-startTime-duration);
+	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-startTime);
 
 	BOOST_CHECK(result==0);
-	BOOST_CHECK(delta.count()<5);
+	BOOST_CHECK(delta.count()>=100);
 }
 
 BOOST_AUTO_TEST_CASE(timerevent_test)
@@ -117,14 +125,15 @@ BOOST_AUTO_TEST_CASE(severaltimerevents_test)
 {
 	static const unsigned int timerCycle = 100;
 	static const unsigned int timerCount = 10;
-	static const std::chrono::milliseconds duration(timerCycle*3);
+	static const std::chrono::milliseconds duration(timerCycle * 3);
 	hbm::sys::EventLoop eventLoop;
 
 	eventsLeft = 2;
 
 	hbm::sys::Timer timer(timerCycle);
-	eventLoop.addEvent(timer.getFd(), &eventHandlerStop);
+	eventLoop.addEvent(timer.getFd(), &eventHandlerStopAfterN);
 
 	int result = eventLoop.execute_for(duration);
-	BOOST_CHECK(result==-1);
+	BOOST_CHECK(result == -1);
 }
+

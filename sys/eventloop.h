@@ -51,8 +51,9 @@ namespace hbm {
 			};
 
 			/// fd is the key
-	#ifdef _WIN32
+#ifdef _WIN32
 			typedef std::vector < eventInfo_t > eventInfos_t;
+			Notifier m_changeNotifier;
 	#else
 			typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
 			int m_epollfd;
@@ -61,6 +62,9 @@ namespace hbm {
 			Notifier m_stopNotifier;
 			eventInfos_t m_eventInfos;
 			eventInfo_t m_stopEvent;
+#ifdef _WIN32
+			eventInfo_t m_changeEvent;
+#endif
 		};
 	}
 }

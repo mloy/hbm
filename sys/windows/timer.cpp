@@ -17,12 +17,16 @@ namespace hbm {
 			: m_fd(NULL)
 			, m_canceled(false)
 		{
+			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
+
 		}
 
 		Timer::Timer(unsigned int period_ms)
 			: m_fd(NULL)
 			, m_canceled(false)
 		{
+			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
+
 			set(period_ms);
 		}
 
@@ -33,7 +37,6 @@ namespace hbm {
 
 		int Timer::set(unsigned int period_ms)
 		{
-			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
 			LARGE_INTEGER dueTime;
 			static const uint64_t multilpier = -10000; // negative because we want a relative time
 
