@@ -21,7 +21,15 @@ namespace hbm {
 		/// \throws hbm::exception
 		EventLoop::EventLoop()
 		{
+			init();
+		}
 
+		EventLoop::~EventLoop()
+		{		
+		}
+
+		void EventLoop::init()
+		{
 			m_stopEvent.fd = m_stopNotifier.getFd();
 			m_stopEvent.eventHandler = nullptr;
 			m_eventInfos[m_stopEvent.fd] = m_stopEvent;
@@ -29,10 +37,6 @@ namespace hbm {
 			m_changeEvent.fd = m_changeNotifier.getFd();
 			m_changeEvent.eventHandler = nullptr;
 			m_eventInfos[m_changeEvent.fd] = m_changeEvent;
-		}
-
-		EventLoop::~EventLoop()
-		{		
 		}
 
 		void EventLoop::addEvent(event fd, eventHandler_t eventHandler)
@@ -51,6 +55,12 @@ namespace hbm {
 			if (m_eventInfos.erase(fd)) {
 				m_changeNotifier.notify();
 			}
+		}
+
+		void EventLoop::clear()
+		{
+			m_eventInfos.clear();
+			init();
 		}
 
 		int EventLoop::execute()

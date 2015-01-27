@@ -52,6 +52,7 @@ namespace hbm {
 			/// fd is the key
 			typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
 #ifdef _WIN32
+			void init();
 			Notifier m_changeNotifier;
 #else
 			int m_epollfd;
