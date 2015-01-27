@@ -12,6 +12,7 @@
 #define LOG_ERR stderr
 #define ssize_t int
 #include <chrono>
+#include <mutex>
 
 
 #include "hbm/sys/eventloop.h"
@@ -25,18 +26,23 @@ namespace hbm {
 		}
 
 		EventLoop::~EventLoop()
-		{		
+		{	
+			clear();
 		}
 
 		void EventLoop::init()
 		{
 			m_stopEvent.fd = m_stopNotifier.getFd();
 			m_stopEvent.eventHandler = nullptr;
-			m_eventInfos[m_stopEvent.fd] = m_stopEvent;
 
 			m_changeEvent.fd = m_changeNotifier.getFd();
 			m_changeEvent.eventHandler = nullptr;
-			m_eventInfos[m_changeEvent.fd] = m_changeEvent;
+
+			{
+				std::lock_guard < std::mutex> lock(m_eventInfosMtx);
+				m_eventInfos[m_stopEvent.fd] = m_stopEvent;
+				m_eventInfos[m_changeEvent.fd] = m_changeEvent;
+			}
 		}
 
 		void EventLoop::addEvent(event fd, eventHandler_t eventHandler)
@@ -45,21 +51,32 @@ namespace hbm {
 			evi.fd = fd;
 			evi.eventHandler = eventHandler;
 
-			m_eventInfos[fd] = evi;
+			{
+				std::lock_guard < std::mutex> lock(m_eventInfosMtx);
+				m_eventInfos[fd] = evi;
+			}
 
 			m_changeNotifier.notify();
 		}
 
 		void EventLoop::eraseEvent(event fd)
 		{
-			if (m_eventInfos.erase(fd)) {
+			size_t result;
+			{
+				std::lock_guard < std::mutex> lock(m_eventInfosMtx);
+				result = m_eventInfos.erase(fd);
+			}
+			if (result>0) {
 				m_changeNotifier.notify();
 			}
 		}
 
 		void EventLoop::clear()
 		{
-			m_eventInfos.clear();
+			{
+				std::lock_guard < std::mutex> lock(m_eventInfosMtx);
+				m_eventInfos.clear();
+			}
 			init();
 		}
 
@@ -80,8 +97,11 @@ namespace hbm {
 			do {
 				std::vector < HANDLE > handles;
 
-				for (eventInfos_t::const_iterator iter = m_eventInfos.begin(); iter != m_eventInfos.end(); ++iter) {
-					handles.push_back(iter->first);
+				{
+					std::lock_guard < std::mutex> lock(m_eventInfosMtx);
+					for (eventInfos_t::const_iterator iter = m_eventInfos.begin(); iter != m_eventInfos.end(); ++iter) {
+						handles.push_back(iter->first);
+					}
 				}
 
 				do {
@@ -103,7 +123,11 @@ namespace hbm {
 					}
 
 					event fd = handles[WAIT_OBJECT_0 + dwEvent];
-					evi = m_eventInfos[fd];
+
+					{
+						std::lock_guard < std::mutex> lock(m_eventInfosMtx);
+						evi = m_eventInfos[fd];
+					}
 					if (evi.eventHandler == nullptr) {
 						break;
 					}

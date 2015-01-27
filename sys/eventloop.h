@@ -15,8 +15,9 @@
 	typedef int event;
 #endif
 #include <functional>
-
 #include <chrono>
+#include <mutex>
+
 #include "hbm/exception/exception.hpp"
 #include "hbm/sys/notifier.h"
 
@@ -59,7 +60,10 @@ namespace hbm {
 #endif
 
 			Notifier m_stopNotifier;
+
 			eventInfos_t m_eventInfos;
+			std::mutex m_eventInfosMtx;
+
 			eventInfo_t m_stopEvent;
 #ifdef _WIN32
 			eventInfo_t m_changeEvent;
