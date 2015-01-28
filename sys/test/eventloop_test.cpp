@@ -167,8 +167,8 @@ BOOST_AUTO_TEST_CASE(eraseevent_wile_executing_test)
 BOOST_AUTO_TEST_CASE(severaltimerevents_test)
 {
 	static const unsigned int timerCycle = 100;
-	static const unsigned int timerCount = 10;
-	static const std::chrono::milliseconds duration(timerCycle * 3);
+	static const unsigned int timerCount = 3;
+	static const std::chrono::milliseconds duration(timerCycle * timerCount);
 	hbm::sys::EventLoop eventLoop;
 
 	unsigned int eventsLeft = 2;
