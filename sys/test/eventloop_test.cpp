@@ -163,7 +163,7 @@ BOOST_AUTO_TEST_CASE(eraseevent_wile_executing_test)
 	BOOST_CHECK_GT(delta.count(), duration.count());
 }
 
-/// remove timer while event loop is already running.
+/// cancel timer while event loop is already running.
 BOOST_AUTO_TEST_CASE(cancelTimer_wile_executing_test)
 {
 	static const unsigned int timerCycle = 100;
