@@ -235,5 +235,5 @@ BOOST_AUTO_TEST_CASE(severaltimers_test)
 
 	int result = eventLoop.execute_for(duration);
 	BOOST_CHECK_EQUAL(counter, timers.size());
-	BOOST_CHECK(result == -1);
+	BOOST_CHECK(result == 0);
 }
