@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE(eraseevent_wile_executing_test)
 
 	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-startTime);
 
-	BOOST_CHECK_GT(delta.count(), duration.count());
+	BOOST_CHECK_GE(delta.count(), duration.count());
 }
 
 /// cancel timer while event loop is already running.
@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_CASE(cancelTimer_wile_executing_test)
 
 	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-startTime);
 
-	BOOST_CHECK_GT(delta.count(), duration.count());
+	BOOST_CHECK_GE(delta.count(), duration.count());
 }
 
 
@@ -237,4 +237,3 @@ BOOST_AUTO_TEST_CASE(severaltimers_test)
 	BOOST_CHECK_EQUAL(counter, timers.size());
 	BOOST_CHECK(result == -1);
 }
-
