@@ -15,6 +15,10 @@ IF(Boost_FOUND)
   LIST(APPEND ADDITIONAL_LIBS ${Boost_LIBRARIES})
 endif(Boost_FOUND)
 
+
+enable_testing()
+
+
 SET(EXECUTECOMMAND_TEST
 	../executecommand.cpp
 	executecommand_test.cpp
@@ -34,11 +38,11 @@ target_link_libraries (
 	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
-add_test(executecommand_test executecommand.test
---report_level=no
---log_level=all
---output_format=xml
---log_sink=${CMAKE_BINARY_DIR}/executecommand_test.xml)
+#add_test(executecommand_test executecommand.test
+#--report_level=no
+#--log_level=all
+#--output_format=xml
+#--log_sink=${CMAKE_BINARY_DIR}/executecommand_test.xml)
 
 
 SET(TIMER_TEST
