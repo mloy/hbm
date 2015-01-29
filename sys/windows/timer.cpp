@@ -81,11 +81,17 @@ namespace hbm {
 
 		int Timer::wait()
 		{
+			return wait_for(INFINITE);
+		}
+
+
+		int Timer::wait_for(int period_ms)
+		{
 			if (m_canceled) {
 				return 0;
 			}
 
-			DWORD result = WaitForSingleObject(m_fd, INFINITE);
+			DWORD result = WaitForSingleObject(m_fd, period_ms);
 			switch (result) {
 			case WAIT_OBJECT_0:
 				return 1;

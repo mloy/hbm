@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(wait_test)
 	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (end - start);
 	uint64_t diff = abs((timeToWait)-delta.count());
 
-	BOOST_CHECK(diff<5);
+	BOOST_CHECK_LT(diff, 20);
 }
 
 BOOST_AUTO_TEST_CASE(wait_repeated_test)
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(wait_repeated_test)
 		BOOST_CHECK(result==1);
 		std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (end - start);
 		uint64_t diff = abs((timeToWait)-delta.count());
-		BOOST_CHECK(diff<5);
+		BOOST_CHECK_LT(diff, 20);
 	}
 }
 
