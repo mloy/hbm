@@ -30,11 +30,11 @@ namespace hbm {
 
 			/// @param period_ms timer interval in ms
 			/// \throws hbm::exception
-			Timer(unsigned int period_ms);
+			Timer(unsigned int period_ms, bool repeated);
 			~Timer();
 
 			/// @param period_ms timer interval in ms
-			int set(unsigned int period_ms);
+			int set(unsigned int period_ms, bool repeated);
 
 			/// \return 0 if timer has not expired yet. 1 if timer has expired. -1 if timer was not started
 			int read();

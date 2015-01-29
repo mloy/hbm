@@ -21,13 +21,13 @@ namespace hbm {
 
 		}
 
-		Timer::Timer(unsigned int period_ms)
+		Timer::Timer(unsigned int period_ms, bool repeated)
 			: m_fd(NULL)
 			, m_canceled(false)
 		{
 			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
 
-			set(period_ms);
+			set(period_ms, repeated);
 		}
 
 		Timer::~Timer()
@@ -35,16 +35,20 @@ namespace hbm {
 			CloseHandle(m_fd);
 		}
 
-		int Timer::set(unsigned int period_ms)
+		int Timer::set(unsigned int period_ms, bool repeated)
 		{
 			LARGE_INTEGER dueTime;
 			static const uint64_t multilpier = -10000; // negative because we want a relative time
+			LONG period = 0; // in ms
 
+			if (repeated) {
+				period = period_ms;
+			}
 			dueTime.QuadPart = period_ms*multilpier; // in 100ns
 			BOOL Result = SetWaitableTimer(
 				m_fd,
 				&dueTime,
-				period_ms, // in ms
+				period,
 				NULL,
 				NULL,
 				FALSE

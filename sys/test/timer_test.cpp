@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(read_test)
 	hbm::sys::Timer timer;
 	std::chrono::steady_clock::time_point start(std::chrono::steady_clock::now());
 	std::chrono::steady_clock::time_point end;
-	timer.set(timeToWait);
+	timer.set(timeToWait, true);
 	ssize_t result = timer.read();
 	BOOST_CHECK(result==0);
 	// wait one timer cycle + epsilon
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(wait_test)
 	hbm::sys::Timer timer;
 	std::chrono::steady_clock::time_point start(std::chrono::steady_clock::now());
 	std::chrono::steady_clock::time_point end;
-	timer.set(timeToWait);
+	timer.set(timeToWait, true);
 	ssize_t result = timer.wait();
 	BOOST_CHECK(result==1);
 	end = std::chrono::steady_clock::now();
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(stop_test)
 	std::chrono::steady_clock::time_point end;
 
 	start = std::chrono::steady_clock::now();
-	timer.set(timeToWait);
+	timer.set(timeToWait, true);
 	timer.cancel();
 	// timer is stopped, should return at once
 	ssize_t result = timer.wait();

@@ -13,6 +13,7 @@
 #include <chrono>
 #include <thread>
 #include <functional>
+#include <vector>
 
 #include <boost/test/unit_test.hpp>
 
@@ -48,6 +49,14 @@ static ssize_t eventHandlerStopAfterN(unsigned int* pEventsLeft)
 		return 0;
 	}
 }
+
+/// by returning error, the execute() method, that is doing the eventloop, exits
+static ssize_t eventHandlerIncrement(unsigned int* pValue)
+{
+	++(*pValue);
+	return 0;
+}
+
 
 
 /// start the eventloop in a separate thread wait some time and stop it.
@@ -110,7 +119,7 @@ BOOST_AUTO_TEST_CASE(timerevent_test)
 	static const std::chrono::milliseconds duration(timerCycle*3);
 	hbm::sys::EventLoop eventLoop;
 
-	hbm::sys::Timer timer(timerCycle);
+	hbm::sys::Timer timer(timerCycle, true);
 
 	eventLoop.addEvent(timer.getFd(), &eventHandlerStop);
 	int result = eventLoop.execute_for(duration);
@@ -125,7 +134,7 @@ BOOST_AUTO_TEST_CASE(addevent_wile_executing_test)
 	static const std::chrono::milliseconds duration(timerCycle*3);
 	hbm::sys::EventLoop eventLoop;
 
-	hbm::sys::Timer timer(timerCycle);
+	hbm::sys::Timer timer(timerCycle, true);
 
 	std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 	std::thread worker(std::bind(&hbm::sys::EventLoop::execute_for, &eventLoop, duration));
@@ -146,7 +155,7 @@ BOOST_AUTO_TEST_CASE(eraseevent_wile_executing_test)
 	static const std::chrono::milliseconds duration(timerCycle*3);
 	hbm::sys::EventLoop eventLoop;
 
-	hbm::sys::Timer timer(timerCycle);
+	hbm::sys::Timer timer(timerCycle, true);
 
 	std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 	eventLoop.addEvent(timer.getFd(), &eventHandlerStop);
@@ -170,7 +179,7 @@ BOOST_AUTO_TEST_CASE(cancelTimer_wile_executing_test)
 	static const std::chrono::milliseconds duration(timerCycle*3);
 	hbm::sys::EventLoop eventLoop;
 
-	hbm::sys::Timer timer(timerCycle);
+	hbm::sys::Timer timer(timerCycle, true);
 
 	std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 	eventLoop.addEvent(timer.getFd(), &eventHandlerStop);
@@ -198,11 +207,34 @@ BOOST_AUTO_TEST_CASE(severaltimerevents_test)
 
 	unsigned int eventsLeft = 2;
 
-	hbm::sys::Timer timer(timerCycle);
+	hbm::sys::Timer timer(timerCycle, true);
 	eventLoop.addEvent(timer.getFd(), std::bind(&eventHandlerStopAfterN, &eventsLeft));
 
 	int result = eventLoop.execute_for(duration);
 	BOOST_CHECK_EQUAL(eventsLeft, 0);
+	BOOST_CHECK(result == -1);
+}
+
+BOOST_AUTO_TEST_CASE(severaltimers_test)
+{
+	static const unsigned int timerCycle = 10;
+	static const unsigned int timerCount = 10;
+	static const std::chrono::milliseconds duration(timerCycle * timerCount);
+	hbm::sys::EventLoop eventLoop;
+
+	unsigned int counter = 0;
+
+	typedef std::vector < hbm::sys::Timer > timers_t;
+	timers_t timers(10);
+
+	for (timers_t::iterator iter = timers.begin(); iter != timers.end(); ++iter) {
+		hbm::sys::Timer& timer = *iter;
+		timer.set(timerCycle, false);
+		eventLoop.addEvent(timer.getFd(), std::bind(&eventHandlerIncrement, &counter));
+	}
+
+	int result = eventLoop.execute_for(duration);
+	BOOST_CHECK_EQUAL(counter, timers.size());
 	BOOST_CHECK(result == -1);
 }
 
