@@ -62,13 +62,6 @@ namespace hbm {
 
 		int Timer::read()
 		{
-			struct itimerspec currValue;
-			timerfd_gettime(m_fd, &currValue);
-			if(currValue.it_value.tv_sec==0 && currValue.it_value.tv_nsec==0) {
-				// not started!
-				return -1;
-			}
-
 			uint64_t timerEventCount;
 			ssize_t readStatus = ::read(m_fd, &timerEventCount, sizeof(timerEventCount));
 			if (readStatus<0) {
