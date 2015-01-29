@@ -26,7 +26,7 @@ namespace hbm {
 		}
 
 		Timer::Timer(unsigned int period_ms, bool repeated)
-			: m_fd(timerfd_create(CLOCK_MONOTONIC, 0))
+			: m_fd(timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK))
 		{
 			if (m_fd<0) {
 				throw hbm::exception::exception("could not create timer fd");
@@ -84,15 +84,7 @@ namespace hbm {
 			if (retval!=1) {
 				return -1;
 			}
-			uint64_t timerEventCount;
-			ssize_t readStatus = ::read(m_fd, &timerEventCount, sizeof(timerEventCount));
-			if (readStatus<0) {
-				// timer was stopped!
-				return 0;
-			} else {
-				// to be compatible between windows and linux, we return 1 even if timer expired timerEventCount times.
-				return 1;
-			}
+			return read();
 		}
 
 		int Timer::wait()
