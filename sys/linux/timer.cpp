@@ -25,14 +25,14 @@ namespace hbm {
 			}
 		}
 
-		Timer::Timer(unsigned int period_ms)
+		Timer::Timer(unsigned int period_ms, bool repeated)
 			: m_fd(timerfd_create(CLOCK_MONOTONIC, 0))
 		{
 			if (m_fd<0) {
 				throw hbm::exception::exception("could not create timer fd");
 			}
 
-			set(period_ms);
+			set(period_ms, repeated);
 		}
 
 		Timer::~Timer()
@@ -40,7 +40,7 @@ namespace hbm {
 			close(m_fd);
 		}
 
-		int Timer::set(unsigned int period_ms)
+		int Timer::set(unsigned int period_ms, bool repeated)
 		{
 			if (period_ms==0) {
 				return -1;
@@ -52,8 +52,10 @@ namespace hbm {
 
 			timespec.it_value.tv_sec = period_s;
 			timespec.it_value.tv_nsec = rest * 1000 * 1000;
-			timespec.it_interval.tv_sec = period_s;
-			timespec.it_interval.tv_nsec = rest * 1000 * 1000;
+			if (repeated) {
+				timespec.it_interval.tv_sec = period_s;
+				timespec.it_interval.tv_nsec = rest * 1000 * 1000;
+			}
 
 			return timerfd_settime(m_fd, 0, &timespec, nullptr);
 		}
