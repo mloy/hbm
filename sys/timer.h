@@ -42,6 +42,9 @@ namespace hbm {
 			/// \return 0 if timer was stopped before expiration. 1 if timer has expired. -1 if timer was not started
 			int wait();
 
+			/// \return 0 if timer was stopped before expiration. 1 if timer has expired. -1 on time out
+			int wait_for(int period_ms);
+
 			/// to poll
 			event getFd() const;
 

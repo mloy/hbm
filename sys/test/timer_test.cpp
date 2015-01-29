@@ -23,7 +23,7 @@
 BOOST_AUTO_TEST_CASE(notstarted_test)
 {
 	hbm::sys::Timer timer;
-	ssize_t result = timer.wait();
+	ssize_t result = timer.wait_for(10);
 	BOOST_CHECK(result==-1);
 }
 
@@ -58,6 +58,38 @@ BOOST_AUTO_TEST_CASE(wait_test)
 
 	BOOST_CHECK(diff<5);
 }
+
+BOOST_AUTO_TEST_CASE(wait_repeated_test)
+{
+	static const unsigned int timeToWait = 50;
+	hbm::sys::Timer timer;
+	std::chrono::steady_clock::time_point start;
+	std::chrono::steady_clock::time_point end;
+
+
+	timer.set(timeToWait, true);
+	for(unsigned int i=0; i<10; ++i) {
+		start = std::chrono::steady_clock::now();
+		ssize_t result = timer.wait();
+		end = std::chrono::steady_clock::now();
+		BOOST_CHECK(result==1);
+		std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (end - start);
+		uint64_t diff = abs((timeToWait)-delta.count());
+		BOOST_CHECK(diff<5);
+	}
+}
+
+BOOST_AUTO_TEST_CASE(wait_oneshot_test)
+{
+	static const unsigned int timeToWait = 10;
+	hbm::sys::Timer timer;
+	timer.set(timeToWait, false);
+	ssize_t result = timer.wait_for(timeToWait*3);
+	BOOST_CHECK_EQUAL(result, 1);
+	result = timer.wait_for(timeToWait*3);
+	BOOST_CHECK_EQUAL(result, -1);
+}
+
 
 BOOST_AUTO_TEST_CASE(stop_test)
 {

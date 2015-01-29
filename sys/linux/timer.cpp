@@ -80,21 +80,14 @@ namespace hbm {
 			}
 		}
 
-		int Timer::wait()
+		int Timer::wait_for(int period_ms)
 		{
-			struct itimerspec currValue;
-			timerfd_gettime(m_fd, &currValue);
-			if(currValue.it_value.tv_sec==0 && currValue.it_value.tv_nsec==0) {
-				// not started!
-				return -1;
-			}
-
 			struct pollfd pfd;
 
 			pfd.fd = m_fd;
 			pfd.events = POLLIN;
 
-			int retval = poll(&pfd, 1, -1);
+			int retval = poll(&pfd, 1, period_ms);
 			if (retval!=1) {
 				return -1;
 			}
@@ -107,6 +100,11 @@ namespace hbm {
 				// to be compatible between windows and linux, we return 1 even if timer expired timerEventCount times.
 				return 1;
 			}
+		}
+
+		int Timer::wait()
+		{
+			return wait_for(-1);
 		}
 
 		int Timer::cancel()
