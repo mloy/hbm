@@ -39,7 +39,7 @@ namespace hbm {
 			m_changeEvent.eventHandler = nullptr;
 
 			{
-				std::lock_guard < std::mutex> lock(m_eventInfosMtx);
+				std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
 				m_eventInfos[m_stopEvent.fd] = m_stopEvent;
 				m_eventInfos[m_changeEvent.fd] = m_changeEvent;
 			}
@@ -52,7 +52,7 @@ namespace hbm {
 			evi.eventHandler = eventHandler;
 
 			{
-				std::lock_guard < std::mutex> lock(m_eventInfosMtx);
+				std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
 				m_eventInfos[fd] = evi;
 			}
 
@@ -63,7 +63,7 @@ namespace hbm {
 		{
 			size_t result;
 			{
-				std::lock_guard < std::mutex> lock(m_eventInfosMtx);
+				std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
 				result = m_eventInfos.erase(fd);
 			}
 			if (result>0) {
@@ -74,7 +74,7 @@ namespace hbm {
 		void EventLoop::clear()
 		{
 			{
-				std::lock_guard < std::mutex> lock(m_eventInfosMtx);
+				std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
 				m_eventInfos.clear();
 			}
 			init();
@@ -100,7 +100,7 @@ namespace hbm {
 				std::vector < HANDLE > handles;
 
 				{
-					std::lock_guard < std::mutex> lock(m_eventInfosMtx);
+					std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
 					for (eventInfos_t::const_iterator iter = m_eventInfos.begin(); iter != m_eventInfos.end(); ++iter) {
 						handles.push_back(iter->first);
 					}
@@ -127,7 +127,7 @@ namespace hbm {
 					event fd = handles[WAIT_OBJECT_0 + dwEvent];
 
 					{
-						std::lock_guard < std::mutex> lock(m_eventInfosMtx);
+						std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
 						evi = m_eventInfos[fd];
 					}
 					if (evi.eventHandler == nullptr) {
