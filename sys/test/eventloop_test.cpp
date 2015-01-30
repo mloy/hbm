@@ -103,6 +103,8 @@ BOOST_AUTO_TEST_CASE(notify_test)
 	static const std::chrono::milliseconds duration(100);
 	hbm::sys::EventLoop eventLoop;
 	hbm::sys::Notifier notifier;
+	result = notifier.wait_for(0);
+	BOOST_CHECK_EQUAL(result, -1);
 	result = notifier.read();
 	BOOST_CHECK_EQUAL(result, 0);
 
