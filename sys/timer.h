@@ -48,6 +48,7 @@ namespace hbm {
 			/// to poll
 			event getFd() const;
 
+			/// timer will not signal, wait will block.
 			int cancel();
 
 		private:
@@ -57,11 +58,6 @@ namespace hbm {
 			Timer operator=(const Timer& op);
 
 			event m_fd;
-#ifdef _WIN32
-			/// workaround for windows to determine whether the timer is stopped or got signaled
-			bool m_canceled;
-#endif
-
 		};
 	}
 }

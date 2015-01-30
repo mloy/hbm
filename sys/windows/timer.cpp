@@ -4,10 +4,11 @@
 
 
 #include <iostream>
+#include <WinSock2.h>
+
 #include <cstring>
 #include <stdint.h>
 
-#include <WinSock2.h>
 
 #include "hbm/sys/timer.h"
 
@@ -15,15 +16,13 @@ namespace hbm {
 	namespace sys {
 		Timer::Timer()
 			: m_fd(NULL)
-			, m_canceled(false)
 		{
 			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
-
+			cancel();
 		}
 
 		Timer::Timer(unsigned int period_ms, bool repeated)
 			: m_fd(NULL)
-			, m_canceled(false)
 		{
 			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
 
@@ -38,7 +37,7 @@ namespace hbm {
 		int Timer::set(unsigned int period_ms, bool repeated)
 		{
 			LARGE_INTEGER dueTime;
-			static const uint64_t multilpier = -10000; // negative because we want a relative time
+			static const int64_t multilpier = -10000; // negative because we want a relative time
 			LONG period = 0; // in ms
 
 			if (repeated) {
@@ -64,9 +63,6 @@ namespace hbm {
 			DWORD result = WaitForSingleObject(m_fd, 0);
 			switch (result) {
 			case WAIT_OBJECT_0:
-				if (m_canceled) {
-					return 0;
-				}
 				return 1;
 				break;
 			case WAIT_TIMEOUT:
@@ -87,10 +83,6 @@ namespace hbm {
 
 		int Timer::wait_for(int period_ms)
 		{
-			if (m_canceled) {
-				return 0;
-			}
-
 			DWORD result = WaitForSingleObject(m_fd, period_ms);
 			switch (result) {
 			case WAIT_OBJECT_0:
@@ -105,8 +97,16 @@ namespace hbm {
 
 		int Timer::cancel()
 		{
-			m_canceled = true;
-			CancelWaitableTimer(m_fd);
+			LARGE_INTEGER dueTime;
+			dueTime.QuadPart = LLONG_MIN;
+			BOOL Result = SetWaitableTimer(
+				m_fd,
+				&dueTime,
+				0,
+				NULL,
+				NULL,
+				FALSE
+				);
 			return 0;
 		}
 
