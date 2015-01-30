@@ -130,11 +130,17 @@ namespace hbm {
 						std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
 						evi = m_eventInfos[fd];
 					}
+					// this is a workaround. WSARecvMsg does not reset the event!
+					WSAResetEvent(evi.fd);
+
 					if (evi.eventHandler == nullptr) {
 						break;
 					}
 
-					nbytes = evi.eventHandler();
+					do {
+						// we do this until nothing is left. This is important because of our call to WSAResetEvent above.
+						nbytes = evi.eventHandler();
+					} while (nbytes>0); 
 					if (nbytes < 0) {
 						// stop because of error
 						return nbytes;
