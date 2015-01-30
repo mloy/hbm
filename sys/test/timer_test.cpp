@@ -8,7 +8,7 @@
 #endif
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE executecommand tests
+#define BOOST_TEST_MODULE timer tests
 
 #include <stdint.h>
 #include <iostream>

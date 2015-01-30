@@ -6,6 +6,7 @@
 #include <cstring>
 
 #include <sys/eventfd.h>
+#include <sys/poll.h>
 #include <unistd.h>
 
 #include "hbm/exception/exception.hpp"
@@ -14,7 +15,7 @@
 namespace hbm {
 	namespace sys {
 		Notifier::Notifier()
-			: m_fd(eventfd(0, EFD_SEMAPHORE))
+			: m_fd(eventfd(0, EFD_NONBLOCK))
 		{
 			if (m_fd<0) {
 				throw hbm::exception::exception("could not create event fd");
@@ -32,10 +33,29 @@ namespace hbm {
 			return write(m_fd, &value, sizeof(value));
 		}
 
-		int Notifier::wait()
+		int Notifier::read()
 		{
 			uint64_t value;
-			return read(m_fd, &value, sizeof(value));
+			return ::read(m_fd, &value, sizeof(value));
+		}
+
+		int Notifier::wait()
+		{
+			return wait_for(-1);
+		}
+
+		int Notifier::wait_for(int period_ms)
+		{
+			struct pollfd pfd;
+
+			pfd.fd = m_fd;
+			pfd.events = POLLIN;
+
+			int retval = poll(&pfd, 1, period_ms);
+			if (retval!=1) {
+				return -1;
+			}
+			return read();
 		}
 
 		int Notifier::cancel()

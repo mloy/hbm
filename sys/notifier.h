@@ -15,11 +15,15 @@ namespace hbm {
 		public:
 			/// \throws hbm::exception
 			Notifier();
-			~Notifier();
+			virtual ~Notifier();
 
 			int notify();
 
+			int read();
+
 			int wait();
+
+			int wait_for(int period_ms);
 
 			int cancel();
 

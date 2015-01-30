@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_CASE(waitforend_test)
 	BOOST_CHECK_GE(delta.count(), duration.count()-3);
 }
 
-BOOST_AUTO_TEST_CASE(norify_test)
+BOOST_AUTO_TEST_CASE(notify_test)
 {
 	int result;
 	hbm::sys::EventLoop eventLoop;
@@ -155,21 +155,31 @@ BOOST_AUTO_TEST_CASE(eraseevent_wile_executing_test)
 	static const std::chrono::milliseconds duration(timerCycle*3);
 	hbm::sys::EventLoop eventLoop;
 
-	hbm::sys::Timer timer(timerCycle, true);
+	hbm::sys::Timer timer;
+	std::thread worker;
+	std::chrono::steady_clock::time_point startTime;
 
-	std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
+	startTime = std::chrono::steady_clock::now();
+	timer.set(timerCycle, false);
 	eventLoop.addEvent(timer.getFd(), &eventHandlerStop);
-
-	std::thread worker(std::bind(&hbm::sys::EventLoop::execute_for, &eventLoop, duration));
-
+	worker = std::thread(std::bind(&hbm::sys::EventLoop::execute_for, &eventLoop, duration));
 	eventLoop.eraseEvent(timer.getFd());
 
 	worker.join(); // should return on timeout of event loop
 	std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
-
 	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-startTime);
-
 	BOOST_CHECK_GE(delta.count(), duration.count());
+
+
+	// add time again, start and wait for event.
+	startTime = std::chrono::steady_clock::now();
+	timer.set(timerCycle, false);
+	worker = std::thread(std::bind(&hbm::sys::EventLoop::execute_for, &eventLoop, duration));
+	eventLoop.addEvent(timer.getFd(), &eventHandlerStop);
+	worker.join();
+	endTime = std::chrono::steady_clock::now();
+	delta = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-startTime);
+	BOOST_CHECK_LT(delta.count(), timerCycle+20);
 }
 
 /// cancel timer while event loop is already running.
