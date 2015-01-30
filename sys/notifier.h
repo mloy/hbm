@@ -25,8 +25,6 @@ namespace hbm {
 
 			int wait_for(int period_ms);
 
-			int cancel();
-
 			/// to poll
 			event getFd() const;
 

@@ -36,7 +36,14 @@ namespace hbm {
 		int Notifier::read()
 		{
 			uint64_t value;
-			return ::read(m_fd, &value, sizeof(value));
+			ssize_t readStatus = ::read(m_fd, &value, sizeof(value));
+			if (readStatus<0) {
+				return 0;
+			} else {
+				// to be compatible between windows and linux, we return 1 even if timer expired timerEventCount times.
+				return 1;
+			}
+
 		}
 
 		int Notifier::wait()
@@ -56,11 +63,6 @@ namespace hbm {
 				return -1;
 			}
 			return read();
-		}
-
-		int Notifier::cancel()
-		{
-			return ::close(m_fd);
 		}
 
 		event Notifier::getFd() const

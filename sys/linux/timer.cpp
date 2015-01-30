@@ -65,7 +65,6 @@ namespace hbm {
 			uint64_t timerEventCount;
 			ssize_t readStatus = ::read(m_fd, &timerEventCount, sizeof(timerEventCount));
 			if (readStatus<0) {
-				// timer was stopped!
 				return 0;
 			} else {
 				// to be compatible between windows and linux, we return 1 even if timer expired timerEventCount times.
