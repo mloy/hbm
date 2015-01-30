@@ -6,18 +6,7 @@
 #ifndef _HBM__NOTIFIER_H
 #define _HBM__NOTIFIER_H
 
-#ifdef _WIN32
-#include <WinSock2.h>
-#ifndef ssize_t
-#define ssize_t int
-#endif
-typedef HANDLE event;
-#else
-#include <unistd.h>
-typedef int event;
-#endif
-
-
+#include "hbm/sys/defines.h"
 #include "hbm/exception/exception.hpp"
 
 namespace hbm {

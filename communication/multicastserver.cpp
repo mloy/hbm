@@ -174,7 +174,7 @@ namespace hbm {
 
 
 			// on simulation we want to be able to have scan daemon and ckient on the same machine. Hence we need to receive the stuff send by ourselves.
-	#ifdef _HBM_HARDWARE
+//	#ifdef _HBM_HARDWARE
 			{
 				// we do not want to receive the stuff we where sending
 				unsigned char value = 0;
@@ -187,7 +187,7 @@ namespace hbm {
 					return -1;
 				}
 			}
-	#endif
+//	#endif
 
 			return 0;
 		}
