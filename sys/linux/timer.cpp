@@ -94,7 +94,9 @@ namespace hbm {
 
 		int Timer::cancel()
 		{
-			return ::close(m_fd);
+			struct itimerspec timespec;
+			memset (&timespec, 0, sizeof(timespec));
+			return timerfd_settime(m_fd, 0, &timespec, nullptr);
 		}
 
 		event Timer::getFd() const

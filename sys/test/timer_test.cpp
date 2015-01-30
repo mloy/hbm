@@ -90,10 +90,27 @@ BOOST_AUTO_TEST_CASE(wait_oneshot_test)
 	BOOST_CHECK_EQUAL(result, -1);
 }
 
+BOOST_AUTO_TEST_CASE(cancel_wait_oneshot_test)
+{
+	static const unsigned int timeToWait = 10;
+	hbm::sys::Timer timer;
+	ssize_t result;
+
+	timer.set(timeToWait, false);
+	timer.cancel();
+	result = timer.wait_for(timeToWait*3);
+	BOOST_CHECK_EQUAL(result, -1);
+	timer.set(timeToWait, false);
+	result = timer.wait_for(timeToWait*3);
+	BOOST_CHECK_EQUAL(result, 1);
+	result = timer.wait_for(timeToWait*3);
+	BOOST_CHECK_EQUAL(result, -1);
+}
+
 
 BOOST_AUTO_TEST_CASE(stop_test)
 {
-	static const unsigned int timeToWait = 3000;
+	static const unsigned int timeToWait = 300;
 	hbm::sys::Timer timer;
 	std::chrono::steady_clock::time_point start;
 	std::chrono::steady_clock::time_point end;
@@ -101,12 +118,7 @@ BOOST_AUTO_TEST_CASE(stop_test)
 	start = std::chrono::steady_clock::now();
 	timer.set(timeToWait, true);
 	timer.cancel();
-	// timer is stopped, should return at once
-	ssize_t result = timer.wait();
-
-	end = std::chrono::steady_clock::now();
-	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (end - start);
-	uint64_t diff = delta.count();
-	BOOST_CHECK(diff<5);
-	BOOST_CHECK(result==0);
+	// timer is stopped, should return with timeout
+	ssize_t result = timer.wait_for(timeToWait);
+	BOOST_CHECK(result==-1);
 }
