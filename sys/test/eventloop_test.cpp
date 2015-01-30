@@ -98,9 +98,26 @@ BOOST_AUTO_TEST_CASE(waitforend_test)
 BOOST_AUTO_TEST_CASE(notify_test)
 {
 	int result;
+	static const std::chrono::milliseconds duration(100);
 	hbm::sys::EventLoop eventLoop;
 	hbm::sys::Notifier notifier;
-	static const std::chrono::milliseconds duration(100);
+	result = notifier.read();
+	BOOST_CHECK_EQUAL(result, 0);
+
+
+	notifier.notify();
+	result = notifier.wait_for(0);
+	BOOST_CHECK_EQUAL(result, 1);
+	result = notifier.wait_for(0);
+	BOOST_CHECK_EQUAL(result, -1);
+
+	notifier.notify();
+	result = notifier.read();
+	BOOST_CHECK_EQUAL(result, 1);
+	result = notifier.read();
+	BOOST_CHECK_EQUAL(result, 0);
+
+
 
 	// wait time out to happen
 	eventLoop.addEvent(notifier.getFd(), &eventHandlerStop);
@@ -110,7 +127,7 @@ BOOST_AUTO_TEST_CASE(notify_test)
 	// callback of notifier signals error
 	notifier.notify();
 	result = eventLoop.execute_for(duration);
-	BOOST_CHECK(result==-1);
+	BOOST_CHECK(result == -1);
 }
 
 BOOST_AUTO_TEST_CASE(timerevent_test)
