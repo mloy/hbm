@@ -62,7 +62,7 @@ namespace hbm {
 			Notifier m_stopNotifier;
 
 			eventInfos_t m_eventInfos;
-			std::mutex m_eventInfosMtx;
+			std::recursive_mutex m_eventInfosMtx;
 
 			eventInfo_t m_stopEvent;
 #ifdef _WIN32

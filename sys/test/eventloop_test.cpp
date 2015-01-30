@@ -51,8 +51,10 @@ static ssize_t eventHandlerStopAfterN(unsigned int* pEventsLeft)
 }
 
 /// by returning error, the execute() method, that is doing the eventloop, exits
-static ssize_t eventHandlerIncrement(unsigned int* pValue)
+static ssize_t eventHandlerIncrement(unsigned int* pValue, hbm::sys::Timer* pTimer)
 {
+	// under Linux read sets the timer to not-signaled!
+	pTimer->read();
 	++(*pValue);
 	return 0;
 }
@@ -257,7 +259,7 @@ BOOST_AUTO_TEST_CASE(severaltimers_test)
 	for (timers_t::iterator iter = timers.begin(); iter != timers.end(); ++iter) {
 		hbm::sys::Timer& timer = *iter;
 		timer.set(timerCycle, false);
-		eventLoop.addEvent(timer.getFd(), std::bind(&eventHandlerIncrement, &counter));
+		eventLoop.addEvent(timer.getFd(), std::bind(&eventHandlerIncrement, &counter ,&timer));
 	}
 
 	int result = eventLoop.execute_for(duration);
