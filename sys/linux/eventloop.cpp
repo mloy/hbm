@@ -51,11 +51,12 @@ namespace hbm {
 
 			{
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-				eventInfo_t& eviRef = m_eventInfos[fd] = evi;
+				m_eventInfos[fd] = evi;
 
 				struct epoll_event ev;
 				ev.events = EPOLLIN;
-				ev.data.ptr = &eviRef;
+				// important: elements of maps are guaranteed to keep there position in memory if members are added/removed!
+				ev.data.ptr = &m_eventInfos[fd];
 				if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
 					syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
 				}
