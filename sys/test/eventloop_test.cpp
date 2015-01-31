@@ -264,6 +264,18 @@ BOOST_AUTO_TEST_CASE(severaltimers_test)
 		eventLoop.addEvent(timer.getFd(), std::bind(&eventHandlerIncrement, &counter ,&timer));
 	}
 
+	for (timers_t::iterator iter = timers.begin(); iter != timers.end(); ++iter) {
+		hbm::sys::Timer& timer = *iter;
+		timer.set(timerCycle, false);
+		eventLoop.eraseEvent(timer.getFd());
+	}
+
+	for (timers_t::iterator iter = timers.begin(); iter != timers.end(); ++iter) {
+		hbm::sys::Timer& timer = *iter;
+		timer.set(timerCycle, false);
+		eventLoop.addEvent(timer.getFd(), std::bind(&eventHandlerIncrement, &counter ,&timer));
+	}
+
 	int result = eventLoop.execute_for(duration);
 	BOOST_CHECK_EQUAL(counter, timers.size());
 	BOOST_CHECK(result == 0);
