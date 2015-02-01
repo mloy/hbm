@@ -6,6 +6,7 @@
 #define _EventLoop_H
 
 
+#include <list>
 #include <unordered_map>
 #ifdef _WIN32
 	#include <WinSock2.h>
@@ -17,6 +18,8 @@
 #include <functional>
 #include <chrono>
 #include <mutex>
+#include <condition_variable>
+#include <mutex>
 
 #include "hbm/exception/exception.hpp"
 #include "hbm/sys/notifier.h"
@@ -25,8 +28,6 @@ namespace hbm {
 	namespace sys {
 		typedef std::function < int () > eventHandler_t;
 
-
-		/// \warning not thread-safe
 		class EventLoop {
 		public:
 			/// \throws hbm::exception
@@ -52,22 +53,28 @@ namespace hbm {
 
 			/// fd is the key
 			typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
+			typedef std::list < eventInfo_t > changelist_t;
+
+			/// called from within the event loop for thread-safe add and remove of events
+			int changeHandler();
 #ifdef _WIN32
 			void init();
-			Notifier m_changeNotifier;
 #else
 			int m_epollfd;
 #endif
 
+			Notifier m_changeNotifier;
 			Notifier m_stopNotifier;
 
-			eventInfos_t m_eventInfos;
-			std::recursive_mutex m_eventInfosMtx;
-
 			eventInfo_t m_stopEvent;
-#ifdef _WIN32
 			eventInfo_t m_changeEvent;
-#endif
+
+			/// events to be added/removed go in here
+			changelist_t m_changeList;
+			std::mutex m_changeListMtx;
+
+			/// events handeled by event loop
+			eventInfos_t m_eventInfos;
 		};
 	}
 }

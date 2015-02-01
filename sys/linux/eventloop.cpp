@@ -26,12 +26,19 @@ namespace hbm {
 				throw hbm::exception::exception(std::string("epoll_create failed)") + strerror(errno));
 			}
 
-			m_stopEvent.fd = m_stopNotifier.getFd();
-
 			struct epoll_event ev;
 			ev.events = EPOLLIN;
+			m_stopEvent.fd = m_stopNotifier.getFd();
+			m_stopEvent.eventHandler = eventHandler_t();
 			ev.data.ptr = nullptr;
 			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_stopEvent.fd, &ev) == -1) {
+				syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
+			}
+
+			m_changeEvent.fd = m_changeNotifier.getFd();
+			m_changeEvent.eventHandler = std::bind(&EventLoop::changeHandler, this);
+			ev.data.ptr = &m_changeEvent;
+			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_changeEvent.fd, &ev) == -1) {
 				syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
 			}
 		}
@@ -41,47 +48,59 @@ namespace hbm {
 			close(m_epollfd);
 		}
 
+		int EventLoop::changeHandler()
+		{
+			{
+				std::lock_guard < std::mutex > lock(m_changeListMtx);
+				for(changelist_t::const_iterator iter = m_changeList.begin(); iter!=m_changeList.end(); ++iter) {
+					// add
+					const eventInfo_t& item = *iter;
+					if(item.eventHandler) {
+						m_eventInfos[item.fd] = item;
+
+						struct epoll_event ev;
+						ev.events = EPOLLIN;
+						// important: elements of maps are guaranteed to keep there position in memory if members are added/removed!
+						ev.data.ptr = &m_eventInfos[item.fd];
+						if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, item.fd, &ev) == -1) {
+							syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
+						}
+					} else {
+						// remove
+						epoll_ctl(m_epollfd, EPOLL_CTL_DEL, item.fd, NULL);
+						m_eventInfos.erase(item.fd);
+					}
+				}
+				m_changeList.clear();
+			}
+		}
+
+
 		void EventLoop::addEvent(event fd, eventHandler_t eventHandler)
 		{
-			eraseEvent(fd);
-
+			if(!eventHandler) {
+				return;
+			}
 			eventInfo_t evi;
 			evi.fd = fd;
 			evi.eventHandler = eventHandler;
-
 			{
-				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-				m_eventInfos[fd] = evi;
-
-				struct epoll_event ev;
-				ev.events = EPOLLIN;
-				// important: elements of maps are guaranteed to keep there position in memory if members are added/removed!
-				ev.data.ptr = &m_eventInfos[fd];
-				if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
-					syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
-				}
+				std::lock_guard < std::mutex > lock(m_changeListMtx);
+				m_changeList.push_back(evi);
 			}
+			m_changeNotifier.notify();
 		}
 
 		void EventLoop::eraseEvent(event fd)
 		{
-			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-			eventInfos_t::iterator iter = m_eventInfos.find(fd);
-			if(iter!=m_eventInfos.end()) {
-				const eventInfo_t& eviRef = iter->second;
-				epoll_ctl(m_epollfd, EPOLL_CTL_DEL, eviRef.fd, NULL);
-				m_eventInfos.erase(iter);
+			eventInfo_t evi;
+			evi.fd = fd;
+			evi.eventHandler = eventHandler_t(); // empty handler signals removal
+			{
+				std::lock_guard < std::mutex > lock(m_changeListMtx);
+				m_changeList.push_back(evi);
 			}
-		}
-
-		void EventLoop::clear()
-		{
-			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-			for (eventInfos_t::iterator iter = m_eventInfos.begin(); iter!=m_eventInfos.end(); ++iter) {
-				const eventInfo_t& eviRef = iter->second;
-				epoll_ctl(m_epollfd, EPOLL_CTL_DEL, eviRef.fd, NULL);
-			}
-			m_eventInfos.clear();
+			m_changeNotifier.notify();
 		}
 
 		int EventLoop::execute()
@@ -102,7 +121,6 @@ namespace hbm {
 
 				for (int n = 0; n < nfds; ++n) {
 					if(events[n].events & EPOLLIN) {
-						std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 						eventInfo_t* pEventInfo = reinterpret_cast < eventInfo_t* > (events[n].data.ptr);
 						if(pEventInfo==nullptr) {
 							// stop notification!
