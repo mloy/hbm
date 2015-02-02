@@ -37,8 +37,6 @@ namespace hbm {
 
 			void eraseEvent(event fd);
 
-			void clear();
-
 			/// \return -1 eventloop stopped because one callback function returned error (-1).
 			int execute();
 			/// \return 0 if given time to wait was reached. -1 eventloop stopped because one callback function returned error (-1).

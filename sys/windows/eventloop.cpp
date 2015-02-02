@@ -27,7 +27,6 @@ namespace hbm {
 
 		EventLoop::~EventLoop()
 		{	
-			clear();
 		}
 
 		void EventLoop::init()
@@ -36,48 +35,44 @@ namespace hbm {
 			m_stopEvent.eventHandler = nullptr;
 
 			m_changeEvent.fd = m_changeNotifier.getFd();
-			m_changeEvent.eventHandler = nullptr;
+			m_changeEvent.eventHandler = nullptr;// std::bind(&EventLoop::changeHandler, this);;
 
-			{
-				std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
-				m_eventInfos[m_stopEvent.fd] = m_stopEvent;
-				m_eventInfos[m_changeEvent.fd] = m_changeEvent;
-			}
+			m_eventInfos[m_stopEvent.fd] = m_stopEvent;
+			m_eventInfos[m_changeEvent.fd] = m_changeEvent;
 		}
+
+		int EventLoop::changeHandler()
+		{
+			return 0;
+		}
+
 
 		void EventLoop::addEvent(event fd, eventHandler_t eventHandler)
 		{
+			if (!eventHandler) {
+				return;
+			}
+
 			eventInfo_t evi;
 			evi.fd = fd;
 			evi.eventHandler = eventHandler;
-
 			{
-				std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
-				m_eventInfos[fd] = evi;
+				std::lock_guard < std::mutex> lock(m_changeListMtx);
+				m_changeList.push_back(evi);
 			}
-
 			m_changeNotifier.notify();
 		}
 
 		void EventLoop::eraseEvent(event fd)
 		{
-			size_t result;
+			eventInfo_t evi;
+			evi.fd = fd;
+			evi.eventHandler = eventHandler_t();
 			{
-				std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
-				result = m_eventInfos.erase(fd);
+				std::lock_guard < std::mutex> lock(m_changeListMtx);
+				m_changeList.push_back(evi);
 			}
-			if (result>0) {
-				m_changeNotifier.notify();
-			}
-		}
-
-		void EventLoop::clear()
-		{
-			{
-				std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
-				m_eventInfos.clear();
-			}
-			init();
+			m_changeNotifier.notify();
 		}
 
 		int EventLoop::execute()
@@ -100,10 +95,24 @@ namespace hbm {
 				std::vector < HANDLE > handles;
 
 				{
-					std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
-					for (eventInfos_t::const_iterator iter = m_eventInfos.begin(); iter != m_eventInfos.end(); ++iter) {
-						handles.push_back(iter->first);
+					std::lock_guard < std::mutex > lock(m_changeListMtx);
+					for (changelist_t::const_iterator iter = m_changeList.begin(); iter != m_changeList.end(); ++iter) {
+						const eventInfo_t& item = *iter;
+						if (item.eventHandler) {
+							// add
+							m_eventInfos[item.fd] = item;
+						}
+						else {
+							// remove
+							m_eventInfos.erase(item.fd);
+						}
 					}
+					m_changeList.clear();
+				}
+
+
+				for (eventInfos_t::const_iterator iter = m_eventInfos.begin(); iter != m_eventInfos.end(); ++iter) {
+					handles.push_back(iter->first);
 				}
 
 				do {
@@ -114,7 +123,9 @@ namespace hbm {
 					}
 					dwEvent = WaitForMultipleObjects(handles.size(), &handles[0], FALSE, timeout);
 					if (dwEvent == WAIT_FAILED) {
-						return -1;
+						int retval = GetLastError();
+						std::cout << retval << std::endl;
+						return 0;
 						break;
 					}
 
@@ -125,11 +136,7 @@ namespace hbm {
 					}
 
 					event fd = handles[WAIT_OBJECT_0 + dwEvent];
-
-					{
-						std::lock_guard < std::recursive_mutex> lock(m_eventInfosMtx);
-						evi = m_eventInfos[fd];
-					}
+					evi = m_eventInfos[fd];
 					// this is a workaround. WSARecvMsg does not reset the event!
 					WSAResetEvent(evi.fd);
 
