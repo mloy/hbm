@@ -92,30 +92,33 @@ namespace hbm {
 			DWORD dwEvent;
 			eventInfo_t evi;
 			do {
-				std::vector < HANDLE > handles;
 
-				{
-					std::lock_guard < std::mutex > lock(m_changeListMtx);
-					for (changelist_t::const_iterator iter = m_changeList.begin(); iter != m_changeList.end(); ++iter) {
-						const eventInfo_t& item = *iter;
-						if (item.eventHandler) {
-							// add
-							m_eventInfos[item.fd] = item;
-						}
-						else {
-							// remove
-							m_eventInfos.erase(item.fd);
-						}
-					}
-					m_changeList.clear();
-				}
-
-
-				for (eventInfos_t::const_iterator iter = m_eventInfos.begin(); iter != m_eventInfos.end(); ++iter) {
-					handles.push_back(iter->first);
-				}
 
 				do {
+
+					std::vector < HANDLE > handles;
+
+					{
+						std::lock_guard < std::mutex > lock(m_changeListMtx);
+						for (changelist_t::const_iterator iter = m_changeList.begin(); iter != m_changeList.end(); ++iter) {
+							const eventInfo_t& item = *iter;
+							if (item.eventHandler) {
+								// add
+								m_eventInfos[item.fd] = item;
+							}
+							else {
+								// remove
+								m_eventInfos.erase(item.fd);
+							}
+						}
+						m_changeList.clear();
+					}
+
+
+					for (eventInfos_t::const_iterator iter = m_eventInfos.begin(); iter != m_eventInfos.end(); ++iter) {
+						handles.push_back(iter->first);
+					}
+
 					if (endTime != std::chrono::steady_clock::time_point()) {
 						std::chrono::milliseconds timediff = std::chrono::duration_cast <std::chrono::milliseconds> (endTime - std::chrono::steady_clock::now());
 
