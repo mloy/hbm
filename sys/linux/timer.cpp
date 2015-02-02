@@ -4,6 +4,7 @@
 
 
 #include <cstring>
+#include <iostream>
 
 #include <sys/timerfd.h>
 #include <sys/poll.h>
@@ -93,9 +94,19 @@ namespace hbm {
 
 		int Timer::cancel()
 		{
+			int retval = 0;
 			struct itimerspec timespec;
+
+			timerfd_gettime(m_fd, &timespec);
+			if ( (timespec.it_value.tv_sec != 0) || (timespec.it_value.tv_nsec != 0) ) {
+				// timer is running
+				retval = 1;
+			}
+
 			memset (&timespec, 0, sizeof(timespec));
-			return timerfd_settime(m_fd, 0, &timespec, nullptr);
+			timerfd_settime(m_fd, 0, &timespec, nullptr);
+
+			return retval;
 		}
 
 		event Timer::getFd() const

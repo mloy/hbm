@@ -49,6 +49,7 @@ namespace hbm {
 			event getFd() const;
 
 			/// timer will not signal, wait will block.
+			/// \return 1 success, timer was running; 0 success
 			int cancel();
 
 		private:

@@ -23,8 +23,12 @@
 BOOST_AUTO_TEST_CASE(notstarted_test)
 {
 	hbm::sys::Timer timer;
-	ssize_t result = timer.wait_for(10);
-	BOOST_CHECK(result==-1);
+	ssize_t result;
+
+	result = timer.cancel();
+	BOOST_CHECK_EQUAL(result, 0);
+	result = timer.wait_for(10);
+	BOOST_CHECK_EQUAL(result, -1);
 }
 
 
@@ -97,7 +101,8 @@ BOOST_AUTO_TEST_CASE(cancel_wait_oneshot_test)
 	ssize_t result;
 
 	timer.set(timeToWait, false);
-	timer.cancel();
+	result = timer.cancel();
+	BOOST_CHECK_EQUAL(result, 1);
 	result = timer.wait_for(timeToWait*3);
 	BOOST_CHECK_EQUAL(result, -1);
 	timer.set(timeToWait, false);
