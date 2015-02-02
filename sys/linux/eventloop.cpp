@@ -53,9 +53,9 @@ namespace hbm {
 			{
 				std::lock_guard < std::mutex > lock(m_changeListMtx);
 				for(changelist_t::const_iterator iter = m_changeList.begin(); iter!=m_changeList.end(); ++iter) {
-					// add
 					const eventInfo_t& item = *iter;
 					if(item.eventHandler) {
+						// add
 						m_eventInfos[item.fd] = item;
 
 						struct epoll_event ev;
@@ -73,6 +73,7 @@ namespace hbm {
 				}
 				m_changeList.clear();
 			}
+			return 0;
 		}
 
 
