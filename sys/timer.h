@@ -59,6 +59,9 @@ namespace hbm {
 			Timer operator=(const Timer& op);
 
 			event m_fd;
+#ifdef _WIN32
+			bool m_isRunning;
+#endif
 		};
 	}
 }

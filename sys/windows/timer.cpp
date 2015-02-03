@@ -14,8 +14,23 @@
 
 namespace hbm {
 	namespace sys {
+
+		//VOID
+		//	(APIENTRY *PTIMERAPCROUTINE)(
+		//	_In_opt_ LPVOID lpArgToCompletionRoutine,
+		//	_In_     DWORD dwTimerLowValue,
+		//	_In_     DWORD dwTimerHighValue
+		//	);
+
+		static VOID CALLBACK resetRunningFlag(LPVOID lpArgToCompletionRoutine, DWORD dwTimerLowValue, DWORD dwTimerHighValue)
+		{
+			Timer* pTimer = reinterpret_cast < Timer* > (lpArgToCompletionRoutine);
+			pTimer->cancel();
+		}
+
 		Timer::Timer()
 			: m_fd(NULL)
+			, m_isRunning(false)
 		{
 			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
 			cancel();
@@ -23,6 +38,7 @@ namespace hbm {
 
 		Timer::Timer(unsigned int period_ms, bool repeated)
 			: m_fd(NULL)
+			, m_isRunning(false)
 		{
 			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
 
@@ -48,13 +64,14 @@ namespace hbm {
 				m_fd,
 				&dueTime,
 				period,
-				NULL,
-				NULL,
+				&resetRunningFlag,
+				this,
 				FALSE
 				);
 			if(Result==0) {
 				return -1;
 			}
+			m_isRunning = true;
 			return 0;
 		}
 
@@ -97,6 +114,12 @@ namespace hbm {
 
 		int Timer::cancel()
 		{
+			int result = 0;
+			if (m_isRunning) {
+				m_isRunning = false;
+				result = 1;
+			}
+
 			LARGE_INTEGER dueTime;
 			dueTime.QuadPart = LLONG_MIN;
 			BOOL Result = SetWaitableTimer(
@@ -107,7 +130,7 @@ namespace hbm {
 				NULL,
 				FALSE
 				);
-			return 0;
+			return result;
 		}
 
 		event Timer::getFd() const
