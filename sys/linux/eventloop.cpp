@@ -52,6 +52,7 @@ namespace hbm {
 		{
 			{
 				std::lock_guard < std::mutex > lock(m_changeListMtx);
+				m_changeNotifier.read();
 				for(changelist_t::const_iterator iter = m_changeList.begin(); iter!=m_changeList.end(); ++iter) {
 					const eventInfo_t& item = *iter;
 					if(item.eventHandler) {
@@ -88,8 +89,8 @@ namespace hbm {
 			{
 				std::lock_guard < std::mutex > lock(m_changeListMtx);
 				m_changeList.push_back(evi);
+				m_changeNotifier.notify();
 			}
-			m_changeNotifier.notify();
 		}
 
 		void EventLoop::eraseEvent(event fd)
@@ -100,8 +101,8 @@ namespace hbm {
 			{
 				std::lock_guard < std::mutex > lock(m_changeListMtx);
 				m_changeList.push_back(evi);
+				m_changeNotifier.notify();
 			}
-			m_changeNotifier.notify();
 		}
 
 		int EventLoop::execute()
