@@ -371,7 +371,6 @@ namespace hbm {
 						// ignore already added
 						return 0;
 					}
-					//::syslog(LOG_ERR, "Error adding interface address %s to multicast group. Error: %d '%s'!", interfaceAddress.c_str(), errno, strerror((errno)));
 				}
 			} else {
 				if(retVal!=0) {
@@ -379,7 +378,6 @@ namespace hbm {
 						// ignore already dropped
 						return 0;
 					}
-					//::syslog(LOG_ERR, "Error removing interface address %s from multicast group. Error: %d '%s'!", interfaceAddress.c_str(), errno, strerror((errno)));
 				}
 			}
 
