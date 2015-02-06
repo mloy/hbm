@@ -28,10 +28,11 @@ namespace hbm {
 
 			struct epoll_event ev;
 			ev.events = EPOLLIN;
-			m_stopEvent.fd = m_stopNotifier.getFd();
-			m_stopEvent.eventHandler = eventHandler_t();
+			eventInfo_t stopEvent;
+			stopEvent.fd = m_stopNotifier.getFd();
+			stopEvent.eventHandler = eventHandler_t();
 			ev.data.ptr = nullptr;
-			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_stopEvent.fd, &ev) == -1) {
+			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, stopEvent.fd, &ev) == -1) {
 				syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
 			}
 
@@ -50,30 +51,28 @@ namespace hbm {
 
 		int EventLoop::changeHandler()
 		{
-			{
-				std::lock_guard < std::mutex > lock(m_changeListMtx);
-				m_changeNotifier.read();
-				for(changelist_t::const_iterator iter = m_changeList.begin(); iter!=m_changeList.end(); ++iter) {
-					const eventInfo_t& item = *iter;
-					if(item.eventHandler) {
-						// add
-						m_eventInfos[item.fd] = item;
+			std::lock_guard < std::mutex > lock(m_changeListMtx);
+			m_changeNotifier.read();
+			for(changelist_t::const_iterator iter = m_changeList.begin(); iter!=m_changeList.end(); ++iter) {
+				const eventInfo_t& item = *iter;
+				if(item.eventHandler) {
+					// add
+					m_eventInfos[item.fd] = item;
 
-						struct epoll_event ev;
-						ev.events = EPOLLIN;
-						// important: elements of maps are guaranteed to keep there position in memory if members are added/removed!
-						ev.data.ptr = &m_eventInfos[item.fd];
-						if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, item.fd, &ev) == -1) {
-							syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
-						}
-					} else {
-						// remove
-						epoll_ctl(m_epollfd, EPOLL_CTL_DEL, item.fd, NULL);
-						m_eventInfos.erase(item.fd);
+					struct epoll_event ev;
+					ev.events = EPOLLIN;
+					// important: elements of maps are guaranteed to keep there position in memory if members are added/removed!
+					ev.data.ptr = &m_eventInfos[item.fd];
+					if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, item.fd, &ev) == -1) {
+						syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
 					}
+				} else {
+					// remove
+					epoll_ctl(m_epollfd, EPOLL_CTL_DEL, item.fd, NULL);
+					m_eventInfos.erase(item.fd);
 				}
-				m_changeList.clear();
 			}
+			m_changeList.clear();
 			return 0;
 		}
 
@@ -116,7 +115,7 @@ namespace hbm {
 					nfds = epoll_wait(m_epollfd, events, MAXEVENTS, -1);
 				} while ((nfds==-1) && (errno==EINTR));
 
-				if((nfds==0) || (nfds==-1)) {
+				if(nfds<=0) {
 					// 0: time out!
 					return nfds;
 				}
