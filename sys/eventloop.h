@@ -26,8 +26,6 @@
 
 namespace hbm {
 	namespace sys {
-		typedef std::function < int () > eventHandler_t;
-
 		class EventLoop {
 		public:
 			/// \throws hbm::exception
