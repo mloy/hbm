@@ -39,7 +39,8 @@ namespace hbm {
 		}
 
 		EventLoop::~EventLoop()
-		{	
+		{
+			stop();
 		}
 
 		int EventLoop::changeHandler()
