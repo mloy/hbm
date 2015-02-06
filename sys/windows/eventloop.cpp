@@ -125,8 +125,11 @@ namespace hbm {
 
 					if (endTime != std::chrono::steady_clock::time_point()) {
 						std::chrono::milliseconds timediff = std::chrono::duration_cast <std::chrono::milliseconds> (endTime - std::chrono::steady_clock::now());
-
-						timeout = static_cast<int> (timediff.count());
+						if (timediff.count() > 0) {
+							timeout = static_cast<int> (timediff.count());
+						} else {
+							timeout = 0;
+						}
 					}
 					dwEvent = WaitForMultipleObjects(static_cast < DWORD > (handles.size()), &handles[0], FALSE, timeout);
 					if (dwEvent == WAIT_FAILED) {
@@ -145,7 +148,7 @@ namespace hbm {
 					event fd = handles[WAIT_OBJECT_0 + dwEvent];
 					evi = m_eventInfos[fd];
 					// this is a workaround. WSARecvMsg does not reset the event!
-					WSAResetEvent(evi.fd);
+					WSAResetEvent(fd);
 
 					if (evi.eventHandler == nullptr) {
 						break;

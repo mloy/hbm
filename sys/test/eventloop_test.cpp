@@ -247,8 +247,8 @@ BOOST_AUTO_TEST_CASE(severaltimerevents_test)
 	unsigned int counter = 0;
 
 
-	hbm::sys::Timer sinleshotTimer(timerCycle, false);
-	eventLoop.addEvent(sinleshotTimer.getFd(), std::bind(&eventHandlerIncrement, &counter, &sinleshotTimer));
+	hbm::sys::Timer singleshotTimer(timerCycle, false);
+	eventLoop.addEvent(singleshotTimer.getFd(), std::bind(&eventHandlerIncrement, &counter, &singleshotTimer));
 
 	result = eventLoop.execute_for(duration);
 	BOOST_CHECK_EQUAL(counter, 1);
