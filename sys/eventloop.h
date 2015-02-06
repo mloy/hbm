@@ -54,7 +54,7 @@ namespace hbm {
 			/// called from within the event loop for thread-safe add and remove of events
 			int changeHandler();
 #ifdef _WIN32
-			void init();
+			std::vector < HANDLE > m_handles;
 #else
 			int m_epollfd;
 #endif

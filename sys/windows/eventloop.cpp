@@ -24,29 +24,46 @@ namespace hbm {
 			: m_changeNotifier()
 			, m_stopNotifier()
 		{
-			init();
+			eventInfo_t stopEvent;
+			stopEvent.fd = m_stopNotifier.getFd();
+			stopEvent.eventHandler = nullptr;
+
+			m_changeEvent.fd = m_changeNotifier.getFd();
+			m_changeEvent.eventHandler = std::bind(&EventLoop::changeHandler, this);;
+
+			m_eventInfos[stopEvent.fd] = stopEvent;
+			m_eventInfos[m_changeEvent.fd] = m_changeEvent;
+
+			m_handles.push_back(stopEvent.fd);
+			m_handles.push_back(m_changeEvent.fd);
 		}
 
 		EventLoop::~EventLoop()
 		{	
 		}
 
-		void EventLoop::init()
-		{
-			eventInfo_t stopEvent;
-
-			stopEvent.fd = m_stopNotifier.getFd();
-			stopEvent.eventHandler = nullptr;
-
-			m_changeEvent.fd = m_changeNotifier.getFd();
-			m_changeEvent.eventHandler = nullptr;// std::bind(&EventLoop::changeHandler, this);;
-
-			m_eventInfos[stopEvent.fd] = stopEvent;
-			m_eventInfos[m_changeEvent.fd] = m_changeEvent;
-		}
-
 		int EventLoop::changeHandler()
 		{
+			{
+				std::lock_guard < std::mutex > lock(m_changeListMtx);
+				for (changelist_t::const_iterator iter = m_changeList.begin(); iter != m_changeList.end(); ++iter) {
+					const eventInfo_t& item = *iter;
+					if (item.eventHandler) {
+						// add
+						m_eventInfos[item.fd] = item;
+					}
+					else {
+						// remove
+						m_eventInfos.erase(item.fd);
+					}
+				}
+				m_changeList.clear();
+			}
+			m_handles.clear();
+			for (eventInfos_t::const_iterator iter = m_eventInfos.begin(); iter != m_eventInfos.end(); ++iter) {
+				m_handles.push_back(iter->first);
+			}
+
 			return 0;
 		}
 
@@ -96,32 +113,9 @@ namespace hbm {
 			DWORD dwEvent;
 			eventInfo_t evi;
 			do {
-
-
 				do {
-
-					std::vector < HANDLE > handles;
-
-					{
-						std::lock_guard < std::mutex > lock(m_changeListMtx);
-						for (changelist_t::const_iterator iter = m_changeList.begin(); iter != m_changeList.end(); ++iter) {
-							const eventInfo_t& item = *iter;
-							if (item.eventHandler) {
-								// add
-								m_eventInfos[item.fd] = item;
-							}
-							else {
-								// remove
-								m_eventInfos.erase(item.fd);
-							}
-						}
-						m_changeList.clear();
-					}
-
-
-					for (eventInfos_t::const_iterator iter = m_eventInfos.begin(); iter != m_eventInfos.end(); ++iter) {
-						handles.push_back(iter->first);
-					}
+					
+					changeHandler();
 
 					if (endTime != std::chrono::steady_clock::time_point()) {
 						std::chrono::milliseconds timediff = std::chrono::duration_cast <std::chrono::milliseconds> (endTime - std::chrono::steady_clock::now());
@@ -131,7 +125,7 @@ namespace hbm {
 							timeout = 0;
 						}
 					}
-					dwEvent = WaitForMultipleObjects(static_cast < DWORD > (handles.size()), &handles[0], FALSE, timeout);
+					dwEvent = WaitForMultipleObjects(static_cast < DWORD > (m_handles.size()), &m_handles[0], FALSE, timeout);
 					if (dwEvent == WAIT_FAILED) {
 						int retval = GetLastError();
 						std::cout << retval << std::endl;
@@ -145,7 +139,7 @@ namespace hbm {
 						break;
 					}
 
-					event fd = handles[WAIT_OBJECT_0 + dwEvent];
+					event fd = m_handles[WAIT_OBJECT_0 + dwEvent];
 					evi = m_eventInfos[fd];
 					// this is a workaround. WSARecvMsg does not reset the event!
 					WSAResetEvent(fd);
