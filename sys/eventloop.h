@@ -62,7 +62,6 @@ namespace hbm {
 			Notifier m_changeNotifier;
 			Notifier m_stopNotifier;
 
-			eventInfo_t m_stopEvent;
 			eventInfo_t m_changeEvent;
 
 			/// events to be added/removed go in here

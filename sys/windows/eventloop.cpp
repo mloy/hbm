@@ -21,6 +21,8 @@ namespace hbm {
 	namespace sys {
 		/// \throws hbm::exception
 		EventLoop::EventLoop()
+			: m_changeNotifier()
+			, m_stopNotifier()
 		{
 			init();
 		}
@@ -31,13 +33,15 @@ namespace hbm {
 
 		void EventLoop::init()
 		{
-			m_stopEvent.fd = m_stopNotifier.getFd();
-			m_stopEvent.eventHandler = nullptr;
+			eventInfo_t stopEvent;
+
+			stopEvent.fd = m_stopNotifier.getFd();
+			stopEvent.eventHandler = nullptr;
 
 			m_changeEvent.fd = m_changeNotifier.getFd();
 			m_changeEvent.eventHandler = nullptr;// std::bind(&EventLoop::changeHandler, this);;
 
-			m_eventInfos[m_stopEvent.fd] = m_stopEvent;
+			m_eventInfos[stopEvent.fd] = stopEvent;
 			m_eventInfos[m_changeEvent.fd] = m_changeEvent;
 		}
 
@@ -124,7 +128,7 @@ namespace hbm {
 
 						timeout = static_cast<int> (timediff.count());
 					}
-					dwEvent = WaitForMultipleObjects(handles.size(), &handles[0], FALSE, timeout);
+					dwEvent = WaitForMultipleObjects(static_cast < DWORD > (handles.size()), &handles[0], FALSE, timeout);
 					if (dwEvent == WAIT_FAILED) {
 						int retval = GetLastError();
 						std::cout << retval << std::endl;
