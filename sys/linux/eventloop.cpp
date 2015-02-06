@@ -46,6 +46,7 @@ namespace hbm {
 
 		EventLoop::~EventLoop()
 		{
+			stop();
 			close(m_epollfd);
 		}
 
