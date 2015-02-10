@@ -27,7 +27,7 @@ namespace hbm {
 			}
 
 			struct epoll_event ev;
-			ev.events = EPOLLIN;
+			ev.events = EPOLLIN | EPOLLET;
 			eventInfo_t stopEvent;
 			stopEvent.fd = m_stopNotifier.getFd();
 			stopEvent.eventHandler = eventHandler_t();
@@ -61,7 +61,7 @@ namespace hbm {
 					m_eventInfos[item.fd] = item;
 
 					struct epoll_event ev;
-					ev.events = EPOLLIN;
+					ev.events = EPOLLIN | EPOLLET;
 					// important: elements of maps are guaranteed to keep there position in memory if members are added/removed!
 					ev.data.ptr = &m_eventInfos[item.fd];
 					if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, item.fd, &ev) == -1) {
@@ -174,7 +174,11 @@ namespace hbm {
 							// stop notification!
 							return 0;
 						}
-						ssize_t result = pEventInfo->eventHandler();
+						ssize_t result;
+						do {
+							// read until nothing is left. This is important because we are working edge triggered.
+							result = pEventInfo->eventHandler();
+						} while(result>0);
 						if(result<0) {
 							return result;
 						}

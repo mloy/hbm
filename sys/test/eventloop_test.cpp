@@ -38,24 +38,13 @@ static ssize_t eventHandlerPrint()
 }
 
 
-
-/// by returning error, the execute() method, that is doing the eventloop, exits
-static ssize_t eventHandlerStopAfterN(unsigned int* pEventsLeft)
-{
-	--(*pEventsLeft);
-	if ((*pEventsLeft)==0) {
-		return -1;
-	} else {
-		return 0;
-	}
-}
-
 /// by returning error, the execute() method, that is doing the eventloop, exits
 static ssize_t eventHandlerIncrement(unsigned int* pValue, hbm::sys::Timer* pTimer)
 {
 	// under Linux read sets the timer to not-signaled!
 	pTimer->read();
 	++(*pValue);
+
 	return 0;
 }
 
@@ -227,34 +216,40 @@ BOOST_AUTO_TEST_CASE(cancelTimer_wile_executing_test)
 	BOOST_CHECK_GE(delta.count(), duration.count());
 }
 
-
-BOOST_AUTO_TEST_CASE(severaltimerevents_test)
+BOOST_AUTO_TEST_CASE(oneshottimer_test)
 {
-	static const unsigned int timerCycle = 10;
+	static const unsigned int timerCycle = 100;
 	static const unsigned int timerCount = 10;
 	static const std::chrono::milliseconds duration(timerCycle * timerCount);
 	hbm::sys::EventLoop eventLoop;
 
-	unsigned int eventsLeft = 2;
-
-	hbm::sys::Timer cyclicTimer(timerCycle, true);
-	eventLoop.addEvent(cyclicTimer.getFd(), std::bind(&eventHandlerStopAfterN, &eventsLeft));
-
-	int result = eventLoop.execute_for(duration);
-	BOOST_CHECK_EQUAL(eventsLeft, 0);
-	BOOST_CHECK_EQUAL(result, -1);
-
 	unsigned int counter = 0;
-
 
 	hbm::sys::Timer singleshotTimer(timerCycle, false);
 	eventLoop.addEvent(singleshotTimer.getFd(), std::bind(&eventHandlerIncrement, &counter, &singleshotTimer));
 
-	result = eventLoop.execute_for(duration);
+	int result = eventLoop.execute_for(duration);
 	BOOST_CHECK_EQUAL(counter, 1);
 	BOOST_CHECK_EQUAL(result, 0);
+}
 
 
+BOOST_AUTO_TEST_CASE(cyclictimer_test)
+{
+	static const unsigned int excpectedMinimum = 10;
+	static const unsigned int timerCycle = 100;
+	static const unsigned int timerCount = excpectedMinimum+1;
+	static const std::chrono::milliseconds duration(timerCycle * timerCount);
+	hbm::sys::EventLoop eventLoop;
+
+	unsigned int counter = 0;
+
+	hbm::sys::Timer singleshotTimer(timerCycle, true);
+	eventLoop.addEvent(singleshotTimer.getFd(), std::bind(&eventHandlerIncrement, &counter, &singleshotTimer));
+
+	int result = eventLoop.execute_for(duration);
+	BOOST_CHECK_GE(counter, excpectedMinimum);
+	BOOST_CHECK_EQUAL(result, 0);
 }
 
 BOOST_AUTO_TEST_CASE(severaltimers_test)

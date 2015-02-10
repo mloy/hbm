@@ -46,6 +46,9 @@ target_link_libraries (
 
 
 SET(TIMER_TEST
+	../timer.h
+	../notifier.h
+	../defines.h
 	../linux/timer.cpp
 	timer_test.cpp
 )
