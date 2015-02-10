@@ -35,9 +35,9 @@ namespace hbm {
 
 			void eraseEvent(event fd);
 
-			/// \return -1 eventloop stopped because one callback function returned error (-1).
+			/// \return 0 stopped; -1 error
 			int execute();
-			/// \return 0 if given time to wait was reached. -1 eventloop stopped because one callback function returned error (-1).
+			/// \return 0 stopped or if given time to wait was reached; -1 error
 			int execute_for(std::chrono::milliseconds timeToWait);
 
 			void stop();

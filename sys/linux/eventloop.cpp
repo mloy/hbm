@@ -17,8 +17,11 @@
 #include "hbm/sys/eventloop.h"
 #include "hbm/sys/notifier.h"
 
+
 namespace hbm {
 	namespace sys {
+		static const unsigned int MAXEVENTS = 16;
+
 		EventLoop::EventLoop()
 			: m_epollfd(epoll_create(1)) // parameter is ignored but must be greater than 0
 		{
@@ -108,7 +111,6 @@ namespace hbm {
 		int EventLoop::execute()
 		{
 			int nfds;
-			static const unsigned int MAXEVENTS = 16;
 			struct epoll_event events[MAXEVENTS];
 
 			while (true) {
@@ -136,7 +138,6 @@ namespace hbm {
 						if(result<0) {
 							// this event is removed from the event loop.
 							eraseEvent(pEventInfo->fd);
-							//return result;
 						}
 					}
 				}
@@ -152,7 +153,6 @@ namespace hbm {
 			}
 
 			int nfds;
-			static const unsigned int MAXEVENTS = 16;
 			struct epoll_event events[MAXEVENTS];
 
 			while (true) {
@@ -188,7 +188,6 @@ namespace hbm {
 						if(result<0) {
 							// this event is removed from the event loop.
 							eraseEvent(pEventInfo->fd);
-							//return result;
 						}
 					}
 				}
