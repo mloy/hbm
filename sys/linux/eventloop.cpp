@@ -136,8 +136,10 @@ namespace hbm {
 							result = pEventInfo->eventHandler();
 						} while(result>0);
 						if(result<0) {
-							// this event is removed from the event loop.
-							eraseEvent(pEventInfo->fd);
+							if ((errno!=EAGAIN) && (errno!=EWOULDBLOCK)) {
+								// this event is removed from the event loop.
+								eraseEvent(pEventInfo->fd);
+							}
 						}
 					}
 				}
@@ -186,8 +188,10 @@ namespace hbm {
 							result = pEventInfo->eventHandler();
 						} while(result>0);
 						if(result<0) {
-							// this event is removed from the event loop.
-							eraseEvent(pEventInfo->fd);
+							if ((errno!=EAGAIN) && (errno!=EWOULDBLOCK)) {
+								// this event is removed from the event loop.
+								eraseEvent(pEventInfo->fd);
+							}
 						}
 					}
 				}
