@@ -483,6 +483,10 @@ namespace hbm {
 						ttl = *pTtl;
 					}
 				}
+			} else if(nbytes < 0) {
+				if ((errno==EAGAIN) || (errno==EWOULDBLOCK)) {
+					nbytes=0;
+				}
 			}
 			return nbytes;
 		}
