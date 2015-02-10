@@ -128,9 +128,15 @@ namespace hbm {
 							// stop notification!
 							return 0;
 						}
-						ssize_t result = pEventInfo->eventHandler();
+						ssize_t result;
+						do {
+							// read until nothing is left. This is important because we are working edge triggered.
+							result = pEventInfo->eventHandler();
+						} while(result>0);
 						if(result<0) {
-							return result;
+							// this event is removed from the event loop.
+							eraseEvent(pEventInfo->fd);
+							//return result;
 						}
 					}
 				}
@@ -180,7 +186,9 @@ namespace hbm {
 							result = pEventInfo->eventHandler();
 						} while(result>0);
 						if(result<0) {
-							return result;
+							// this event is removed from the event loop.
+							eraseEvent(pEventInfo->fd);
+							//return result;
 						}
 					}
 				}
