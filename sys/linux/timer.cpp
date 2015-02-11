@@ -26,6 +26,18 @@ namespace hbm {
 			}
 		}
 
+		Timer::Timer(Timer&& source)
+			: m_fd(source.m_fd)
+#ifdef _WIN32
+			, m_isRunning(source.m_isRunning)
+#endif
+		{
+			source.m_fd = -1;
+#ifdef _WIN32
+			source.m_isRunning;
+#endif
+		}
+
 		Timer::Timer(unsigned int period_ms, bool repeated)
 			: m_fd(timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK))
 		{

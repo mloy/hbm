@@ -28,6 +28,8 @@ namespace hbm {
 			/// \throws hbm::exception
 			Timer();
 
+			Timer(Timer&& source);
+
 			/// @param period_ms timer interval in ms
 			/// \throws hbm::exception
 			Timer(unsigned int period_ms, bool repeated);

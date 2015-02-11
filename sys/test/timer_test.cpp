@@ -127,3 +127,21 @@ BOOST_AUTO_TEST_CASE(stop_test)
 	ssize_t result = timer.wait_for(timeToWait);
 	BOOST_CHECK(result==-1);
 }
+
+BOOST_AUTO_TEST_CASE(move_test)
+{
+	static const unsigned int timeToWait = 3500;
+	hbm::sys::Timer timer = hbm::sys::Timer(); // move temporary object
+	std::chrono::steady_clock::time_point start(std::chrono::steady_clock::now());
+	std::chrono::steady_clock::time_point end;
+	timer.set(timeToWait, true);
+	ssize_t result = timer.wait();
+	BOOST_CHECK(result==1);
+	end = std::chrono::steady_clock::now();
+	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (end - start);
+	uint64_t diff = abs((timeToWait)-delta.count());
+
+	BOOST_CHECK_LT(diff, 20);
+}
+
+
