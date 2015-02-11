@@ -27,7 +27,7 @@ namespace hbm {
 			}
 
 			struct epoll_event ev;
-			ev.events = EPOLLIN | EPOLLET;
+			ev.events = EPOLLIN;
 			eventInfo_t stopEvent;
 			stopEvent.fd = m_stopNotifier.getFd();
 			stopEvent.eventHandler = eventHandler_t();
@@ -61,7 +61,7 @@ namespace hbm {
 					m_eventInfos[item.fd] = item;
 
 					struct epoll_event ev;
-					ev.events = EPOLLIN | EPOLLET;
+					ev.events = EPOLLIN;
 					// important: elements of maps are guaranteed to keep there position in memory if members are added/removed!
 					ev.data.ptr = &m_eventInfos[item.fd];
 					if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, item.fd, &ev) == -1) {
@@ -128,15 +128,12 @@ namespace hbm {
 							// stop notification!
 							return 0;
 						}
-						ssize_t result;
-						do {
-							result = pEventInfo->eventHandler();
-						} while (result>0);
+						ssize_t result = pEventInfo->eventHandler();
 						if(result<0) {
-							if ((errno!=EAGAIN) && (errno!=EWOULDBLOCK)) {
-								// this event is removed from the event loop.
-								eraseEvent(pEventInfo->fd);
-							}
+                                                        if ((errno!=EAGAIN) && (errno!=EWOULDBLOCK)) {
+                                                                // this event is removed from the event loop.
+                                                                eraseEvent(pEventInfo->fd);
+                                                        }
 						}
 					}
 				}
@@ -180,10 +177,7 @@ namespace hbm {
 							// stop notification!
 							return 0;
 						}
-						ssize_t result;
-						do {
-							result = pEventInfo->eventHandler();
-						} while (result>0);
+						ssize_t result = pEventInfo->eventHandler();
 						if(result<0) {
 							if ((errno!=EAGAIN) && (errno!=EWOULDBLOCK)) {
 								// this event is removed from the event loop.
