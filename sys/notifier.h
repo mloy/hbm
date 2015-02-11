@@ -15,6 +15,8 @@ namespace hbm {
 		public:
 			/// \throws hbm::exception
 			Notifier();
+			Notifier(Notifier&& source);
+
 			virtual ~Notifier();
 
 			int notify();

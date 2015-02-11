@@ -22,6 +22,12 @@ namespace hbm {
 			}
 		}
 
+		Notifier::Notifier(Notifier&& source)
+			: m_fd(source.m_fd)
+		{
+			source.m_fd = -1;
+		}
+
 		Notifier::~Notifier()
 		{
 			close(m_fd);
