@@ -130,7 +130,10 @@ namespace hbm {
 						}
 						ssize_t result = pEventInfo->eventHandler();
 						if(result<0) {
-							return result;
+                                                        if ((errno!=EAGAIN) && (errno!=EWOULDBLOCK)) {
+                                                                // this event is removed from the event loop.
+                                                                eraseEvent(pEventInfo->fd);
+                                                        }
 						}
 					}
 				}
@@ -176,7 +179,10 @@ namespace hbm {
 						}
 						ssize_t result = pEventInfo->eventHandler();
 						if(result<0) {
-							return result;
+							if ((errno!=EAGAIN) && (errno!=EWOULDBLOCK)) {
+								// this event is removed from the event loop.
+								eraseEvent(pEventInfo->fd);
+							}
 						}
 					}
 				}
