@@ -9,11 +9,8 @@
 #ifndef _WIN32
 #define BOOST_TEST_DYN_LINK
 #endif
-#define BOOST_TEST_MODULE StringSpiltTest
+#define BOOST_TEST_MODULE StringSplitTest
 #include <boost/test/unit_test.hpp>
-
-
-#include "splittest.h"
 
 #include "../split.h"
 
@@ -28,13 +25,11 @@ namespace hbm {
 				Fixture1()
 				{
 					BOOST_TEST_MESSAGE("setup Fixture1");
-//					std::cerr << "LOG: setup Fixture1" << std::endl ;
 				}
 
 				~Fixture1()
 				{
 					BOOST_TEST_MESSAGE("teardown Fixture1");
-//					std::cerr << "LOG: teardown Fixture1" << std::endl ;
 				}
 
 

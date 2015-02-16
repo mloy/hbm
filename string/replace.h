@@ -3,10 +3,9 @@
 // See file LICENSE provided
 
 #ifndef __HBM__STRING__REPLACE_H
-#define SPLIT_H
+#define __HBM__STRING__REPLACE_H
 
 #include <string>
-#include <vector>
 
 namespace hbm {
 	namespace string {

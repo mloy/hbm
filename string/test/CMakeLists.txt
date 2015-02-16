@@ -83,3 +83,23 @@ add_test(replacetest replacetest.test
 	--output_format=xml
 	--log_sink=${CMAKE_BINARY_DIR}/replacetest.xml
 )
+
+set(SOURCES_TRIMTEST
+	trimtest.cpp
+	../trim.cpp
+)
+
+add_executable( trimtest ${SOURCES_TRIMTEST} )
+
+target_link_libraries( trimtest
+	gcov
+	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
+
+enable_testing()
+add_test(trimtest trimtest.test
+	--report_level=no
+	--log_level=all
+	--output_format=xml
+	--log_sink=${CMAKE_BINARY_DIR}/trimtest.xml
+)
