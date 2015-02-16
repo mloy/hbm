@@ -43,8 +43,6 @@ include_directories(..)
 
 #add_definitions("-std=c++0x --coverage")
 
-# add_subdirectory(../lib ${PROJECT_BINARY_DIR}/lib)
-
 
 set(SOURCES_SPLITTEST
 	splittest.cpp
@@ -59,10 +57,29 @@ target_link_libraries( splittest
 )
 
 enable_testing()
-# add_test(scanclienttest scanclienttest)
 add_test(splittest splittest.test
 	--report_level=no
 	--log_level=all
 	--output_format=xml
 	--log_sink=${CMAKE_BINARY_DIR}/splittest.xml
+)
+
+set(SOURCES_REPLACETEST
+	replacetest.cpp
+	../replace.cpp
+)
+
+add_executable( replacetest ${SOURCES_REPLACETEST} )
+
+target_link_libraries( replacetest
+	gcov
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
+
+enable_testing()
+add_test(replacetest replacetest.test
+	--report_level=no
+	--log_level=all
+	--output_format=xml
+	--log_sink=${CMAKE_BINARY_DIR}/replacetest.xml
 )
