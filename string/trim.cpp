@@ -25,9 +25,6 @@ namespace hbm {
 		void trim(std::string& text)
 		{
 			std::string::size_type start = text.find_first_not_of(' ');
-//			if (start==std::string::npos) {
-//				return;
-//			}
 			text.erase(0, start);
 
 			std::string::size_type end = text.find_last_not_of(' ');

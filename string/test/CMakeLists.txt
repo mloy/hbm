@@ -1,4 +1,4 @@
-project("hbm_device_scan_test" CXX)
+project("hbm_utility_test" CXX)
 
 cmake_minimum_required(VERSION 2.8)
 
