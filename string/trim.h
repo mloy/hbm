@@ -10,7 +10,8 @@
 namespace hbm {
 	namespace string {
 
-		std::string trim(std::string text);
+		std::string trim_copy(std::string text);
+		void trim(std::string& text);
 	}
 }
 #endif // __HBM__STRING__TRIM_H
