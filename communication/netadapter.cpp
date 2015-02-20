@@ -113,9 +113,9 @@ namespace hbm {
 			if (upperMost==127) {
 				// Loopback and diagnostics
 				return false;
-			}	else if (upperMost>=224) {
-				// 224 – 239: Reserved for Multicasting
-				// 240 – 254: Experimental; used for research
+			} else if (upperMost>=224) {
+				// 224 - 239: Reserved for Multicasting
+				// 240 - 254: Experimental; used for research
 				return false;
 			}
 
