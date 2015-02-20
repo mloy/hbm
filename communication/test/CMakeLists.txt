@@ -67,3 +67,31 @@ add_test(socketnonblocking_test socketnonblocking.test
 --log_level=all
 --output_format=xml
 --log_sink=${CMAKE_BINARY_DIR}/socketnonblocking_test.xml)
+
+
+
+SET(NETADAPTER_TEST
+	../netadapter.cpp
+	netadapter_test.cpp
+)
+set_source_files_properties(
+	${NETADAPTER_TEST}
+	PROPERTIES COMPILE_FLAGS "-Wextra"
+)
+
+add_executable(
+	netadapter.test
+	${NETADAPTER_TEST}
+)
+
+target_link_libraries (
+	netadapter.test
+	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
+
+add_test(netadapter_test netadapter.test
+--report_level=no
+--log_level=all
+--output_format=xml
+--log_sink=${CMAKE_BINARY_DIR}/netadapter_test.xml)
+
