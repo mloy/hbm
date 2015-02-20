@@ -100,15 +100,16 @@ namespace hbm {
 			if (address == INADDR_NONE) {
 				return false;
 			}
+			uint32_t bigAddress = htonl(address);
 	#else
 			in_addr address;
 			if (inet_aton(ip.c_str(), &address) == 0) {
 				return false;
 			}
-	#endif
+			uint32_t bigAddress = htonl(address.s_addr);
+#endif
 
 			// check for some reserved ranges
-			uint32_t bigAddress = htonl(address.s_addr);
 			uint8_t upperMost = bigAddress >> 24;
 			if (upperMost==127) {
 				// Loopback and diagnostics
