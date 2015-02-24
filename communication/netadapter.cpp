@@ -114,6 +114,9 @@ namespace hbm {
 			if (upperMost==0){
 				// includes 0.0.0.0
 				return false;
+			} else if ((upperMost==24)||(upperMost==25)||(upperMost==26)) {
+				// reserved for quantumx internal firewire communcation
+				return false;
 			} else if (upperMost==127) {
 				// Loopback and diagnostics
 				return false;
