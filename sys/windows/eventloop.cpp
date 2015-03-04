@@ -6,10 +6,6 @@
 #include <iostream>
 #include <WinSock2.h>
 #include <Windows.h>
-#define syslog fprintf
-#define LOG_DEBUG stdout
-#define LOG_INFO stdout
-#define LOG_ERR stderr
 #define ssize_t int
 #include <chrono>
 #include <mutex>

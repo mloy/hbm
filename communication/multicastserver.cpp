@@ -707,3 +707,12 @@ namespace hbm {
 		}
 	}
 }
+
+
+#ifdef _WIN32
+#undef syslog 
+#undef  sprintf
+#undef  LOG_DEBUG 
+#undef  LOG_INFO 
+#undef  LOG_ERR 
+#endif
