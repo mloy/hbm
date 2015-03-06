@@ -47,6 +47,12 @@ namespace hbm {
 			close(m_fd);
 		}
 
+		int Timer::set(std::chrono::milliseconds period, bool repeated, Cb_t eventHandler)
+		{
+			return set(period.count(), repeated, eventHandler);
+		}
+
+
 		int Timer::set(unsigned int period_ms, bool repeated, Cb_t eventHandler)
 		{
 			if (period_ms==0) {

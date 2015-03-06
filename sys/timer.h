@@ -7,6 +7,7 @@
 #define _HBM__TIMER_H
 
 #include <functional>
+#include <chrono>
 
 #include "hbm/exception/exception.hpp"
 #include "hbm/sys/defines.h"
@@ -30,6 +31,7 @@ namespace hbm {
 
 			/// @param period_ms timer interval in ms
 			int set(unsigned int period_ms, bool repeated, Cb_t eventHandler);
+			int set(std::chrono::milliseconds period, bool repeated, Cb_t eventHandler);
 
 			/// timer will not signal, wait will block.
 			/// \return 1 success, timer was running; 0 success
