@@ -43,7 +43,7 @@ namespace hbm {
 			return 0;
 		}
 
-		int Notifier::set(EventHandler_t eventHandler)
+		int Notifier::set(Cb_t eventHandler)
 		{
 			m_eventHandler = eventHandler;
 			m_eventLoop.addEvent(m_fd, std::bind(&Notifier::process, this));

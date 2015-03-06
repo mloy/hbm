@@ -39,7 +39,7 @@ namespace hbm {
 			close(m_fd);
 		}
 
-		int Notifier::set(EventHandler_t eventHandler)
+		int Notifier::set(Cb_t eventHandler)
 		{
 			m_eventHandler = eventHandler;
 			if (eventHandler) {

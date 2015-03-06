@@ -19,7 +19,7 @@ namespace hbm {
 		public:
 			/// called when timer fires or is being cancled
 			/// \param false if timer got cancled; fired true timer fired
-			typedef std::function < int (bool fired) > Cb_t;
+			typedef std::function < void (bool fired) > Cb_t;
 
 			/// \throws hbm::exception
 			Timer(EventLoop& eventLoop);
