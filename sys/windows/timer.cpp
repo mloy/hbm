@@ -53,7 +53,7 @@ namespace hbm {
 		int Timer::set(unsigned int period_ms, bool repeated, Cb_t eventHandler)
 		{
 			LARGE_INTEGER dueTime;
-			static const int64_t multilpier = -10000; // negative because we want a relative time
+			static const int64_t multiplier = -10000; // negative because we want a relative time
 			LONG period = 0; // in ms
 
 			m_eventHandler = eventHandler;
@@ -62,7 +62,7 @@ namespace hbm {
 			if (repeated) {
 				period = period_ms;
 			}
-			dueTime.QuadPart = period_ms*multilpier; // in 100ns
+			dueTime.QuadPart = period_ms*multiplier; // in 100ns
 			BOOL Result = SetWaitableTimer(
 				m_fd,
 				&dueTime,
