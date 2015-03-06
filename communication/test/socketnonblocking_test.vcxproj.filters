@@ -14,18 +14,30 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Source Files\test">
-      <UniqueIdentifier>{34423013-8620-48a9-9f7d-e74c0265ed04}</UniqueIdentifier>
+      <UniqueIdentifier>{b4296d1b-04d1-4546-a31a-a7217cccacfd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\windows">
-      <UniqueIdentifier>{dd3de00b-1676-4436-9249-be1ff241f654}</UniqueIdentifier>
+    <Filter Include="Source Files\sys">
+      <UniqueIdentifier>{382ca870-db51-4cd8-9450-cca319803476}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\communication">
+      <UniqueIdentifier>{721ab608-90f3-4ed9-a7bd-a2b6c1d42792}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="timer_test.cpp">
+    <ClCompile Include="socketnonblocking_test.cpp">
       <Filter>Source Files\test</Filter>
     </ClCompile>
-    <ClCompile Include="..\windows\timer.cpp">
-      <Filter>Source Files\windows</Filter>
+    <ClCompile Include="..\bufferedreader.cpp">
+      <Filter>Source Files\communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\windows\socketnonblocking.cpp">
+      <Filter>Source Files\communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\windows\tcpacceptor.cpp">
+      <Filter>Source Files\communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sys\windows\eventloop.cpp">
+      <Filter>Source Files\sys</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

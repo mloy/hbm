@@ -22,28 +22,44 @@
 const time_t TIMEOUT_CONNECT_S = 5;
 
 
-hbm::communication::SocketNonblocking::SocketNonblocking()
+hbm::communication::SocketNonblocking::SocketNonblocking(sys::EventLoop &eventLoop)
 	: m_fd(-1)
 	, m_bufferedReader()
+	, m_eventLoop(eventLoop)
+	, m_dataHandler()
 {
 	WSADATA wsaData;
 	WSAStartup(2, &wsaData);
 	m_event = WSACreateEvent();
 }
 
-hbm::communication::SocketNonblocking::SocketNonblocking(int fd)
+hbm::communication::SocketNonblocking::SocketNonblocking(int fd, sys::EventLoop &eventLoop)
 	: m_fd(fd)
 	, m_bufferedReader()
+	, m_eventLoop(eventLoop)
+	, m_dataHandler()
 {
 	WSADATA wsaData;
 	WSAStartup(2, &wsaData);
 	m_event = WSACreateEvent();
+
+	if (setSocketOptions()<0) {
+		throw std::runtime_error("error setting socket options");
+	}
 }
 
 hbm::communication::SocketNonblocking::~SocketNonblocking()
 {
-	stop();
+	disconnect();
 	WSACloseEvent(m_event);
+}
+
+void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
+{
+	m_dataHandler = dataCb;
+	m_eventLoop.eraseEvent(m_event);
+	WSAEventSelect(m_fd, m_event, FD_READ);
+	m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
 }
 
 int hbm::communication::SocketNonblocking::setSocketOptions()
@@ -71,22 +87,6 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 	return 0;
 }
 
-int hbm::communication::SocketNonblocking::init(int domain)
-{
-	int retVal = 0;
-
-	m_fd = static_cast < int > (::socket(domain, SOCK_STREAM, 0));
-	if(m_fd==-1) {
-		retVal=-1;
-	} else {
-		setSocketOptions();		
-	}
-
-	WSAEventSelect(m_fd, m_event, FD_READ);
-
-	return retVal;
-}
-
 int hbm::communication::SocketNonblocking::connect(const std::string &address, const std::string& port)
 {
 	struct addrinfo hints;
@@ -111,9 +111,13 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 
 int hbm::communication::SocketNonblocking::connect(int domain, const struct sockaddr* pSockAddr, socklen_t len)
 {
-	int err = init(domain);
+	m_fd = static_cast <int> (::socket(domain, SOCK_STREAM, 0));
+	if (m_fd == -1) {
+		return -1;
+	}
 
-	if(err<0) {
+	int err = setSocketOptions();
+	if (err < 0) {
 		return err;
 	}
 
@@ -147,73 +151,16 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 	} else {
 		err = -1;
 	}
-
 	return err;
 }
 
-
-event hbm::communication::SocketNonblocking::getFd() const
+int hbm::communication::SocketNonblocking::process()
 {
-	return m_event;
-}
-
-int hbm::communication::SocketNonblocking::bind(uint16_t Port)
-{
-	//ipv6 does work for ipv4 too!
-	sockaddr_in6 address;
-
-	memset(&address, 0, sizeof(address));
-	address.sin6_family = AF_INET;
-	address.sin6_addr = in6addr_any;
-	address.sin6_port = htons(Port);
-
-	int retVal = init(address.sin6_family);
-	if (retVal == -1) {
-		return retVal;
+	if (m_dataHandler) {
+		return m_dataHandler(this);
+	} else {
+		return -1;
 	}
-	retVal = ::bind(m_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
-	return retVal;
-}
-
-std::unique_ptr < hbm::communication::SocketNonblocking > hbm::communication::SocketNonblocking::acceptClient()
-{
-	std::unique_ptr < SocketNonblocking > retSocket;
-
-	sockaddr_in SockAddr;
-	// the length of the client's address
-	socklen_t socketAddressLen = sizeof(SockAddr);
-
-	int err;
-
-	fd_set fds;
-
-	FD_ZERO(&fds);
-	FD_SET(m_fd,&fds);
-
-	// wir warten ohne timeout, bis etwas zu lesen ist
-	do {
-		err = select(static_cast < int >(m_fd) + 1, &fds, NULL, NULL, NULL);
-	} while((err==-1)&&(errno==WSAEINTR));
-
-	if(err!=1) {
-		return std::unique_ptr < SocketNonblocking >();		
-	} else if(FD_ISSET(m_fd, &fds)) {
-		// the new socket file descriptor returned by the accept system call
-		SOCKET clientFd;
-
-		clientFd = accept(m_fd, reinterpret_cast<sockaddr*>(&SockAddr), &socketAddressLen);
-		if (clientFd >= 0) {
-			std::unique_ptr < SocketNonblocking > p( new SocketNonblocking(static_cast < int > (clientFd)));
-			p->setSocketOptions();
-			return p;
-		}
-	}
-	return std::unique_ptr < SocketNonblocking >();
-}
-
-int hbm::communication::SocketNonblocking::listenToClient(int numPorts)
-{
-	return listen(m_fd, numPorts);
 }
 
 ssize_t hbm::communication::SocketNonblocking::receive(void* pBlock, size_t size)
@@ -272,7 +219,6 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
   }
   return static_cast < ssize_t > (len);
 }
-
 
 ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool more)
 {
@@ -355,8 +301,9 @@ bool hbm::communication::SocketNonblocking::checkSockAddr(const struct ::sockadd
 }
 
 
-void hbm::communication::SocketNonblocking::stop()
+void hbm::communication::SocketNonblocking::disconnect()
 {
+	m_eventLoop.eraseEvent(m_event);
 	::shutdown(m_fd, SD_BOTH);
 	::closesocket(m_fd);
 	m_fd = -1;
@@ -366,4 +313,3 @@ bool hbm::communication::SocketNonblocking::isFirewire() const
 {
 	return false;
 }
-

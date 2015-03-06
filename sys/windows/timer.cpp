@@ -25,36 +25,34 @@ namespace hbm {
 		static VOID CALLBACK resetRunningFlag(LPVOID lpArgToCompletionRoutine, DWORD dwTimerLowValue, DWORD dwTimerHighValue)
 		{
 			Timer* pTimer = reinterpret_cast < Timer* > (lpArgToCompletionRoutine);
+
 			pTimer->cancel();
 		}
 
-		Timer::Timer()
-			: m_fd(NULL)
+		Timer::Timer(EventLoop& eventLoop)
+			: m_fd(CreateWaitableTimer(NULL, FALSE, NULL))
+			, m_eventLoop(eventLoop)
+			, m_eventHandler()
 			, m_isRunning(false)
 		{
-			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
 			cancel();
-		}
-
-		Timer::Timer(unsigned int period_ms, bool repeated)
-			: m_fd(NULL)
-			, m_isRunning(false)
-		{
-			m_fd = CreateWaitableTimer(NULL, FALSE, NULL);
-
-			set(period_ms, repeated);
 		}
 
 		Timer::~Timer()
 		{
+			m_eventLoop.eraseEvent(m_fd);
 			CloseHandle(m_fd);
+			m_fd = INVALID_HANDLE_VALUE;
 		}
 
-		int Timer::set(unsigned int period_ms, bool repeated)
+		int Timer::set(unsigned int period_ms, bool repeated, Cb_t eventHandler)
 		{
 			LARGE_INTEGER dueTime;
 			static const int64_t multilpier = -10000; // negative because we want a relative time
 			LONG period = 0; // in ms
+
+			m_eventHandler = eventHandler;
+			m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
 
 			if (repeated) {
 				period = period_ms;
@@ -75,48 +73,24 @@ namespace hbm {
 			return 0;
 		}
 
-		int Timer::read()
+		int Timer::process()
 		{
-			DWORD result = WaitForSingleObject(m_fd, 0);
-			switch (result) {
-			case WAIT_OBJECT_0:
-				return 1;
-				break;
-			case WAIT_TIMEOUT:
-				return 0;
-				break;
-			default:
-				return -1;
-				break;
+			if (m_eventHandler) {
+				m_eventHandler(true);
 			}
 			return 0;
 		}
 
-		int Timer::wait()
-		{
-			return wait_for(INFINITE);
-		}
-
-
-		int Timer::wait_for(int period_ms)
-		{
-			DWORD result = WaitForSingleObject(m_fd, period_ms);
-			switch (result) {
-			case WAIT_OBJECT_0:
-				return 1;
-				break;
-			default:
-				return -1;
-				break;
-			}
-			return 0;
-		}
 
 		int Timer::cancel()
 		{
 			int result = 0;
 			if (m_isRunning) {
 				m_isRunning = false;
+				if (m_eventHandler) {
+					m_eventHandler(false);
+				}
+
 				result = 1;
 			}
 
@@ -131,11 +105,6 @@ namespace hbm {
 				FALSE
 				);
 			return result;
-		}
-
-		event Timer::getFd() const
-		{
-			return m_fd;
 		}
 	}
 }

@@ -11,11 +11,14 @@
 
 #include "hbm/exception/exception.hpp"
 #include "hbm/sys/notifier.h"
+#include "hbm/sys/eventloop.h"
 
 namespace hbm {
 	namespace sys {
-		Notifier::Notifier()
+		Notifier::Notifier(EventLoop& eventLoop)
 			: m_fd(eventfd(0, EFD_NONBLOCK))
+			, m_eventLoop(eventLoop)
+			, m_eventHandler()
 		{
 			if (m_fd<0) {
 				throw hbm::exception::exception("could not create event fd");
@@ -24,14 +27,29 @@ namespace hbm {
 
 		Notifier::Notifier(Notifier&& source)
 			: m_fd(source.m_fd)
+			, m_eventLoop(source.m_eventLoop)
+			, m_eventHandler(source.m_eventHandler)
 		{
-			source.m_fd = -1;
+			m_eventLoop.addEvent(m_fd, std::bind(&Notifier::process, this));
 		}
 
 		Notifier::~Notifier()
 		{
+			m_eventLoop.eraseEvent(m_fd);
 			close(m_fd);
 		}
+
+		int Notifier::set(EventHandler_t eventHandler)
+		{
+			m_eventHandler = eventHandler;
+			if (eventHandler) {
+				m_eventLoop.addEvent(m_fd, std::bind(&Notifier::process, this));
+			} else {
+				m_eventLoop.eraseEvent(m_fd);
+			}
+			return 0;
+		}
+
 
 		int Notifier::notify()
 		{
@@ -39,41 +57,18 @@ namespace hbm {
 			return write(m_fd, &value, sizeof(value));
 		}
 
-		int Notifier::read()
+		int Notifier::process()
 		{
 			uint64_t value;
-			ssize_t readStatus = ::read(m_fd, &value, sizeof(value));
-			if (readStatus<0) {
-				return 0;
-			} else {
-				// to be compatible between windows and linux, we return 1 even if timer expired timerEventCount times.
-				return 1;
+			int readStatus = ::read(m_fd, &value, sizeof(value));
+			if(readStatus>0) {
+				for (uint64_t i=0; i<value; i++) {
+					if (m_eventHandler) {
+						m_eventHandler();
+					}
+				}
 			}
-
-		}
-
-		int Notifier::wait()
-		{
-			return wait_for(-1);
-		}
-
-		int Notifier::wait_for(int period_ms)
-		{
-			struct pollfd pfd;
-
-			pfd.fd = m_fd;
-			pfd.events = POLLIN;
-
-			int retval = poll(&pfd, 1, period_ms);
-			if (retval!=1) {
-				return -1;
-			}
-			return read();
-		}
-
-		event Notifier::getFd() const
-		{
-			return m_fd;
+			return readStatus;
 		}
 	}
 }

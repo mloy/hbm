@@ -166,8 +166,4 @@ namespace hbm {
 }
 
 
-#ifdef _WIN32
-#undef syslog 
-#undef LOG_ERR
-#endif
 
