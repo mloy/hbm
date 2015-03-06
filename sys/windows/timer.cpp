@@ -45,6 +45,11 @@ namespace hbm {
 			m_fd = INVALID_HANDLE_VALUE;
 		}
 
+		int Timer::set(std::chrono::milliseconds period, bool repeated, Cb_t eventHandler)
+		{
+			return set(period.count(), repeated, eventHandler);
+		}
+
 		int Timer::set(unsigned int period_ms, bool repeated, Cb_t eventHandler)
 		{
 			LARGE_INTEGER dueTime;
