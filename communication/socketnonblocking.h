@@ -13,11 +13,12 @@
 #include <WS2tcpip.h>
 #undef max
 #undef min
+#ifndef ssize_t
+typedef int ssize_t;
+#endif
 #else
 #include <sys/socket.h>
 #endif
-
-
 
 #include "hbm/communication/bufferedreader.h"
 #include "hbm/sys/eventloop.h"
@@ -37,9 +38,10 @@ namespace hbm
 		{
 		public:
 			/// called on the arrival of data
-			typedef std::function < int (SocketNonblocking* pSocket) > DataCb_t;
+			typedef std::function < ssize_t (SocketNonblocking* pSocket) > DataCb_t;
 			SocketNonblocking(sys::EventLoop &eventLoop);
 
+			/// used when accepting connection via tcp server.
 			/// \throw std::runtime_error on error
 			SocketNonblocking(int fd, sys::EventLoop &eventLoop);
 			virtual ~SocketNonblocking();
