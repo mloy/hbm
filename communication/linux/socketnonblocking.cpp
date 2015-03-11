@@ -16,6 +16,7 @@
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <vector>
 
 #include <errno.h>
 #include <syslog.h>
@@ -216,6 +217,50 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 	return size;
 }
 
+
+ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t* pBlocks, size_t blockCount)
+{
+	std::vector < iovec > iovs(blockCount);
+
+	size_t completeLength = 0;
+
+	for(size_t index=0; index<blockCount; ++index) {
+		iovs[index].iov_base = pBlocks->pData;
+		iovs[index].iov_len = pBlocks->size;
+		completeLength += pBlocks->size;
+		++pBlocks;
+	}
+
+
+	ssize_t retVal = writev(m_fd, &iovs[0], blockCount);
+	if(retVal<=0) {
+		return retVal;
+	}
+	size_t bytesWritten = retVal;
+	if(bytesWritten==completeLength) {
+		// we are done!
+		return 0;
+	} else {
+		size_t blockSum = 0;
+
+		for(size_t index=0; index<blockCount; ++index) {
+			blockSum += iovs[index].iov_len;
+			if(bytesWritten<blockSum) {
+				// this block was not send completely
+				size_t bytesRemaining = blockSum - bytesWritten;
+				size_t start = iovs[index].iov_len-bytesRemaining;
+				retVal = sendBlock(static_cast < unsigned char* > (iovs[index].iov_base)+start, bytesRemaining, false);
+				if(retVal>0) {
+					bytesWritten += retVal;
+				} else {
+					return -1;
+				}
+			}
+		}
+	}
+
+	return bytesWritten;
+}
 
 ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool more)
 {

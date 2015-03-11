@@ -26,6 +26,11 @@ typedef int ssize_t;
 namespace hbm
 {
 	namespace communication {
+		struct dataBlock_t {
+			void* pData;
+			size_t size;
+		};
+
 		class SocketNonblocking;
 #ifdef _MSC_VER
 		typedef std::shared_ptr <SocketNonblocking > workerSocket_t;
@@ -54,6 +59,7 @@ namespace hbm
 			/// if setting an empty callback function DataCb_t(), the event is taken out of the eventloop.
 			void setDataCb(DataCb_t dataCb);
 
+			ssize_t sendBlocks(const dataBlock_t* pBlocks, size_t blockCount);
 			ssize_t sendBlock(const void* pBlock, size_t len, bool more);
 
 			/// might return with less bytes the requested
