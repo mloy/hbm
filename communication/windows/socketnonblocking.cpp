@@ -425,23 +425,25 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 //  return static_cast < ssize_t > (len);
 //}
 //
-ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t* pBlocks, size_t blockCount)
+ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &blocks)
 {
-	std::vector < WSABUF > buffers(blockCount);
+	std::vector < WSABUF > buffers(blocks.size());
 
 	size_t completeLength = 0;
+	WSABUF newWsaBuf;
 
-	for (size_t index = 0; index < blockCount; ++index) {
-		buffers[index].buf = reinterpret_cast < CHAR* > (pBlocks->pData);
-		buffers[index].len = pBlocks->size;
-		completeLength += pBlocks->size;
-		++pBlocks;
+	for (dataBlocks_t::const_iterator iter = blocks.begin(); iter != blocks.end(); ++iter) {
+		const dataBlock_t& item = *iter;
+		newWsaBuf.buf = (CHAR*)item.pData;
+		newWsaBuf.len = item.size;
+		buffers.push_back(newWsaBuf);
+		completeLength += item.size;
 	}
 	DWORD bytesWritten = 0;
 
 	int retVal;
 	
-	retVal = WSASend(m_fd, &buffers[0], blockCount, &bytesWritten, 0, NULL, NULL);
+	retVal = WSASend(m_fd, &buffers[0], buffers.size(), &bytesWritten, 0, NULL, NULL);
 
 	if (retVal < 0) {
 		if (WSAGetLastError() != WSAEWOULDBLOCK) {
@@ -455,7 +457,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t* pBl
 	} else {
 		size_t blockSum = 0;
 
-		for (size_t index = 0; index < blockCount; ++index) {
+		for (size_t index = 0; index < buffers.size(); ++index) {
 			blockSum += buffers[index].len;
 			if (bytesWritten < blockSum) {
 				// this block was not send completely
