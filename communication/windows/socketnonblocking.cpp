@@ -427,19 +427,62 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 //
 ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t* pBlocks, size_t blockCount)
 {
-  // todo: WSASend! 
-  size_t bytesWritten = 0;
-  int retVal;
-  for(size_t index=0; index<blockCount; ++index) {
-    retVal = sendBlock(pBlocks->pData, pBlocks->size, false);
-    if(retVal>0) {
-      bytesWritten += retVal;
-    } else {
-      return -1;
-    }
-    ++pBlocks;
-  }
-  return bytesWritten;
+	std::vector < WSABUF > buffers(blockCount);
+
+	size_t completeLength = 0;
+
+	for (size_t index = 0; index < blockCount; ++index) {
+		buffers[index].buf = reinterpret_cast < CHAR* > (pBlocks->pData);
+		buffers[index].len = pBlocks->size;
+		completeLength += pBlocks->size;
+		++pBlocks;
+	}
+	DWORD bytesWritten = 0;
+
+	int retVal;
+	
+	retVal = WSASend(m_fd, &buffers[0], blockCount, &bytesWritten, 0, NULL, NULL);
+
+	if (retVal < 0) {
+		if (WSAGetLastError() != WSAEWOULDBLOCK) {
+			return retVal;
+		}
+	}
+
+	if (bytesWritten == completeLength) {
+		// we are done!
+		return bytesWritten;
+	} else {
+		size_t blockSum = 0;
+
+		for (size_t index = 0; index < blockCount; ++index) {
+			blockSum += buffers[index].len;
+			if (bytesWritten < blockSum) {
+				// this block was not send completely
+				size_t bytesRemaining = blockSum - bytesWritten;
+				size_t start = buffers[index].len - bytesRemaining;
+				retVal = sendBlock(buffers[index].buf + start, bytesRemaining, false);
+				if (retVal > 0) {
+					bytesWritten += retVal;
+				}
+				else {
+					return -1;
+				}
+			}
+		}
+	}
+
+
+	//for(size_t index=0; index<blockCount; ++index) {
+	//	retVal = sendBlock(pBlocks->pData, pBlocks->size, false);
+	//	if(retVal>0) {
+	//		bytesWritten += retVal;
+	//	} else {
+	//		return -1;	
+	//	}
+	//	++pBlocks;
+	//}
+	return bytesWritten;
 }
 
 
@@ -503,5 +546,29 @@ void hbm::communication::SocketNonblocking::disconnect()
 
 bool hbm::communication::SocketNonblocking::isFirewire() const
 {
+	return false;
+}
+
+bool hbm::communication::SocketNonblocking::checkSockAddr(const struct ::sockaddr* pCheckSockAddr, socklen_t checkSockAddrLen) const
+{
+	struct sockaddr sockAddr;
+	socklen_t addrLen = sizeof(sockaddr_in);
+	char checkHost[256];
+	char ckeckService[8];
+	char host[256];
+	char service[8];
+	int err = getnameinfo(pCheckSockAddr, checkSockAddrLen, checkHost, sizeof(checkHost), ckeckService, sizeof(ckeckService), NI_NUMERICHOST | NI_NUMERICSERV);
+	if (err != 0) {
+		return false;
+	}
+	getpeername(m_fd, &sockAddr, &addrLen);
+	getnameinfo(&sockAddr, addrLen, host, sizeof(host), service, sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV);
+	if (
+		(strcmp(host, checkHost) == 0) &&
+		(strcmp(service, ckeckService) == 0)
+		)
+	{
+		return true;
+	}
 	return false;
 }
