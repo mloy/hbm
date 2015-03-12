@@ -220,7 +220,7 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 
 ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &blocks)
 {
-	std::vector < iovec > iovs;
+	std::vector < iovec > iovs(6); // reserve a reasonable number of entries!
 
 	size_t completeLength = 0;
 	iovec newIovec;
