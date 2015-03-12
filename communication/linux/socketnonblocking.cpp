@@ -234,7 +234,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 	}
 
 
-	ssize_t retVal = writev(m_fd, &iovs[0], blocks.size());
+	ssize_t retVal = writev(m_fd, &iovs[0], iovs.size());
 	if (retVal==0) {
 		return retVal;
 	} else if (retVal==-1) {
@@ -250,7 +250,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 	} else {
 		size_t blockSum = 0;
 
-		for(size_t index=0; index<blocks.size(); ++index) {
+		for(size_t index=0; index<iovs.size(); ++index) {
 			blockSum += iovs[index].iov_len;
 			if(bytesWritten<blockSum) {
 				// this block was not send completely
