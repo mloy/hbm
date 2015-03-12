@@ -42,6 +42,7 @@ namespace hbm {
 			serverFixture::~serverFixture()
 			{
 				BOOST_TEST_MESSAGE("teardown Fixture1");
+				m_workers.clear();
 				m_eventloop.stop();
 				m_serverWorker.join();
 			}
@@ -127,7 +128,7 @@ namespace hbm {
 			BOOST_AUTO_TEST_CASE(writev_test)
 			{
 				int result;
-				static const size_t bufferSize = 1000000;
+				static const size_t bufferSize = 100000;
 				static const size_t blockCount = 10;
 				static const size_t blockSize = bufferSize/blockCount;
 				char buffer[bufferSize] = "a";
