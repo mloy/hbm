@@ -246,7 +246,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 	size_t bytesWritten = retVal;
 	if(bytesWritten==completeLength) {
 		// we are done!
-		return 0;
+		return bytesWritten;
 	} else {
 		size_t blockSum = 0;
 
