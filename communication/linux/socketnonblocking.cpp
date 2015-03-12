@@ -218,21 +218,23 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 }
 
 
-ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t* pBlocks, size_t blockCount)
+ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &blocks)
 {
-	std::vector < iovec > iovs(blockCount);
+	std::vector < iovec > iovs;
 
 	size_t completeLength = 0;
+	iovec newIovec;
 
-	for(size_t index=0; index<blockCount; ++index) {
-		iovs[index].iov_base = pBlocks->pData;
-		iovs[index].iov_len = pBlocks->size;
-		completeLength += pBlocks->size;
-		++pBlocks;
+	for(dataBlocks_t::const_iterator iter=blocks.begin(); iter!=blocks.end(); ++iter) {
+		const dataBlock_t& item = *iter;
+		newIovec.iov_base = const_cast < void* > (item.pData);
+		newIovec.iov_len = item.size;
+		iovs.push_back(newIovec);
+		completeLength += item.size;
 	}
 
 
-	ssize_t retVal = writev(m_fd, &iovs[0], blockCount);
+	ssize_t retVal = writev(m_fd, &iovs[0], blocks.size());
 	if (retVal==0) {
 		return retVal;
 	} else if (retVal==-1) {
@@ -248,7 +250,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t* pBl
 	} else {
 		size_t blockSum = 0;
 
-		for(size_t index=0; index<blockCount; ++index) {
+		for(size_t index=0; index<blocks.size(); ++index) {
 			blockSum += iovs[index].iov_len;
 			if(bytesWritten<blockSum) {
 				// this block was not send completely

@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #ifdef _WIN32
 #include <WinSock2.h>
@@ -27,9 +28,17 @@ namespace hbm
 {
 	namespace communication {
 		struct dataBlock_t {
-			void* pData;
+			dataBlock_t(const void* pD, size_t s)
+				: pData(pD)
+				, size(s)
+			{
+			}
+
+			const void* pData;
 			size_t size;
 		};
+
+		typedef std::list < dataBlock_t > dataBlocks_t;
 
 		class SocketNonblocking;
 #ifdef _MSC_VER
@@ -59,7 +68,7 @@ namespace hbm
 			/// if setting an empty callback function DataCb_t(), the event is taken out of the eventloop.
 			void setDataCb(DataCb_t dataCb);
 
-			ssize_t sendBlocks(const dataBlock_t* pBlocks, size_t blockCount);
+			ssize_t sendBlocks(const dataBlocks_t& blocks);
 			ssize_t sendBlock(const void* pBlock, size_t len, bool more);
 
 			/// might return with less bytes the requested
