@@ -233,9 +233,14 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t* pBl
 
 
 	ssize_t retVal = writev(m_fd, &iovs[0], blockCount);
-	if(retVal<=0) {
+	if (retVal==0) {
 		return retVal;
+	} else if (retVal==-1) {
+		if(errno!=EWOULDBLOCK && errno!=EAGAIN) {
+			return retVal;
+		}
 	}
+
 	size_t bytesWritten = retVal;
 	if(bytesWritten==completeLength) {
 		// we are done!
