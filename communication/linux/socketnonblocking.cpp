@@ -238,7 +238,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 	if (retVal==0) {
 		return retVal;
 	} else if (retVal==-1) {
-		if(errno!=EWOULDBLOCK && errno!=EAGAIN) {
+		if((errno!=EWOULDBLOCK) && (errno!=EAGAIN) && (errno!=EINTR) ) {
 			return retVal;
 		}
 	}
@@ -306,7 +306,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 					BytesLeft = 0;
 					retVal = -1;
 				}
-			} else {
+			} else if (errno!=EINTR) {
 				// a real error happened!
 				BytesLeft = 0;
 				retVal = -1;
