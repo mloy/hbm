@@ -23,30 +23,26 @@
 #include "hbm/exception/exception.hpp"
 
 
-static ssize_t eventHandlerPrint()
+static void eventHandlerPrint()
 {
 	std::cout << __FUNCTION__ << std::endl;
-	return 0;
 }
 
 
 /// by returning error, the execute() method, that is doing the eventloop, exits
-static ssize_t timerEventHandlerIncrement(bool fired, unsigned int& value, bool& canceled)
+static void timerEventHandlerIncrement(bool fired, unsigned int& value, bool& canceled)
 {
 	if (fired) {
 		++value;
-		return 0;
 	} else {
 		canceled = true;
 	}
-	return 0;
 }
 
 /// by returning error, the execute() method, that is doing the eventloop, exits
-static ssize_t notifierEventHandlerIncrement(unsigned int& value)
+static void notifierEventHandlerIncrement(unsigned int& value)
 {
 	++value;
-	return 0;
 }
 
 
