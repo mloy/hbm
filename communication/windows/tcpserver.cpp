@@ -94,7 +94,7 @@ namespace hbm {
 			int clientFd = accept(m_listeningSocket, reinterpret_cast<sockaddr*>(&SockAddr), &socketAddressLen);
 
 			if (clientFd<0) {
-				printf_s("%s: Accept failed!", __FUNCTION__);
+				printf_s("%s: Accept failed %d!", __FUNCTION__, WSAGetLastError());
 				return workerSocket_t();
 			}
 

@@ -58,7 +58,7 @@ void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 {
 	m_dataHandler = dataCb;
 	m_eventLoop.eraseEvent(m_event);
-	WSAEventSelect(m_fd, m_event, FD_READ);
+	WSAEventSelect(m_fd, m_event, FD_READ | FD_CLOSE);
 	m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
 }
 
