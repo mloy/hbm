@@ -162,6 +162,9 @@ BOOST_AUTO_TEST_CASE(oneshottimer_test)
 
 	std::this_thread::sleep_for(timerCycle+delta);
 	BOOST_CHECK_EQUAL(counter, 2);
+
+	eventLoop.stop();
+	worker.join();
 }
 
 BOOST_AUTO_TEST_CASE(cyclictimer_test)
