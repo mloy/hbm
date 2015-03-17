@@ -102,6 +102,8 @@ BOOST_AUTO_TEST_CASE(restart_test)
 	}
 }
 
+
+
 BOOST_AUTO_TEST_CASE(notify_test)
 {
 	unsigned int value = 0;
@@ -207,6 +209,35 @@ BOOST_AUTO_TEST_CASE(canceltimer_test)
 	BOOST_CHECK_EQUAL(canceled, true);
 	BOOST_CHECK_EQUAL(counter, 0);
 }
+
+BOOST_AUTO_TEST_CASE(restart_timer_test)
+{
+	hbm::sys::EventLoop eventLoop;
+
+	static const std::chrono::milliseconds duration(100);
+
+	unsigned int counter = 0;
+	bool canceled = false;
+
+	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
+	hbm::sys::Timer timer(eventLoop);
+
+	timer.set(std::chrono::milliseconds(duration), false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
+	std::this_thread::sleep_for(duration / 2);
+	timer.set(std::chrono::milliseconds(duration), false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
+	std::this_thread::sleep_for(duration * 2);
+
+	BOOST_CHECK_EQUAL(canceled, true);
+	BOOST_CHECK_EQUAL(counter, 1);
+
+
+	eventLoop.stop();
+	worker.join();
+
+
+}
+
+
 
 BOOST_AUTO_TEST_CASE(removenotifier_test)
 {
