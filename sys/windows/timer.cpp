@@ -56,7 +56,7 @@ namespace hbm {
 			static const int64_t multiplier = -10000; // negative because we want a relative time
 			LONG period = 0; // in ms
 
-                        cancel();
+                       // cancel();
 
 			m_eventHandler = eventHandler;
 			m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
