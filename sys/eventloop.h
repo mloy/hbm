@@ -65,7 +65,7 @@ namespace hbm {
 
 			/// events to be added/removed go in here
 			changelist_t m_changeList;
-			std::mutex m_changeListMtx;
+			std::recursive_mutex m_changeListMtx;
 
 			/// events handled by event loop
 			eventInfos_t m_eventInfos;
