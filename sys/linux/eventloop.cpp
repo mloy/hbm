@@ -73,6 +73,14 @@ namespace hbm {
 						if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, item.fd, &ev) == -1) {
 							syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
 						}
+
+						// there might have been work to do before fd was added to epoll. This won't be signaled by edge triggered epoll. Try until there is nothing left.
+						ssize_t result;
+						if (item.eventHandler) {
+							do {
+								result = item.eventHandler();
+							} while (result>0);
+						}
 					}
 				}
 				m_changeList.clear();
