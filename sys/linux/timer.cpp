@@ -58,7 +58,6 @@ namespace hbm {
 			if (period_ms==0) {
 				return -1;
 			}
-			//cancel();
 
 			struct itimerspec timespec;
 			memset (&timespec, 0, sizeof(timespec));
@@ -71,6 +70,11 @@ namespace hbm {
 				timespec.it_interval.tv_sec = period_s;
 				timespec.it_interval.tv_nsec = rest * 1000 * 1000;
 			}
+
+			// first we call previous callback with non-fired
+//			if (m_eventHandler) {
+//				m_eventHandler(false);
+//			}
 			m_eventHandler = eventHandler;
 
 			return timerfd_settime(m_fd, 0, &timespec, nullptr);
