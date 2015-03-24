@@ -58,6 +58,8 @@ namespace hbm {
 			if (period_ms==0) {
 				return -1;
 			}
+			cancel();
+
 			struct itimerspec timespec;
 			memset (&timespec, 0, sizeof(timespec));
 			unsigned int period_s = period_ms / 1000;
