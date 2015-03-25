@@ -99,10 +99,16 @@ namespace hbm {
 		int Timer::cancel()
 		{
 			int result = 0;
+
+			// Before calling callback function with fired=false, we need to clear the callback routine. 
+			// Otherwise a recursive call might happen
+			Cb_t originalEventHandler = m_eventHandler;
+			m_eventHandler = Cb_t();
+
 			if (m_isRunning) {
 				m_isRunning = false;
-				if (m_eventHandler) {
-					m_eventHandler(false);
+				if (originalEventHandler) {
+					originalEventHandler(false);
 				}
 
 				result = 1;
