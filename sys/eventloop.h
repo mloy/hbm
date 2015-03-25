@@ -31,6 +31,8 @@ namespace hbm {
 			virtual ~EventLoop();
 
 			/// existing event handler of an fd will be replaced
+			/// \param fd a non-blocking file descriptor to observe
+			/// \param EventHandler_t callback function to be called if file descriptor gets signaled.
 			void addEvent(event fd, EventHandler_t eventHandler);
 
 			void eraseEvent(event fd);
