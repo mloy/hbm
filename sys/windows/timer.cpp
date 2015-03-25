@@ -56,9 +56,16 @@ namespace hbm {
 			static const int64_t multiplier = -10000; // negative because we want a relative time
 			LONG period = 0; // in ms
 
-                       // cancel();
 
+			// first we call the previous callback with non-fired.
+			// Before doing this, we need to clear the callback routine. Otherwise a recursive call might happen
+			Cb_t originalEventHandler = m_eventHandler;
+			m_eventHandler = Cb_t();
+			if (originalEventHandler) {
+				originalEventHandler(false);
+			}
 			m_eventHandler = eventHandler;
+
 			m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
 
 			if (repeated) {
