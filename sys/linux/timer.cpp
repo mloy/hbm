@@ -70,15 +70,6 @@ namespace hbm {
 				timespec.it_interval.tv_sec = period_s;
 				timespec.it_interval.tv_nsec = rest * 1000 * 1000;
 			}
-
-			// first we call the previous callback with non-fired.
-			// Before doing this, we need to clear the callback routine. Otherwise a recursive call might happen
-			Cb_t originalEventHandler = m_eventHandler;
-			m_eventHandler = Cb_t();
-			if (originalEventHandler) {
-				originalEventHandler(false);
-			}
-
 			m_eventHandler = eventHandler;
 			return timerfd_settime(m_fd, 0, &timespec, nullptr);
 		}
