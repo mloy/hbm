@@ -22,16 +22,26 @@ namespace hbm {
 			return text.substr(start, length);
 		}
 
-		void trim(std::string& text)
+		void trim_left(std::string& text)
 		{
 			std::string::size_type start = text.find_first_not_of(' ');
 			text.erase(0, start);
+		}
 
+		void trim_right(std::string& text)
+		{
 			std::string::size_type end = text.find_last_not_of(' ');
 			if (end==std::string::npos) {
 				return;
 			}
 			text.erase(end+1);
+		}
+
+
+		void trim(std::string& text)
+		{
+			trim_left(text);
+			trim_right(text);
 		}
 	}
 }

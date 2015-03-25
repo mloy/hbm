@@ -11,6 +11,11 @@ namespace hbm {
 	namespace string {
 
 		std::string trim_copy(std::string text);
+
+		void trim_left(std::string& text);
+
+		void trim_right(std::string& text);
+
 		void trim(std::string& text);
 	}
 }
