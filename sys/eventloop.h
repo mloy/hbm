@@ -24,6 +24,7 @@
 
 namespace hbm {
 	namespace sys {
+		/// The event loop is not responsible for handling errors returned by any callback routine. Error handling is to be done by the callback routine itself.
 		class EventLoop {
 		public:
 			/// \throws hbm::exception
