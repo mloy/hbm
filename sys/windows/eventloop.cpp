@@ -126,6 +126,7 @@ namespace hbm {
 					if (lastError != ERROR_INVALID_HANDLE) {
 						return -1;
 					}
+					changeHandler();
 				} else if (dwEvent == WAIT_TIMEOUT) {
 					// stop because of timeout
 					return 0;
