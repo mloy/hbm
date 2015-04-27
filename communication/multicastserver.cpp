@@ -619,9 +619,11 @@ namespace hbm {
 				return err;
 			}
 
-			err = setupReceiveSocket();
-			if(err<0) {
-				return err;
+			if (dataHandler) {
+				err = setupReceiveSocket();
+				if(err<0) {
+					return err;
+				}
 			}
 
 			m_dataHandler = dataHandler;
