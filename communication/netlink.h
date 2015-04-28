@@ -36,7 +36,7 @@ namespace hbm {
 		int stop();
 
 	private:
-		ssize_t process() const;
+		ssize_t process();
 
 		ssize_t receive(void *pReadBuffer, size_t bufferSize) const;
 
