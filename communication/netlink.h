@@ -17,7 +17,9 @@ namespace hbm {
 	public:
 		enum event_t {
 			NEW,
-			DEL
+			DEL,
+			/// windows version does not tell what changed. it only tells that anything has changed!
+			COMPLETE
 		};
 
 		typedef std::function < void(event_t event, unsigned int adapterIndex, const std::string& ipv4Address) > cb_t;
