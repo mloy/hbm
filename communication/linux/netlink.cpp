@@ -146,9 +146,6 @@ namespace hbm {
 		ssize_t nBytes = receive(readBuffer, sizeof(readBuffer));
 		if (nBytes>0) {
 			processNetlinkTelegram(readBuffer, nBytes);
-//			if(m_eventHandler) {
-//				m_eventHandler();
-//			}
 		}
 		return nBytes;
 	}
@@ -157,6 +154,10 @@ namespace hbm {
 	int Netlink::start(cb_t eventHandler)
 	{
 		m_eventHandler = eventHandler;
+		if (m_eventHandler) {
+			m_eventHandler(COMPLETE, 0, "");
+		}
+
 		m_eventloop.addEvent(m_fd, std::bind(&Netlink::process, this));
 		return 0;
 	}

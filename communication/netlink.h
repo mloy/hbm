@@ -16,7 +16,9 @@ namespace hbm {
 	class Netlink {
 	public:
 		enum event_t {
+			/// not supported under Windows
 			NEW,
+			/// not supported under Windows
 			DEL,
 			/// windows version does not tell what changed. it only tells that anything has changed!
 			COMPLETE
@@ -28,6 +30,7 @@ namespace hbm {
 		Netlink(communication::NetadapterList &netadapterlist, sys::EventLoop &eventLoop);
 		virtual ~Netlink();
 
+		/// on execution of start, the callback function is being called with event = COMPLETE.
 		int start(cb_t eventHandler);
 
 		int stop();
@@ -55,5 +58,4 @@ namespace hbm {
 		cb_t m_eventHandler;
 	};
 }
-
 #endif
