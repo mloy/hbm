@@ -140,7 +140,7 @@ namespace hbm {
 		}
 	}
 
-	ssize_t Netlink::process() const
+	ssize_t Netlink::process()
 	{
 		uint8_t readBuffer[MAX_DATAGRAM_SIZE];
 		ssize_t nBytes = receive(readBuffer, sizeof(readBuffer));
