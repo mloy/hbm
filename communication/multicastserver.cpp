@@ -283,7 +283,7 @@ namespace hbm {
 			if(add) {
 				if(retVal!=0) {
 #ifdef _WIN32
-					if (errno == WSAEADDRNOTAVAIL) {
+					if (errno == WSAEADDRINUSE) {
 						// ignore already added
 						return 0;
 					}
