@@ -9,7 +9,6 @@
 
 #include "hbm/exception/exception.hpp"
 #include "hbm/communication/netadapterlist.h"
-//#include "hbm/communication/multicastserver.h"
 #include "hbm/sys/defines.h"
 #include "hbm/sys/eventloop.h"
 
@@ -19,6 +18,7 @@ namespace hbm {
 		enum event_t {
 			NEW,
 			DEL
+//			COMPLETE
 		};
 
 		typedef std::function < void(event_t event, const communication::Netadapter& adapter, const std::string& ipv4Address) > cb_t;
@@ -42,14 +42,16 @@ namespace hbm {
 		void processNetlinkTelegram(void *pReadBuffer, size_t bufferSize) const;
 
 
-		int m_fd;
+#ifdef _WIN32
+		OVERLAPPED m_overlap;
+#else
+		event m_fd;
+#endif
 
 		communication::NetadapterList &m_netadapterlist;
-		//communication::MulticastServer &m_mcs;
 
 		sys::EventLoop& m_eventloop;
 		cb_t m_eventHandler;
-		//sys::EventHandler_t m_eventHandler;
 	};
 }
 
