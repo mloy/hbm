@@ -20,7 +20,8 @@ namespace hbm {
 			NEW,
 			/// not supported under Windows
 			DEL,
-			/// windows version does not tell what changed. it only tells that anything has changed!
+			/// happens on initial start.
+			/// windows version does not tell what happened it always sends COMPLETE to tell that something has happened.
 			COMPLETE
 		};
 
