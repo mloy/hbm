@@ -18,10 +18,9 @@ namespace hbm {
 		enum event_t {
 			NEW,
 			DEL
-//			COMPLETE
 		};
 
-		typedef std::function < void(event_t event, const communication::Netadapter& adapter, const std::string& ipv4Address) > cb_t;
+		typedef std::function < void(event_t event, unsigned int adapterIndex, const std::string& ipv4Address) > cb_t;
 
 		/// \throws hbm::exception
 		Netlink(communication::NetadapterList &netadapterlist, sys::EventLoop &eventLoop);

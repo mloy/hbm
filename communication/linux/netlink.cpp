@@ -31,7 +31,6 @@ namespace hbm {
 	Netlink::Netlink(communication::NetadapterList &netadapterlist, sys::EventLoop &eventLoop)
 		: m_fd(socket(AF_NETLINK, SOCK_RAW | SOCK_NONBLOCK, NETLINK_ROUTE))
 		, m_netadapterlist(netadapterlist)
-		//, m_mcs(mcs)
 		, m_eventloop(eventLoop)
 	{
 		if (m_fd<0) {
@@ -97,11 +96,8 @@ namespace hbm {
 										if(adapter.getIpv4Addresses().size()==1) {
 											if (m_eventHandler) {
 												struct in_addr* pIn = reinterpret_cast < struct in_addr* > (RTA_DATA(rth));
-												m_eventHandler(NEW, adapter, inet_ntoa(*pIn));
+												m_eventHandler(NEW, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
 											}
-//											struct in_addr* pIn = reinterpret_cast < struct in_addr* > (RTA_DATA(rth));
-//											std::string interfaceAddress = inet_ntoa(*pIn);
-//											m_mcs.addInterface(interfaceAddress);
 										}
 									} catch(const hbm::exception::exception&) {
 									}
@@ -126,11 +122,8 @@ namespace hbm {
 										if(adapter.getIpv4Addresses().empty()==true) {
 											if (m_eventHandler) {
 												struct in_addr* pIn = reinterpret_cast < struct in_addr* > (RTA_DATA(rth));
-												m_eventHandler(NEW, adapter, inet_ntoa(*pIn));
+												m_eventHandler(NEW, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
 											}
-//											const struct in_addr* pIn = reinterpret_cast < const struct in_addr* > (RTA_DATA(rth));
-//											std::string interfaceAddress = inet_ntoa(*pIn);
-//											m_mcs.dropInterface(interfaceAddress);
 										}
 									} catch(const hbm::exception::exception&) {
 									}
