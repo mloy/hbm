@@ -13,11 +13,7 @@
 #include <sys/socket.h>
 #endif
 
-
-
 #include <cstring>
-
-#include <iostream>
 
 #include "bufferedreader.h"
 
@@ -34,7 +30,7 @@ namespace hbm {
 		size_t bytesLeft = m_fillLevel - m_alreadyRead;
 
 		if(bytesLeft>=desiredLen) {
-			// there is more than desired
+			// there is more than or as much as desired
 			memcpy(buf, m_buffer+m_alreadyRead, desiredLen);
 			m_alreadyRead += desiredLen;
 			return static_cast < ssize_t > (desiredLen);
@@ -45,7 +41,7 @@ namespace hbm {
 			return static_cast < ssize_t > (bytesLeft);
 		}
 
-		// try to read as much as possible into the empty buffer space
+		// try to read as much as possible into the buffer
 	#ifdef _WIN32
 		ssize_t retVal = ::recv(sockfd, (char*)m_buffer, sizeof(m_buffer), flags);
 	#else
