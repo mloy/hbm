@@ -222,23 +222,29 @@ namespace hbm {
 							if (family == AF_INET) {
 								ipv4Address_t addressWithNetmask;
 								struct sockaddr_in* pSin = reinterpret_cast <struct sockaddr_in*> (interface->ifa_addr);
-								addressWithNetmask.address = inet_ntop(family, &pSin->sin_addr, buf, sizeof(buf));
+								if (inet_ntop(family, &pSin->sin_addr, buf, sizeof(buf))) {
+									addressWithNetmask.address = buf;
+								}
 
 								pSin = reinterpret_cast <struct sockaddr_in*> (interface->ifa_netmask);
-								addressWithNetmask.netmask = inet_ntop(family, &pSin->sin_addr, buf, sizeof(buf));
+								if (inet_ntop(family, &pSin->sin_addr, buf, sizeof(buf))) {
+									addressWithNetmask.netmask = buf;
+								}
 
 								Adapt.m_ipv4Addresses.push_back(addressWithNetmask);
 							}	else if (family == AF_INET6) {
 								ipv6Address_t address;
 
 								struct sockaddr_in6* pSin = reinterpret_cast <struct sockaddr_in6*> (interface->ifa_addr);
-								address.address = inet_ntop(family, &pSin->sin6_addr, buf, sizeof(buf));
+								if (inet_ntop(family, &pSin->sin6_addr, buf, sizeof(buf))) {
+									address.address = buf;
+								}
 
 								pSin = reinterpret_cast <struct sockaddr_in6*> (interface->ifa_netmask);
 
 								// calculate prefix: count bits in netmask. ipv6 forces the following form for the prefix 111..11110..00 gaps filled with zero like 101 are not allowed!
 								unsigned int bitCount = 0;
-								for(unsigned int bytePos=0; bytePos<16; ++bytePos) {
+								for(unsigned int bytePos=0; bytePos<sizeof(pSin->sin6_addr); ++bytePos) {
 									if(pSin->sin6_addr.s6_addr[bytePos]==0) {
 										break;
 									}
