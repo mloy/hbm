@@ -93,14 +93,9 @@ namespace hbm {
 
 			LARGE_INTEGER dueTime;
 			dueTime.QuadPart = LLONG_MIN;
-			BOOL Result = SetWaitableTimer(
-				m_fd,
-				&dueTime,
-				0,
-				NULL,
-				NULL,
-				FALSE
-				);
+			if (SetWaitableTimer(m_fd, &dueTime, 0, NULL, NULL, FALSE) == FALSE) {
+				return -1;
+			}
 			return result;
 		}
 	}
