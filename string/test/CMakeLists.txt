@@ -20,7 +20,7 @@ message(STATUS "CppCheck            : " ${WITH_CPPCHECK})
 message(STATUS "-----------------------------------------------------------")
 
 
-include(QuantumxBoost)
+#include(QuantumxBoost)
 
 find_package(Boost COMPONENTS unit_test_framework)
 if(Boost_FOUND)
@@ -45,61 +45,61 @@ include_directories(..)
 
 
 set(SOURCES_SPLITTEST
-	splittest.cpp
-	../split.cpp
+    splittest.cpp
+    ../split.cpp
 )
 
 add_executable( splittest ${SOURCES_SPLITTEST} )
 
 target_link_libraries( splittest
-	gcov
+    gcov
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
 enable_testing()
 add_test(splittest splittest.test
-	--report_level=no
-	--log_level=all
-	--output_format=xml
-	--log_sink=${CMAKE_BINARY_DIR}/splittest.xml
+    --report_level=no
+    --log_level=all
+    --output_format=xml
+    --log_sink=${CMAKE_BINARY_DIR}/splittest.xml
 )
 
 set(SOURCES_REPLACETEST
-	replacetest.cpp
-	../replace.cpp
+    replacetest.cpp
+    ../replace.cpp
 )
 
 add_executable( replacetest ${SOURCES_REPLACETEST} )
 
 target_link_libraries( replacetest
-	gcov
+    gcov
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
 enable_testing()
 add_test(replacetest replacetest.test
-	--report_level=no
-	--log_level=all
-	--output_format=xml
-	--log_sink=${CMAKE_BINARY_DIR}/replacetest.xml
+    --report_level=no
+    --log_level=all
+    --output_format=xml
+    --log_sink=${CMAKE_BINARY_DIR}/replacetest.xml
 )
 
 set(SOURCES_TRIMTEST
-	trimtest.cpp
-	../trim.cpp
+    trimtest.cpp
+    ../trim.cpp
 )
 
 add_executable( trimtest ${SOURCES_TRIMTEST} )
 
 target_link_libraries( trimtest
-	gcov
-	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    gcov
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
 enable_testing()
 add_test(trimtest trimtest.test
-	--report_level=no
-	--log_level=all
-	--output_format=xml
-	--log_sink=${CMAKE_BINARY_DIR}/trimtest.xml
+    --report_level=no
+    --log_level=all
+    --output_format=xml
+    --log_sink=${CMAKE_BINARY_DIR}/trimtest.xml
 )
