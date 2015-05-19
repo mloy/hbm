@@ -34,6 +34,7 @@ static void timerEventHandlerIncrement(bool fired, unsigned int& value, bool& ca
 {
 	if (fired) {
 		++value;
+		canceled = false;
 	} else {
 		canceled = true;
 	}
@@ -224,17 +225,16 @@ BOOST_AUTO_TEST_CASE(restart_timer_test)
 
 	timer.set(std::chrono::milliseconds(duration), false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
 	std::this_thread::sleep_for(duration / 2);
+	timer.cancel();
+	BOOST_CHECK_EQUAL(canceled, true);
 	timer.set(std::chrono::milliseconds(duration), false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
 	std::this_thread::sleep_for(duration * 2);
 
-	BOOST_CHECK_EQUAL(canceled, true);
+	BOOST_CHECK_EQUAL(canceled, false);
 	BOOST_CHECK_EQUAL(counter, 1);
-
 
 	eventLoop.stop();
 	worker.join();
-
-
 }
 
 

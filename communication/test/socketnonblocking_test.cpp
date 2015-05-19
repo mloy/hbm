@@ -133,11 +133,11 @@ namespace hbm {
 				static const size_t blockSize = bufferSize/blockCount;
 				char buffer[bufferSize] = "a";
 
-				hbm::communication::dataBlock_t dataBlocks[blockCount];
+				hbm::communication::dataBlocks_t dataBlocks;
 
 				for(unsigned int i=0; i<blockCount; ++i) {
-					dataBlocks[i].size = blockSize;
-					dataBlocks[i].pData = &buffer[i*blockSize];
+					hbm::communication::dataBlock_t dataBlock(&buffer[i*blockSize], blockSize);
+					dataBlocks.push_back(dataBlock);
 				}
 
 				hbm::sys::EventLoop eventloop;
@@ -147,25 +147,14 @@ namespace hbm {
 				result = client.connect("127.0.0.1", std::to_string(PORT));
 				BOOST_CHECK_NE(result, -1);
 
-//				// force a small send buffer
-//				int val;
-//				socklen_t len;
-//				result = getsockopt(client.getFd(), SOL_SOCKET, SO_SNDBUF, &val, &len);
-//				val = 1;
-//				result = setsockopt(client.getFd(), SOL_SOCKET, SO_SNDBUF, &val, sizeof(val));
-//				BOOST_CHECK_NE(result, -1);
-//				result = getsockopt(client.getFd(), SOL_SOCKET, SO_SNDBUF, &val, &len);
-//				BOOST_CHECK_NE(result, -1);
-
 				client.setDataCb(std::bind(&serverFixture::clientReceive, this, std::placeholders::_1));
 
 				clearAnswer();
-				result = client.sendBlocks(dataBlocks, blockCount);
+				result = client.sendBlocks(dataBlocks);
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-				//BOOST_CHECK_EQUAL(result, sizeof(msg));
 				client.disconnect();
 
-				//BOOST_CHECK_EQUAL(getAnswer(), msg);
+				BOOST_CHECK_EQUAL(result, bufferSize);
 
 
 				eventloop.stop();
