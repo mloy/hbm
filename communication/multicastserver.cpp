@@ -171,21 +171,32 @@ namespace hbm {
 			}
 
 
-			{
-				// we do not want to receive the stuff we where sending
-				unsigned char value = 0;
-	#ifdef _WIN32
-				if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_LOOP, reinterpret_cast <char* > (&value), sizeof(value))) {
-	#else
-				if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_LOOP, &value, sizeof(value))) {
-	#endif
-					::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_LOOP!");
-					return -1;
-				}
-			}
-
+			// we do not want to receive the stuff we where sending
+			setMulticastLoop(false);
 			return 0;
 		}
+
+		int MulticastServer::setMulticastLoop(bool value)
+		{
+			unsigned char param = 0;
+			if (value) {
+				param = 1;
+			}
+
+#ifdef _WIN32
+			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_LOOP, reinterpret_cast <char* > (&param), sizeof(param))) {
+				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_LOOP!");
+				return -1;
+			}
+#else
+			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_LOOP, &param, sizeof(param))) {
+				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_LOOP '%s'!", strerror(errno));
+				return -1;
+			}
+#endif
+			return 0;
+		}
+
 
 		int MulticastServer::dropInterface(const std::string& interfaceAddress)
 		{
@@ -261,7 +272,7 @@ namespace hbm {
 			}
 	#else
 			if (inet_aton(interfaceAddress.c_str(), &im.imr_address) == 0) {
-				::syslog(LOG_ERR, "not a valid IP address for IP_ADD_MEMBERSHIP!");
+				::syslog(LOG_ERR, "'%s' not a valid IP address for IP_ADD_MEMBERSHIP!", interfaceAddress.c_str());
 				return -1;
 			}
 	#endif
@@ -634,12 +645,10 @@ namespace hbm {
 				return err;
 			}
 
-//			if (dataHandler) {
 				err = setupReceiveSocket();
 				if(err<0) {
 					return err;
 				}
-//			}
 
 			m_dataHandler = dataHandler;
 			if (dataHandler) {

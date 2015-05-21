@@ -67,6 +67,9 @@ namespace hbm {
 
 			void stop();
 
+			/// off by default
+			int setMulticastLoop(bool value);
+
 			/// Send over all interfaces
 			int send(const std::string& data, unsigned int ttl=1) const;
 
