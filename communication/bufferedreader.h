@@ -32,7 +32,7 @@ namespace hbm {
 		BufferedReader(const BufferedReader& op);
 		BufferedReader& operator=(const BufferedReader& op);
 
-		unsigned char m_buffer[65536*4];
+		unsigned char m_buffer[65536];
 		size_t m_fillLevel;
 		size_t m_alreadyRead;
 	};
