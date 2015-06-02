@@ -36,6 +36,22 @@ namespace hbm {
 		if (m_fd<0) {
 			throw hbm::exception::exception("could not open netlink socket");
 		}
+
+
+		uint32_t yes = 1;
+		// allow multiple sockets to use the same PORT number
+#ifdef _WIN32
+		if (setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast < char* >(&yes), sizeof(yes)) < 0) {
+#else
+
+		if (setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+#endif
+			throw hbm::exception::exception("Could not set SO_REUSEADDR!");
+		}
+
+
+
+
 		struct sockaddr_nl netLinkAddr;
 
 		memset(&netLinkAddr, 0, sizeof(netLinkAddr));
