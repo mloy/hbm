@@ -230,7 +230,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 	for (dataBlocks_t::const_iterator iter = blocks.begin(); iter != blocks.end(); ++iter) {
 		const dataBlock_t& item = *iter;
 		newWsaBuf.buf = (CHAR*)item.pData;
-		newWsaBuf.len = item.size;
+		newWsaBuf.len = static_cast < ULONG > (item.size);
 		buffers.push_back(newWsaBuf);
 		completeLength += item.size;
 	}
@@ -238,7 +238,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 
 	int retVal;
 	
-	retVal = WSASend(m_fd, &buffers[0], buffers.size(), &bytesWritten, 0, NULL, NULL);
+	retVal = WSASend(m_fd, &buffers[0], static_cast < DWORD > (buffers.size()), static_cast < LPDWORD > (&bytesWritten), 0, NULL, NULL);
 	if (retVal < 0) {
 		int retVal = WSAGetLastError();
 		if ((retVal != WSAEWOULDBLOCK) && (retVal != WSAEINTR) && (retVal != WSAEINPROGRESS)) {
