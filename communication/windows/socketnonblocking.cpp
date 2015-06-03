@@ -11,8 +11,13 @@
 
 #define __time_t long
 #define ssize_t int
-#define snprintf sprintf_s
 
+#ifdef _WIN32
+	#include <algorithm>
+	#ifndef snprintf
+		#define snprintf sprintf_s
+	#endif
+#endif
 
 
 #include "hbm/communication/socketnonblocking.h"
