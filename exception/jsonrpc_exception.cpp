@@ -2,7 +2,7 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
-
+#include <json/value.h>
 #include <json/writer.h>
 
 #include "jsonrpc_exception.h"

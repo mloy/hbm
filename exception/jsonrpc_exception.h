@@ -3,8 +3,8 @@
 // See file LICENSE provided
 
 
-#ifndef __HBM__JET__JSONEXCEPTION
-#define __HBM__JET__JSONEXCEPTION
+#ifndef __HBM__JET__JSONRPCEXCEPTION
+#define __HBM__JET__JSONRPCEXCEPTION
 
 #include <string>
 
