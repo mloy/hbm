@@ -26,14 +26,14 @@ namespace hbm {
 			return tokens;
 		}
 
-		std::vector<std::string> split(std::string text, const std::string& separator)
+		tokens split(std::string text, const std::string& separator)
 		{
-			std::vector<std::string> tokens;
+			tokens result;
 
 			if(separator.length() == 0)
 			{
-				tokens.push_back(text);
-				return tokens;
+				result.push_back(text);
+				return result;
 			}
 
 			size_t pos_start=0;
@@ -42,11 +42,11 @@ namespace hbm {
 			{
 				size_t pos_end = text.find(separator, pos_start);
 				std::string token = text.substr(pos_start, pos_end-pos_start);
-				tokens.push_back(token);
+				result.push_back(token);
 				if(pos_end == std::string::npos) break;
 				pos_start = pos_end+separator.length();
 			}
-			return tokens;
+			return result;
 		}
 	}
 }

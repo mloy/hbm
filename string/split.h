@@ -10,6 +10,7 @@
 
 namespace hbm {
 	namespace string {
+		typedef std::vector < std::string > tokens;
 
 		/// \brief split a string by a separator-string
 		///
@@ -25,9 +26,9 @@ namespace hbm {
 		/// \param text  the string to split
 		/// \param separator  the string to search for in the text
 		/// \return vector of all pieces of text resulted by chopping it at each separator.
-		std::vector<std::string> split(std::string text, const std::string& separator);
+		tokens split(std::string text, const std::string& separator);
 
-		std::vector<std::string> split(std::string text, char separator);
+		tokens split(std::string text, char separator);
 	}
 }
 
