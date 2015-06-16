@@ -9,9 +9,9 @@
 namespace hbm {
 	namespace string {
 
-		std::vector<std::string> split(std::string text, char separator)
+		tokens split(std::string text, char separator)
 		{
-			std::vector<std::string> tokens;
+			tokens result;
 
 			size_t pos_start=0;
 
@@ -19,11 +19,11 @@ namespace hbm {
 			{
 				size_t pos_end = text.find(separator, pos_start);
 				std::string token = text.substr(pos_start, pos_end-pos_start);
-				tokens.push_back(token);
+				result.push_back(token);
 				if(pos_end == std::string::npos) break;
 				pos_start = pos_end+1;
 			}
-			return tokens;
+			return result;
 		}
 
 		tokens split(std::string text, const std::string& separator)
