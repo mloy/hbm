@@ -41,7 +41,7 @@ namespace hbm {
 			}
 
 
-			uint32_t yes = 1;
+			int yes = 1;
 			// allow multiple sockets to use the same PORT number
 #ifdef _WIN32
 			if (setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast < char* >(&yes), sizeof(yes)) < 0) {
@@ -60,11 +60,12 @@ namespace hbm {
 			memset(&netLinkAddr, 0, sizeof(netLinkAddr));
 
 			netLinkAddr.nl_family = AF_NETLINK;
-			netLinkAddr.nl_pid = getpid();
+			// setting to zero causes the kernel to choose. important for having several netlink fds in one process
+			netLinkAddr.nl_pid = 0;
 			netLinkAddr.nl_groups = RTMGRP_LINK | RTMGRP_NOTIFY | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR | RTMGRP_IPV4_ROUTE;
 
 			if (::bind(m_fd, reinterpret_cast < struct sockaddr *> (&netLinkAddr), sizeof(netLinkAddr))<0) {
-				throw hbm::exception::exception("could not bind netlink socket");
+				throw hbm::exception::exception(std::string("could not bind netlink socket '")+strerror(errno)+"'");
 			}
 		}
 
