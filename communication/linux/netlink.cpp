@@ -142,7 +142,7 @@ namespace hbm {
 												if(adapter.getIpv4Addresses().empty()==true) {
 													if (m_interfaceAddressEventHandler) {
 														struct in_addr* pIn = reinterpret_cast < struct in_addr* > (RTA_DATA(rth));
-														m_interfaceAddressEventHandler(NEW, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
+														m_interfaceAddressEventHandler(DEL, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
 													}
 												}
 											} catch(const hbm::exception::exception&) {
