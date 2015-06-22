@@ -27,14 +27,13 @@ namespace hbm {
 			};
 
 			typedef std::function < void(event_t event, unsigned int adapterIndex, const std::string& ipv4Address) > interfaceAddressCb_t;
-			typedef std::function < void(event_t event, const std::string& ipv4Address) > defaultGatewayCb_t;
 
 			/// \throws hbm::exception
 			Netlink(communication::NetadapterList &netadapterlist, sys::EventLoop &eventLoop);
 			virtual ~Netlink();
 
 			/// on execution of start, the callback function is being called with event = COMPLETE.
-			int start(interfaceAddressCb_t interfaceAddressEventHandler, defaultGatewayCb_t defaultGatewayEventHandler = defaultGatewayCb_t());
+			int start(interfaceAddressCb_t interfaceAddressEventHandler);
 
 			int stop();
 
@@ -57,7 +56,6 @@ namespace hbm {
 
 			sys::EventLoop& m_eventloop;
 			interfaceAddressCb_t m_interfaceAddressEventHandler;
-			defaultGatewayCb_t m_defaultGatewayEventHandler;
 		};
 	}
 }

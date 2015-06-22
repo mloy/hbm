@@ -183,16 +183,11 @@ namespace hbm {
 		}
 
 
-		int Netlink::start(interfaceAddressCb_t interfaceAddressEventHandler, defaultGatewayCb_t defaultGatewayEventHandler)
+		int Netlink::start(interfaceAddressCb_t interfaceAddressEventHandler)
 		{
 			m_interfaceAddressEventHandler = interfaceAddressEventHandler;
 			if (m_interfaceAddressEventHandler) {
 				m_interfaceAddressEventHandler(COMPLETE, 0, "");
-			}
-
-			m_defaultGatewayEventHandler = defaultGatewayEventHandler;
-			if (m_defaultGatewayEventHandler) {
-				m_defaultGatewayEventHandler(COMPLETE, "");
 			}
 
 			m_eventloop.addEvent(m_fd, std::bind(&Netlink::process, this));
