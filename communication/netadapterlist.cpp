@@ -125,13 +125,22 @@ namespace hbm {
 			delete[] pAdptInfo;
 		}
 	#else
-		static void getHardwareAddress(const std::string& interfaceName, std::string& hwAddrString, uint64_t& fwGuid)
+		struct hardwareInfo_t {
+			hardwareInfo_t()
+				: isHardware(false)
+			{
+			}
+
+			std::string hwAddrString;
+			uint64_t fwGuid;
+			bool isHardware;
+		};
+
+		static hardwareInfo_t getHardwareInfo(const std::string& interfaceName)
 		{
+			hardwareInfo_t result;
 			struct ifreq ifr;
 			memset(&ifr, 0, sizeof(ifr));
-
-			fwGuid = 0;
-			hwAddrString.clear();
 
 
 			int sd =::socket(AF_INET, SOCK_DGRAM, 0);
@@ -148,17 +157,23 @@ namespace hbm {
 
 					switch (ifr.ifr_hwaddr.sa_family) {
 					case ARPHRD_ETHER:
+						::syslog(LOG_INFO, "new ethernet interface %s", interfaceName.c_str());
 						macLen = 6;
+						result.isHardware = true;
 						break;
 
 					case ARPHRD_IEEE1394:
-						macLen = 16;
+						{
+							uint64_t fwGuid;
+							macLen = 16;
 
-						for (unsigned int i = 0; i < sizeof(fwGuid); ++i) {
-							fwGuid = fwGuid << 8;
-							fwGuid |= ifr.ifr_hwaddr.sa_data[i];
+							for (unsigned int i = 0; i < sizeof(fwGuid); ++i) {
+								fwGuid = fwGuid << 8;
+								fwGuid |= ifr.ifr_hwaddr.sa_data[i];
+							}
+							result.isHardware = true;
+							result.fwGuid = fwGuid;
 						}
-
 						break;
 
 					default:
@@ -176,12 +191,12 @@ namespace hbm {
 						hwAddressStream <<  std::uppercase << std::setfill('0') << std::setw(2) << std::hex <<  static_cast <unsigned int> ( static_cast < unsigned char >(ifr.ifr_hwaddr.sa_data[i]));
 					}
 
-					hwAddrString = hwAddressStream.str();
-
+					result.hwAddrString = hwAddressStream.str();
 				}
 
 				::close(sd);
 			}
+			return result;
 		}
 
 		void NetadapterList::enumAdapters()
@@ -206,6 +221,13 @@ namespace hbm {
 						(interface->ifa_flags & IFF_BROADCAST) &&
 						!(interface->ifa_flags & IFF_LOOPBACK)
 						) {
+							hardwareInfo_t hardwareInfo = getHardwareInfo(interface->ifa_name);
+							if (hardwareInfo.isHardware==false) {
+								// we are not interested in this interface!
+								continue;
+							}
+
+
 							// If the adapter is not known yet, it will be created.
 							unsigned int interfaceIndex = if_nametoindex(interface->ifa_name);
 							Netadapter& Adapt = adapterMap[interfaceIndex];
@@ -214,7 +236,8 @@ namespace hbm {
 							if(Adapt.m_macAddress.empty()) {
 								Adapt.m_index = interfaceIndex;
 								Adapt.m_name = interface->ifa_name;
-								getHardwareAddress(interface->ifa_name, Adapt.m_macAddress, Adapt.m_fwGuid);
+								Adapt.m_macAddress = hardwareInfo.hwAddrString;
+								Adapt.m_fwGuid = hardwareInfo.fwGuid;
 							}
 
 							family = interface->ifa_addr->sa_family;
