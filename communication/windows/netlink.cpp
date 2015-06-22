@@ -52,7 +52,7 @@ namespace hbm {
 			return 0;
 		}
 
-		int Netlink::start(interfaceAddressCb_t interfaceAddressEventHandler, defaultGatewayCb_t defaultGatewayEventHandler)
+		int Netlink::start(interfaceAddressCb_t interfaceAddressEventHandler)
 		{
 			m_interfaceAddressEventHandler = interfaceAddressEventHandler;
 			if (m_interfaceAddressEventHandler) {
