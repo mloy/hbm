@@ -217,10 +217,7 @@ namespace hbm {
 
 			while (interface != NULL) {
 				if (interface->ifa_addr != NULL) {
-					if ((interface->ifa_flags & IFF_UP) &&
-						(interface->ifa_flags & IFF_BROADCAST) &&
-						!(interface->ifa_flags & IFF_LOOPBACK)
-						) {
+					if ((interface->ifa_flags & IFF_UP) && (interface->ifa_flags & IFF_MULTICAST)) {
 							hardwareInfo_t hardwareInfo = getHardwareInfo(interface->ifa_name);
 							if (hardwareInfo.isHardware==false) {
 								// we are not interested in this interface!
