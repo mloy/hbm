@@ -164,7 +164,7 @@ namespace hbm {
 
 					case ARPHRD_IEEE1394:
 						{
-							uint64_t fwGuid;
+							uint64_t fwGuid = 0;
 							macLen = 16;
 
 							for (unsigned int i = 0; i < sizeof(fwGuid); ++i) {
