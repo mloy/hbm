@@ -7,7 +7,6 @@
 #include <cstring>
 #include <cstdio>
 
-#ifdef _WIN32
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <MSWSock.h>
@@ -19,17 +18,6 @@
 #define LOG_DEBUG stdout
 #define LOG_INFO stdout
 #define LOG_ERR stderr
-#else
-
-#include <poll.h>
-#include <syslog.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <netdb.h>
-#endif
 
 #include "hbm/exception/exception.hpp"
 #include "hbm/sys/eventloop.h"
@@ -49,20 +37,16 @@ namespace hbm {
 			, m_dataHandler()
 		{
 
-#ifdef _WIN32
 			WORD RequestedSockVersion = MAKEWORD(2, 0);
 			WSADATA wsaData;
 			WSAStartup(RequestedSockVersion, &wsaData);
 			m_event = WSACreateEvent();
-#endif
 		}
 
 		MulticastServer::~MulticastServer()
 		{
 			stop();
-	#ifdef _WIN32
 			WSACloseEvent(m_event);
-	#endif
 		}
 
 		int MulticastServer::setupReceiveSocket()
@@ -83,11 +67,7 @@ namespace hbm {
 					return -1;
 				}
 
-#ifdef _WIN32
 				m_ReceiveSocket = socket(pResult->ai_family, SOCK_DGRAM, 0);
-#else
-				m_ReceiveSocket = socket(pResult->ai_family, SOCK_DGRAM | SOCK_NONBLOCK, 0);
-#endif
 				if (m_ReceiveSocket < 0) {
 					m_ReceiveSocket = NO_SOCKET;
 				}
@@ -109,33 +89,22 @@ namespace hbm {
 				return -1;
 			}
 
-	#ifdef _WIN32
 			// WSAEventSelect automatically sets the socket to non blocking!
 			if (WSAEventSelect(m_ReceiveSocket, m_event, FD_READ)<0) {
 				::syslog(LOG_ERR, "WSAEventSelect failed!");
 				return -1;
 			}
-	#endif
 
 
 			// sufficient buffer for several messages
 			int RcvBufSize = 128000;
-	#ifdef _WIN32
 			if (setsockopt(m_ReceiveSocket, SOL_SOCKET, SO_RCVBUF, reinterpret_cast < char* >(&RcvBufSize), sizeof(RcvBufSize)) < 0) {
-	#else
-			if (setsockopt(m_ReceiveSocket, SOL_SOCKET, SO_RCVBUF, &RcvBufSize, sizeof(RcvBufSize)) < 0) {
-	#endif
 				return -1;
 			}
 
 			uint32_t yes = 1;
 			// allow multiple sockets to use the same PORT number
-	#ifdef _WIN32
 			if (setsockopt(m_ReceiveSocket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast < char* >(&yes), sizeof(yes)) < 0) {
-	#else
-
-			if (setsockopt(m_ReceiveSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
-	#endif
 				::syslog(LOG_ERR, "Could not set SO_REUSEADDR!");
 				return -1;
 			}
@@ -183,17 +152,10 @@ namespace hbm {
 				param = 1;
 			}
 
-#ifdef _WIN32
 			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_LOOP, reinterpret_cast <char* > (&param), sizeof(param))) {
 				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_LOOP!");
 				return -1;
 			}
-#else
-			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_LOOP, &param, sizeof(param))) {
-				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_LOOP '%s'!", strerror(errno));
-				return -1;
-			}
-#endif
 			return 0;
 		}
 
@@ -242,11 +204,7 @@ namespace hbm {
 			struct addrinfo* pResult = NULL;
 			char portString[8];
 
-	#ifdef _WIN32
 			struct ip_mreq im;
-	#else
-			struct ip_mreqn im;
-	#endif
 
 			memset(&hints, 0, sizeof(hints));
 
@@ -264,18 +222,11 @@ namespace hbm {
 
 			freeaddrinfo(pResult);
 
-	#ifdef _WIN32
 			im.imr_interface.s_addr = inet_addr(interfaceAddress.c_str());
 			if (im.imr_interface.s_addr == INADDR_NONE) {
 				::syslog(LOG_ERR, "not a valid IP address for IP_ADD_MEMBERSHIP!");
 				return -1;
 			}
-	#else
-			if (inet_aton(interfaceAddress.c_str(), &im.imr_address) == 0) {
-				::syslog(LOG_ERR, "'%s' not a valid IP address for IP_ADD_MEMBERSHIP!", interfaceAddress.c_str());
-				return -1;
-			}
-	#endif
 
 			int optionName;
 			if(add) {
@@ -285,40 +236,22 @@ namespace hbm {
 			}
 
 
-	#ifdef _WIN32
 			retVal = setsockopt(m_ReceiveSocket, IPPROTO_IP, optionName, reinterpret_cast < char* >(&im), sizeof(im));
-	#else
-			retVal = setsockopt(m_ReceiveSocket, IPPROTO_IP, optionName, &im, sizeof(im));
-	#endif
 
 			if(add) {
 				if(retVal!=0) {
-#ifdef _WIN32
 					if (errno == WSAEADDRINUSE) {
 						// ignore already added
 						return 0;
 					}
-#else
-					if(errno==EADDRINUSE) {
-						// ignore already added
-						return 0;
-					}
-#endif
 
 				}
 			} else {
 				if(retVal!=0) {
-#ifdef _WIN32
 					if (errno == WSAEADDRNOTAVAIL) {
 						// ignore already dropped
 						return 0;
 					}
-#else
-					if (errno == EADDRNOTAVAIL) {
-						// ignore already dropped
-						return 0;
-					}
-#endif
 				}
 			}
 
@@ -371,7 +304,6 @@ namespace hbm {
 			char controlbuffer[100];
 			ssize_t nbytes;
 
-	#ifdef _WIN32
 			LPFN_WSARECVMSG WSARecvMsg;
 			DWORD winLen;
 
@@ -406,45 +338,18 @@ namespace hbm {
 				nbytes = bytes_received;
 			}
 
-	#else
-			struct msghdr msg;
-			struct iovec iov;
-
-			msg.msg_name = &m_receiveAddr;
-			msg.msg_namelen = sizeof(m_receiveAddr);
-			msg.msg_iov = &iov;
-			msg.msg_iov->iov_base = msgbuf;
-			msg.msg_iov->iov_len = len;
-			msg.msg_iovlen = 1;
-			msg.msg_control = &controlbuffer;
-			msg.msg_controllen = sizeof(controlbuffer);
-			msg.msg_flags = 0;
-			nbytes = ::recvmsg(m_ReceiveSocket, &msg, 0);
-	#endif
 
 			if (nbytes > 0) {
-	#ifdef _WIN32
 				for (WSACMSGHDR* pcmsghdr = WSA_CMSG_FIRSTHDR(&msg); pcmsghdr != NULL; pcmsghdr = WSA_CMSG_NXTHDR(&msg, pcmsghdr))
-	#else
-				for (struct cmsghdr* pcmsghdr = CMSG_FIRSTHDR(&msg); pcmsghdr != NULL; pcmsghdr = CMSG_NXTHDR(&msg, pcmsghdr))
-	#endif
 				{
 					if (pcmsghdr->cmsg_type == IP_PKTINFO) {
 						struct in_pktinfo* ppktinfo;
-	#ifdef _WIN32
 						ppktinfo = reinterpret_cast <struct in_pktinfo*> (WSA_CMSG_DATA(pcmsghdr));
-	#else
-						ppktinfo = reinterpret_cast <struct in_pktinfo*> (CMSG_DATA(pcmsghdr));
-	#endif
 						adapterIndex = ppktinfo->ipi_ifindex;
 					} else if(pcmsghdr->cmsg_type == IP_TTL) {
 						int* pTtl;
 						// returns the ttl from the received ip header (the value set by the last sender(router))
-	#ifdef _WIN32
 						pTtl = reinterpret_cast <int*> (WSA_CMSG_DATA(pcmsghdr));
-	#else
-						pTtl = reinterpret_cast <int*> (CMSG_DATA(pcmsghdr));
-	#endif
 						ttl = *pTtl;
 					}
 				}
@@ -573,34 +478,19 @@ namespace hbm {
 			memset(&ifAddr, 0, sizeof(ifAddr));
 
 
-	#ifdef _WIN32
 			ifAddr.s_addr = inet_addr(interfaceIp.c_str());
 
 			if (ifAddr.s_addr == INADDR_NONE) {
-	#else
-
-			if (inet_aton(interfaceIp.c_str(), &ifAddr) == 0) {
-	#endif
 				::syslog(LOG_ERR, "%s is not a valid interface IP address!", interfaceIp.c_str());
 				return ERR_INVALIDIPADDRESS;
 			}
 
-	#ifdef _WIN32
 			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast < char* >(&ifAddr), sizeof(ifAddr))) {
-	#else
-
-			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_IF, &ifAddr, sizeof(ifAddr))) {
-	#endif
 				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_IF for interface %s!", interfaceIp.c_str());
 				return ERR_INVALIDADAPTER;
 			};
 
-	#ifdef _WIN32
 			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_TTL, reinterpret_cast < char* >(&ttl), sizeof(ttl))) {
-	#else
-
-			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl))) {
-	#endif
 				::syslog(LOG_ERR, "%s: Error setsockopt IPV6_MULTICAST_HOPS to %u!", interfaceIp.c_str(), ttl);
 				return ERR_NO_SUCCESS;
 			}
@@ -609,23 +499,14 @@ namespace hbm {
 			memset(&sendAddr, 0, sizeof(sendAddr));
 			sendAddr.sin_family = AF_INET;
 			sendAddr.sin_port = htons(m_port);
-	#ifdef _WIN32
 			sendAddr.sin_addr.s_addr = inet_addr(m_address.c_str());
 
 			if (sendAddr.sin_addr.s_addr == INADDR_NONE) {
-	#else
-
-			if (inet_aton(m_address.c_str(), &sendAddr.sin_addr) == 0) {
-	#endif
 				::syslog(LOG_ERR, "Not a valid multicast IP address!");
 				return ERR_NO_SUCCESS;
 			}
 
-	#ifdef _WIN32
 			ssize_t nbytes = sendto(m_SendSocket, reinterpret_cast < const char* > (pData), static_cast < int > (length), 0, reinterpret_cast < struct sockaddr* >(&sendAddr), sizeof(sendAddr));
-	#else
-			ssize_t nbytes = sendto(m_SendSocket, pData, length, 0, reinterpret_cast < struct sockaddr* >(&sendAddr), sizeof(sendAddr));
-	#endif
 
 			if (static_cast < size_t >(nbytes) != length) {
 				::syslog(LOG_ERR, "error sending message over interface %s!", interfaceIp.c_str());
@@ -652,11 +533,7 @@ namespace hbm {
 
 			m_dataHandler = dataHandler;
 			if (dataHandler) {
-#ifdef _WIN32
 				m_eventLoop.addEvent(m_event, std::bind(&MulticastServer::process, this));
-#else
-				m_eventLoop.addEvent(m_ReceiveSocket, std::bind(&MulticastServer::process, this));
-#endif
 			}
 			return 0;
 		}
@@ -664,31 +541,18 @@ namespace hbm {
 		void MulticastServer::stop()
 		{
 			dropAllInterfaces();
-#ifdef _WIN32
 			m_eventLoop.eraseEvent(m_event);
-#else
-			m_eventLoop.eraseEvent(m_ReceiveSocket);
-#endif
 
 
 			if (m_SendSocket != NO_SOCKET) {
-	#ifdef _WIN32
 				::closesocket(m_SendSocket);
-	#else
-				::close(m_SendSocket);
-	#endif
 				m_SendSocket = NO_SOCKET;
 			}
 
 			if (m_ReceiveSocket != NO_SOCKET) {
 
-	#ifdef _WIN32
 				::shutdown(m_ReceiveSocket, SD_BOTH);
 				::closesocket(m_ReceiveSocket);
-	#else
-				::shutdown(m_ReceiveSocket, SHUT_RDWR);
-				::close(m_ReceiveSocket);
-	#endif
 				m_ReceiveSocket = NO_SOCKET;
 			}
 		}
