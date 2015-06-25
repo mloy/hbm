@@ -67,6 +67,7 @@ namespace hbm {
 
 			void stop();
 
+			/// tells whether send messages are to be received by multicast receiver on the same machine (same or other process)
 			/// off by default
 			int setMulticastLoop(bool value);
 

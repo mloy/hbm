@@ -16,27 +16,37 @@
 
 BOOST_AUTO_TEST_CASE(check_valid_ipaddresses_test)
 {
-	bool result;
-	result = hbm::communication::Netadapter::isValidManualIpV4Address("172.19.2.4");
-	BOOST_CHECK_EQUAL(result, true);
-	result = hbm::communication::Netadapter::isValidManualIpV4Address("172.169.254.0");
-	BOOST_CHECK_EQUAL(result, true);
+    bool result;
+    result = hbm::communication::Netadapter::isValidManualIpV4Address("172.19.2.4");
+    BOOST_CHECK_EQUAL(result, true);
+    result = hbm::communication::Netadapter::isValidManualIpV4Address("172.169.254.0");
+    BOOST_CHECK_EQUAL(result, true);
 }
+
+BOOST_AUTO_TEST_CASE(check_isapipa_address_test)
+{
+    bool result;
+    result = hbm::communication::Netadapter::isApipaAddress("169.254.0.2");
+    BOOST_CHECK_EQUAL(result, true);
+    result = hbm::communication::Netadapter::isApipaAddress("172.169.254.0");
+    BOOST_CHECK_EQUAL(result, false);
+}
+
 
 
 BOOST_AUTO_TEST_CASE(check_forbidden_ipaddresses_test)
 {
-	bool result;
-	result = hbm::communication::Netadapter::isValidManualIpV4Address("not an address");
-	BOOST_CHECK_EQUAL(result, false);
-	result = hbm::communication::Netadapter::isValidManualIpV4Address("0.0.0.0");
-	BOOST_CHECK_EQUAL(result, false);
-	result = hbm::communication::Netadapter::isValidManualIpV4Address("127.0.0.1"); // loopback
-	BOOST_CHECK_EQUAL(result, false);
-	result = hbm::communication::Netadapter::isValidManualIpV4Address("169.254.0.1"); // APIPA
-	BOOST_CHECK_EQUAL(result, false);
-	result = hbm::communication::Netadapter::isValidManualIpV4Address("224.4.7.1"); // multicast
-	BOOST_CHECK_EQUAL(result, false);
-	result = hbm::communication::Netadapter::isValidManualIpV4Address("254.4.7.1"); // experimental
-	BOOST_CHECK_EQUAL(result, false);
+    bool result;
+    result = hbm::communication::Netadapter::isValidManualIpV4Address("not an address");
+    BOOST_CHECK_EQUAL(result, false);
+    result = hbm::communication::Netadapter::isValidManualIpV4Address("0.0.0.0");
+    BOOST_CHECK_EQUAL(result, false);
+    result = hbm::communication::Netadapter::isValidManualIpV4Address("127.0.0.1"); // loopback
+    BOOST_CHECK_EQUAL(result, false);
+    result = hbm::communication::Netadapter::isValidManualIpV4Address("169.254.0.1"); // APIPA
+    BOOST_CHECK_EQUAL(result, false);
+    result = hbm::communication::Netadapter::isValidManualIpV4Address("224.4.7.1"); // multicast
+    BOOST_CHECK_EQUAL(result, false);
+    result = hbm::communication::Netadapter::isValidManualIpV4Address("254.4.7.1"); // experimental
+    BOOST_CHECK_EQUAL(result, false);
 }

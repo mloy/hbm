@@ -6,9 +6,6 @@
 #include <cstdio>
 
 #ifdef _WIN32
-#define LOG_DEBUG stdout
-#define LOG_INFO stdout
-#define LOG_ERR stderr
 #include <process.h>
 #define getpid _getpid
 #define basename(x) x

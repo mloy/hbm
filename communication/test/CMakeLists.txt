@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 2.8)
 include_directories(../../..)
 
 
+enable_testing()
+
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../../cmake)
 
 SET(CMAKE_CXX_FLAGS "-std=c++0x -pipe -fno-common -ggdb -pthread")
@@ -16,25 +18,25 @@ IF(Boost_FOUND)
 endif(Boost_FOUND)
 
 SET(MULTICASTSERVER_TEST
-	../netadapter.cpp
-	../netadapterlist.cpp
-	../multicastserver.cpp
-	../../sys/linux/eventloop.cpp
-	multicastserver_test.cpp
+    ../linux/netadapter.cpp
+    ../linux/netadapterlist.cpp
+    ../linux/multicastserver.cpp
+    ../../sys/linux/eventloop.cpp
+    multicastserver_test.cpp
 )
 set_source_files_properties(
-	${MULTICASTSERVER_TEST}
-	PROPERTIES COMPILE_FLAGS "-Wextra"
+    ${MULTICASTSERVER_TEST}
+    PROPERTIES COMPILE_FLAGS "-Wextra"
 )
 
 add_executable(
-	multicastserver.test
-	${MULTICASTSERVER_TEST}
+    multicastserver.test
+    ${MULTICASTSERVER_TEST}
 )
 
 target_link_libraries (
-	multicastserver.test
-	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    multicastserver.test
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
 add_test(multicastserver_test multicastserver.test
@@ -44,25 +46,25 @@ add_test(multicastserver_test multicastserver.test
 --log_sink=${CMAKE_BINARY_DIR}/multicastserver_test.xml)
 
 SET(SOCKETNONBLOCKING_TEST
-	../linux/socketnonblocking.cpp
-	../linux/tcpserver.cpp
-	../bufferedreader.cpp
-	../../sys/linux/eventloop.cpp
-	socketnonblocking_test.cpp
+    ../linux/socketnonblocking.cpp
+    ../linux/tcpserver.cpp
+    ../bufferedreader.cpp
+    ../../sys/linux/eventloop.cpp
+    socketnonblocking_test.cpp
 )
 set_source_files_properties(
-	${SOCKETNONBLOCKING_TEST}
-	PROPERTIES COMPILE_FLAGS "-Wextra"
+    ${SOCKETNONBLOCKING_TEST}
+    PROPERTIES COMPILE_FLAGS "-Wextra"
 )
 
 add_executable(
-	socketnonblocking.test
-	${SOCKETNONBLOCKING_TEST}
+    socketnonblocking.test
+    ${SOCKETNONBLOCKING_TEST}
 )
 
 target_link_libraries (
-	socketnonblocking.test
-	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    socketnonblocking.test
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
 add_test(socketnonblocking_test socketnonblocking.test
@@ -74,22 +76,22 @@ add_test(socketnonblocking_test socketnonblocking.test
 
 
 SET(NETADAPTER_TEST
-	../netadapter.cpp
-	netadapter_test.cpp
+    ../linux/netadapter.cpp
+    netadapter_test.cpp
 )
 set_source_files_properties(
-	${NETADAPTER_TEST}
-	PROPERTIES COMPILE_FLAGS "-Wextra"
+    ${NETADAPTER_TEST}
+    PROPERTIES COMPILE_FLAGS "-Wextra"
 )
 
 add_executable(
-	netadapter.test
-	${NETADAPTER_TEST}
+    netadapter.test
+    ${NETADAPTER_TEST}
 )
 
 target_link_libraries (
-	netadapter.test
-	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    netadapter.test
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
 add_test(netadapter_test netadapter.test
@@ -97,4 +99,3 @@ add_test(netadapter_test netadapter.test
 --log_level=all
 --output_format=xml
 --log_sink=${CMAKE_BINARY_DIR}/netadapter_test.xml)
-
