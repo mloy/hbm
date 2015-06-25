@@ -12,11 +12,9 @@
 #define __time_t long
 #define ssize_t int
 
-#ifdef _WIN32
-	#include <algorithm>
-	#ifndef snprintf
-		#define snprintf sprintf_s
-	#endif
+#include <algorithm>
+#ifndef snprintf
+	#define snprintf sprintf_s
 #endif
 
 
