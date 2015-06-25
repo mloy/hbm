@@ -30,8 +30,8 @@
 
 #include "hbm/exception/exception.hpp"
 
-#include "netadapterlist.h"
-#include "netadapter.h"
+#include "hbm/communication/netadapterlist.h"
+#include "hbm/communication/netadapter.h"
 
 namespace hbm {
 	namespace communication {

@@ -21,7 +21,7 @@
 #include <syslog.h>
 #endif
 
-#include "netadapter.h"
+#include "hbm/communication/netadapter.h"
 
 namespace hbm {
 	namespace communication {

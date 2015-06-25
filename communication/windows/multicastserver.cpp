@@ -34,7 +34,7 @@
 #include "hbm/exception/exception.hpp"
 #include "hbm/sys/eventloop.h"
 
-#include "multicastserver.h"
+#include "hbm/communication/multicastserver.h"
 
 namespace hbm {
 	namespace communication {
