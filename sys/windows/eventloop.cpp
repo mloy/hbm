@@ -65,10 +65,10 @@ namespace hbm {
 		}
 
 
-		void EventLoop::addEvent(event fd, EventHandler_t eventHandler)
+		int EventLoop::addEvent(event fd, EventHandler_t eventHandler)
 		{
 			if (!eventHandler) {
-				return;
+				return -1;
 			}
 
 			eventInfo_t evi;
@@ -79,9 +79,10 @@ namespace hbm {
 				m_changeList.push_back(evi);
 			}
 			SetEvent(m_changeFd);
+			return 0;
 		}
 
-		void EventLoop::eraseEvent(event fd)
+		int EventLoop::eraseEvent(event fd)
 		{
 			eventInfo_t evi;
 			evi.fd = fd;
@@ -91,6 +92,7 @@ namespace hbm {
 				m_changeList.push_back(evi);
 			}
 			SetEvent(m_changeFd);
+			return 0;
 		}
 
 		int EventLoop::execute()
