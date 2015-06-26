@@ -71,7 +71,7 @@ namespace hbm {
 						// important: elements of maps are guaranteed to keep there position in memory if members are added/removed!
 						ev.data.ptr = &m_eventInfos[item.fd];
 						if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, item.fd, &ev) == -1) {
-							syslog(LOG_ERR, "epoll_ctl failed %s", strerror(errno));
+							syslog(LOG_ERR, "epoll_ctl failed while adding event '%s' epoll_d:%d, event_fd:%d", strerror(errno), m_epollfd, item.fd);
 						}
 
 						// there might have been work to do before fd was added to epoll. This won't be signaled by edge triggered epoll. Try until there is nothing left.
@@ -132,9 +132,11 @@ namespace hbm {
 					nfds = epoll_wait(m_epollfd, events, MAXEVENTS, -1);
 				} while ((nfds==-1) && (errno==EINTR));
 
-				if(nfds<=0) {
-					// 0: time out!
+				if (nfds==0) {
+					// time out!
 					return nfds;
+				} else if (nfds<0) {
+					syslog(LOG_ERR, "epoll_wait failed ('%s') in eventloop ", strerror(errno));
 				}
 
 				for (int n = 0; n < nfds; ++n) {
