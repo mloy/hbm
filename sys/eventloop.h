@@ -34,9 +34,9 @@ namespace hbm {
 			/// existing event handler of an fd will be replaced
 			/// \param fd a non-blocking file descriptor to observe
 			/// \param EventHandler_t callback function to be called if file descriptor gets signaled.
-			void addEvent(event fd, EventHandler_t eventHandler);
+			int addEvent(event fd, EventHandler_t eventHandler);
 
-			void eraseEvent(event fd);
+			int eraseEvent(event fd);
 
 			/// \return 0 stopped; -1 error
 			int execute();
@@ -53,6 +53,7 @@ namespace hbm {
 			/// fd is the key
 			typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
 			typedef std::list < eventInfo_t > changelist_t;
+
 
 			/// called from within the event loop for thread-safe add and remove of events
 			int changeHandler();

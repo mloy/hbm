@@ -19,6 +19,7 @@ namespace hbm {
 	namespace sys {
 		static const unsigned int MAXEVENTS = 16;
 
+
 		EventLoop::EventLoop()
 			: m_epollfd(epoll_create(1)) // parameter is ignored but must be greater than 0
 			, m_changeFd(eventfd(0, EFD_NONBLOCK))
@@ -76,11 +77,9 @@ namespace hbm {
 
 						// there might have been work to do before fd was added to epoll. This won't be signaled by edge triggered epoll. Try until there is nothing left.
 						ssize_t result;
-						if (item.eventHandler) {
-							do {
-								result = item.eventHandler();
-							} while (result>0);
-						}
+						do {
+							result = item.eventHandler();
+						} while (result>0);
 					}
 				}
 				m_changeList.clear();
@@ -89,10 +88,10 @@ namespace hbm {
 		}
 
 
-		void EventLoop::addEvent(event fd, EventHandler_t eventHandler)
+		int EventLoop::addEvent(event fd, EventHandler_t eventHandler)
 		{
 			if(!eventHandler) {
-				return;
+				return -1;
 			}
 			eventInfo_t evi;
 			evi.fd = fd;
@@ -103,23 +102,28 @@ namespace hbm {
 				static const uint64_t value = 1;
 				if (write(m_changeFd, &value, sizeof(value))<0) {
 					syslog(LOG_ERR, "notifying new event for eventloop failed");
+					return -1;
 				}
 			}
+			return 0;
 		}
 
-		void EventLoop::eraseEvent(event fd)
+		int EventLoop::eraseEvent(event fd)
 		{
 			eventInfo_t evi;
 			evi.fd = fd;
 			evi.eventHandler = EventHandler_t(); // empty handler signals removal
 			{
 				std::lock_guard < std::recursive_mutex > lock(m_changeListMtx);
+
 				m_changeList.push_back(evi);
 				static const uint64_t value = 1;
 				if (write(m_changeFd, &value, sizeof(value))<0) {
 					syslog(LOG_ERR, "notifying removal of an event from eventloop failed");
+					return -1;
 				}
 			}
+			return 0;
 		}
 
 		int EventLoop::execute()
@@ -132,10 +136,8 @@ namespace hbm {
 					nfds = epoll_wait(m_epollfd, events, MAXEVENTS, -1);
 				} while ((nfds==-1) && (errno==EINTR));
 
-				if (nfds==0) {
-					// time out!
-					return nfds;
-				} else if (nfds<0) {
+				if (nfds<=0) {
+					// time out is 0 but is not possible here!
 					syslog(LOG_ERR, "epoll_wait failed ('%s') in eventloop ", strerror(errno));
 				}
 
@@ -186,9 +188,11 @@ namespace hbm {
 					nfds = epoll_wait(m_epollfd, events, MAXEVENTS, timeout);
 				} while ((nfds==-1) && (errno==EINTR));
 
-				if((nfds==0) || (nfds==-1)) {
-					// 0: time out!
+				if (nfds==0) {
+					// time out!
 					return nfds;
+				} else if (nfds<0) {
+					syslog(LOG_ERR, "epoll_wait failed ('%s') in eventloop ", strerror(errno));
 				}
 
 				for (int n = 0; n < nfds; ++n) {
