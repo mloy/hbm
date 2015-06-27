@@ -135,68 +135,64 @@ namespace hbm {
 				if (interface->ifa_addr != NULL) {
 					if ((interface->ifa_flags & IFF_UP) && (interface->ifa_flags & IFF_MULTICAST)) {
 							hardwareInfo_t hardwareInfo = getHardwareInfo(interface->ifa_name);
-							if (hardwareInfo.isHardware==false) {
-								// we are not interested in this interface!
-								continue;
-							}
+							if (hardwareInfo.isHardware) {
+								// If the adapter is not known yet, it will be created.
+								unsigned int interfaceIndex = if_nametoindex(interface->ifa_name);
+								Netadapter& Adapt = adapterMap[interfaceIndex];
 
-
-							// If the adapter is not known yet, it will be created.
-							unsigned int interfaceIndex = if_nametoindex(interface->ifa_name);
-							Netadapter& Adapt = adapterMap[interfaceIndex];
-
-							// An interface may have several ip addresses. Do this only once per interface.
-							if(Adapt.m_macAddress.empty()) {
-								Adapt.m_index = interfaceIndex;
-								Adapt.m_name = interface->ifa_name;
-								Adapt.m_macAddress = hardwareInfo.hwAddrString;
-								Adapt.m_fwGuid = hardwareInfo.fwGuid;
-							}
-
-							family = interface->ifa_addr->sa_family;
-
-							if (family == AF_INET) {
-								ipv4Address_t addressWithNetmask;
-								struct sockaddr_in* pSin = reinterpret_cast <struct sockaddr_in*> (interface->ifa_addr);
-								if (inet_ntop(family, &pSin->sin_addr, buf, sizeof(buf))) {
-									addressWithNetmask.address = buf;
+								// An interface may have several ip addresses. Do this only once per interface.
+								if(Adapt.m_macAddress.empty()) {
+									Adapt.m_index = interfaceIndex;
+									Adapt.m_name = interface->ifa_name;
+									Adapt.m_macAddress = hardwareInfo.hwAddrString;
+									Adapt.m_fwGuid = hardwareInfo.fwGuid;
 								}
 
-								pSin = reinterpret_cast <struct sockaddr_in*> (interface->ifa_netmask);
-								if (inet_ntop(family, &pSin->sin_addr, buf, sizeof(buf))) {
-									addressWithNetmask.netmask = buf;
-								}
+								family = interface->ifa_addr->sa_family;
 
-								Adapt.m_ipv4Addresses.push_back(addressWithNetmask);
-							}	else if (family == AF_INET6) {
-								ipv6Address_t address;
-
-								struct sockaddr_in6* pSin = reinterpret_cast <struct sockaddr_in6*> (interface->ifa_addr);
-								if (inet_ntop(family, &pSin->sin6_addr, buf, sizeof(buf))) {
-									address.address = buf;
-								}
-
-								pSin = reinterpret_cast <struct sockaddr_in6*> (interface->ifa_netmask);
-
-								// calculate prefix: count bits in netmask. ipv6 forces the following form for the prefix 111..11110..00 gaps filled with zero like 101 are not allowed!
-								unsigned int bitCount = 0;
-								for(unsigned int bytePos=0; bytePos<sizeof(pSin->sin6_addr); ++bytePos) {
-									if(pSin->sin6_addr.s6_addr[bytePos]==0) {
-										break;
+								if (family == AF_INET) {
+									ipv4Address_t addressWithNetmask;
+									struct sockaddr_in* pSin = reinterpret_cast <struct sockaddr_in*> (interface->ifa_addr);
+									if (inet_ntop(family, &pSin->sin_addr, buf, sizeof(buf))) {
+										addressWithNetmask.address = buf;
 									}
 
-									unsigned char byte = pSin->sin6_addr.s6_addr[bytePos];
-									unsigned char mask = 1;
-									for(unsigned int bitPos=0; bitPos<8; ++bitPos) {
-										if(byte & mask) {
-											++bitCount;
+									pSin = reinterpret_cast <struct sockaddr_in*> (interface->ifa_netmask);
+									if (inet_ntop(family, &pSin->sin_addr, buf, sizeof(buf))) {
+										addressWithNetmask.netmask = buf;
+									}
+
+									Adapt.m_ipv4Addresses.push_back(addressWithNetmask);
+								}	else if (family == AF_INET6) {
+									ipv6Address_t address;
+
+									struct sockaddr_in6* pSin = reinterpret_cast <struct sockaddr_in6*> (interface->ifa_addr);
+									if (inet_ntop(family, &pSin->sin6_addr, buf, sizeof(buf))) {
+										address.address = buf;
+									}
+
+									pSin = reinterpret_cast <struct sockaddr_in6*> (interface->ifa_netmask);
+
+									// calculate prefix: count bits in netmask. ipv6 forces the following form for the prefix 111..11110..00 gaps filled with zero like 101 are not allowed!
+									unsigned int bitCount = 0;
+									for(unsigned int bytePos=0; bytePos<sizeof(pSin->sin6_addr); ++bytePos) {
+										if(pSin->sin6_addr.s6_addr[bytePos]==0) {
+											break;
 										}
-										mask <<= 1;
-									}
-								}
 
-								address.prefix = bitCount;
-								Adapt.m_ipv6Addresses.push_back(address);
+										unsigned char byte = pSin->sin6_addr.s6_addr[bytePos];
+										unsigned char mask = 1;
+										for(unsigned int bitPos=0; bitPos<8; ++bitPos) {
+											if(byte & mask) {
+												++bitCount;
+											}
+											mask <<= 1;
+										}
+									}
+
+									address.prefix = bitCount;
+									Adapt.m_ipv6Addresses.push_back(address);
+								}
 							}
 					}
 				}
