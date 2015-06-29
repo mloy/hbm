@@ -6,9 +6,10 @@
 #define _EventLoop_H
 
 
-#include <list>
+
 #include <unordered_map>
 #ifdef _WIN32
+	#include <list>
 	#include <WinSock2.h>
 	#include <Windows.h>
 	typedef HANDLE event;
@@ -54,6 +55,7 @@ namespace hbm {
 			typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
 
 #ifdef _WIN32
+			typedef std::list < eventInfo_t > changelist_t;
 			/// called from within the event loop for thread-safe add and remove of events
 			int changeHandler();
 
