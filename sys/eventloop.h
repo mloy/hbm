@@ -52,16 +52,12 @@ namespace hbm {
 
 			/// fd is the key
 			typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
-			typedef std::list < eventInfo_t > changelist_t;
 
-
+#ifdef _WIN32
 			/// called from within the event loop for thread-safe add and remove of events
 			int changeHandler();
-#ifdef _WIN32
+
 			std::vector < HANDLE > m_handles;
-#else
-			int m_epollfd;
-#endif
 			event m_changeFd;
 			event m_stopFd;
 
@@ -73,6 +69,14 @@ namespace hbm {
 
 			/// events handled by event loop
 			eventInfos_t m_eventInfos;
+#else
+			int m_epollfd;
+			event m_stopFd;
+			/// events handled by event loop
+			eventInfos_t m_eventInfos;
+			std::recursive_mutex m_eventInfosMtx;
+#endif
+
 		};
 	}
 }
