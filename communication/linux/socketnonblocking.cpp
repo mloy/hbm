@@ -58,11 +58,10 @@ hbm::communication::SocketNonblocking::~SocketNonblocking()
 
 void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 {
+	m_eventLoop.eraseEvent(m_fd);
 	m_dataHandler = dataCb;
 	if (dataCb) {
 		m_eventLoop.addEvent(m_fd, std::bind(&SocketNonblocking::process, this));
-	} else {
-		m_eventLoop.eraseEvent(m_fd);
 	}
 }
 
