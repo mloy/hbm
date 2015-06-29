@@ -92,7 +92,7 @@ namespace hbm {
 				} while ((nfds==-1) && (errno==EINTR));
 
 				if (nfds<=0) {
-					// time out is 0 but is not possible here!
+					// 0 means time out but is not possible here!
 					syslog(LOG_ERR, "epoll_wait failed ('%s') in eventloop ", strerror(errno));
 				}
 
