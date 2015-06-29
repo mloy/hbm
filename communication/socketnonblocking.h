@@ -5,6 +5,7 @@
 #ifndef __HBM__SOCKETNONBLOCKING_H
 #define __HBM__SOCKETNONBLOCKING_H
 
+#include <list>
 #include <memory>
 #include <string>
 #include <vector>
