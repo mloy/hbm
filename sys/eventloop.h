@@ -9,7 +9,6 @@
 
 #include <unordered_map>
 #ifdef _WIN32
-	#include <list>
 	#include <WinSock2.h>
 	#include <Windows.h>
 	typedef HANDLE event;
@@ -55,29 +54,12 @@ namespace hbm {
 			typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
 
 #ifdef _WIN32
-			typedef std::list < eventInfo_t > changelist_t;
-			/// called from within the event loop for thread-safe add and remove of events
-			int changeHandler();
-
 			std::vector < HANDLE > m_handles;
-			event m_changeFd;
-			event m_stopFd;
-
-			eventInfo_t m_changeEvent;
-
-			/// events to be added/removed go in here
-			changelist_t m_changeList;
-			std::recursive_mutex m_changeListMtx;
-
-			/// events handled by event loop
-			eventInfos_t m_eventInfos;
-#else
-			int m_epollfd;
+#endif
 			event m_stopFd;
 			/// events handled by event loop
 			eventInfos_t m_eventInfos;
 			std::recursive_mutex m_eventInfosMtx;
-#endif
 
 		};
 	}
