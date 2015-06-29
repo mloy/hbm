@@ -55,6 +55,8 @@ namespace hbm {
 
 #ifdef _WIN32
 			std::vector < HANDLE > m_handles;
+#else
+			int m_epollfd;
 #endif
 			event m_stopFd;
 			/// events handled by event loop
