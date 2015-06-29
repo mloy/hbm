@@ -68,7 +68,7 @@ namespace hbm {
 			ssize_t result;
 			do {
 				result = item.eventHandler();
-			} while ((result>0) && item.eventHandler);
+			} while (result>0);
 			return 0;
 		}
 
@@ -109,11 +109,7 @@ namespace hbm {
 							ssize_t result;
 							do {
 								// we are working edge triggered, hence we need to read everything that is available
-								if (pEventInfo->eventHandler) {
-									result = pEventInfo->eventHandler();
-								} else {
-									result = 0;
-								}
+								result = pEventInfo->eventHandler();
 							} while (result>0);
 						}
 					}
@@ -166,11 +162,7 @@ namespace hbm {
 							ssize_t result;
 							do {
 								// we are working edge triggered, hence we need to read everything that is available
-								if (pEventInfo->eventHandler) {
-									result = pEventInfo->eventHandler();
-								} else {
-									result = 0;
-								}
+								result = pEventInfo->eventHandler();
 							} while (result>0);
 						}
 					}
