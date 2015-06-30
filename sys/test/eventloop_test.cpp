@@ -189,6 +189,32 @@ BOOST_AUTO_TEST_CASE(cyclictimer_test)
 	BOOST_CHECK_EQUAL(result, 0);
 }
 
+BOOST_AUTO_TEST_CASE(severaltimerevents_test)
+{
+	static const unsigned int timerCycle = 100;
+	static const unsigned int timerCount = 10;
+	static const std::chrono::milliseconds duration(timerCycle * timerCount);
+	hbm::sys::EventLoop eventLoop;
+
+	unsigned int counter = 0;
+	bool canceled = false;
+
+	hbm::sys::Timer cyclicTimer(eventLoop);
+
+	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
+
+	for (unsigned int i = 0; i < timerCount; ++i) {
+		cyclicTimer.set(timerCycle, false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
+		std::this_thread::sleep_for(std::chrono::milliseconds(timerCycle + 10));
+	}
+
+	eventLoop.stop();
+	worker.join();
+
+	BOOST_CHECK_EQUAL(counter, timerCount);
+}
+
+
 BOOST_AUTO_TEST_CASE(canceltimer_test)
 {
 	static const unsigned int timerCycle = 100;
