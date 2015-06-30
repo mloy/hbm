@@ -9,6 +9,7 @@
 
 #include <unordered_map>
 #ifdef _WIN32
+	#include <list>
 	#include <WinSock2.h>
 	#include <Windows.h>
 	typedef HANDLE event;
@@ -52,9 +53,18 @@ namespace hbm {
 
 			/// fd is the key
 			typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
-
 #ifdef _WIN32
+			typedef std::list < eventInfo_t > changelist_t;
 			std::vector < HANDLE > m_handles;
+			eventInfo_t m_changeEvent;
+			event m_changeFd;
+
+			changelist_t m_changeList;
+			std::recursive_mutex m_changeListMtx;
+
+
+			int changeHandler();
+			std::recursive_mutex m_updateListMtx;
 #else
 			int m_epollfd;
 #endif
