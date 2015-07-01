@@ -75,8 +75,9 @@ namespace hbm {
 		int EventLoop::eraseEvent(event fd)
 		{
 			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-			return epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, NULL);
+			int ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, NULL);
 			m_eventInfos.erase(fd);
+			return ret;
 		}
 
 
