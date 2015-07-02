@@ -87,13 +87,12 @@ namespace hbm {
 		int TcpServer::process()
 		{
 			workerSocket_t worker = acceptClient();
-			if (!worker) {
-				return 0;
+			if (worker) {
+				if (m_acceptCb) {
+					m_acceptCb(std::move(worker));
+				}
 			}
 
-			if (m_acceptCb) {
-				m_acceptCb(std::move(worker));
-			}
 			return 0;
 		}
 	}
