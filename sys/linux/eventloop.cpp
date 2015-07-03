@@ -30,7 +30,7 @@ namespace hbm {
 
 			struct epoll_event ev;
 			ev.events = EPOLLIN | EPOLLET;
-			ev.data.ptr = nullptr;
+			ev.data.u32 = m_stopFd;
 			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_stopFd, &ev) == -1) {
 				throw hbm::exception::exception(std::string("add stop notifier to eventloop failed ") + strerror(errno));
 			}
@@ -58,7 +58,8 @@ namespace hbm {
 			struct epoll_event ev;
 			ev.events = EPOLLIN | EPOLLET;
 			// important: elements of maps are guaranteed to keep there position in memory if members are added/removed!
-			ev.data.ptr = &m_eventInfos[item.fd];
+			ev.data.fd = fd;
+			//ev.data.ptr = &m_eventInfos[item.fd];
 			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, item.fd, &ev) == -1) {
 				syslog(LOG_ERR, "epoll_ctl failed while adding event '%s' epoll_d:%d, event_fd:%d", strerror(errno), m_epollfd, item.fd);
 				return -1;
@@ -101,16 +102,22 @@ namespace hbm {
 					std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 					for (int n = 0; n < nfds; ++n) {
 						if(events[n].events & EPOLLIN) {
-							eventInfo_t* pEventInfo = reinterpret_cast < eventInfo_t* > (events[n].data.ptr);
-							if(pEventInfo==nullptr) {
+							int fd = events[n].data.fd;
+							if (fd==m_stopFd) {
 								// stop notification!
 								return 0;
 							}
-							ssize_t result;
-							do {
-								// we are working edge triggered, hence we need to read everything that is available
-								result = pEventInfo->eventHandler();
-							} while (result>0);
+
+							eventInfos_t::iterator iter = m_eventInfos.find(fd);
+							if (iter!=m_eventInfos.end()) {
+								const eventInfo_t& eventInfo = iter->second;
+
+								ssize_t result;
+								do {
+									// we are working edge triggered, hence we need to read everything that is available
+									result = eventInfo.eventHandler();
+								} while (result>0);
+							}
 						}
 					}
 				}
@@ -151,24 +158,27 @@ namespace hbm {
 
 				{
 					std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-
 					for (int n = 0; n < nfds; ++n) {
 						if(events[n].events & EPOLLIN) {
-							eventInfo_t* pEventInfo = reinterpret_cast < eventInfo_t* > (events[n].data.ptr);
-							if(pEventInfo==nullptr) {
+							int fd = events[n].data.fd;
+							if (fd==m_stopFd) {
 								// stop notification!
 								return 0;
 							}
-							ssize_t result;
-							do {
-								// we are working edge triggered, hence we need to read everything that is available
-								result = pEventInfo->eventHandler();
-							} while (result>0);
+
+							eventInfos_t::iterator iter = m_eventInfos.find(fd);
+							if (iter!=m_eventInfos.end()) {
+								const eventInfo_t& eventInfo = iter->second;
+
+								ssize_t result;
+								do {
+									// we are working edge triggered, hence we need to read everything that is available
+									result = eventInfo.eventHandler();
+								} while (result>0);
+							}
 						}
 					}
 				}
-
-
 			}
 		}
 
