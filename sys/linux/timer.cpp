@@ -107,7 +107,7 @@ namespace hbm {
 					m_eventHandler(true);
 				}
 			}
-			return readStatus;
+			return 0;
 		}
 	}
 }
