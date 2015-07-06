@@ -29,6 +29,7 @@ namespace hbm {
 			}
 
 			struct epoll_event ev;
+			memset(&ev, 0, sizeof(ev));
 			ev.events = EPOLLIN | EPOLLET;
 			ev.data.u32 = m_stopFd;
 			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_stopFd, &ev) == -1) {
@@ -56,6 +57,7 @@ namespace hbm {
 			m_eventInfos[item.fd] = item;
 
 			struct epoll_event ev;
+			memset(&ev, 0, sizeof(ev));
 			ev.events = EPOLLIN | EPOLLET;
 			// important: elements of maps are guaranteed to keep there position in memory if members are added/removed!
 			ev.data.fd = fd;
