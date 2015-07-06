@@ -145,7 +145,7 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 	if (err==-1) {
 		// success if errno equals EINPROGRESS
 		if(errno != EINPROGRESS) {
-			syslog(LOG_ERR, "failed to connect errno=%d '%s'", errno, strerror(errno));
+			syslog(LOG_ERR, "failed to connect socket (errno=%d '%s')", errno, strerror(errno));
 			return -1;
 		}
 		struct pollfd pfd;
