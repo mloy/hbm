@@ -77,9 +77,7 @@ namespace hbm {
 		{
 			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 			int ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, NULL);
-			if (m_eventInfos.erase(fd)==0) {
-				syslog(LOG_ERR, "eraseEvent failed: Event with fd=%d does not exist", fd);
-			}
+			m_eventInfos.erase(fd);
 			return ret;
 		}
 
