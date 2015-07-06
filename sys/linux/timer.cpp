@@ -2,7 +2,7 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
-
+#include <syslog.h>
 #include <cstring>
 #include <iostream>
 
@@ -83,7 +83,10 @@ namespace hbm {
 			Cb_t originalEventHandler = m_eventHandler;
 			m_eventHandler = Cb_t();
 
-			timerfd_gettime(m_fd, &timespec);
+			if (timerfd_gettime(m_fd, &timespec)==-1) {
+				syslog(LOG_ERR, "error getting remaining time of timer '%s'", strerror(errno));
+				return -1;
+			}
 			if ( (timespec.it_value.tv_sec != 0) || (timespec.it_value.tv_nsec != 0) ) {
 				// timer is running
 				if (originalEventHandler) {
