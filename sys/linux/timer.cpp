@@ -24,7 +24,7 @@ namespace hbm {
 			, m_eventHandler()
 		{
 			if (m_fd<0) {
-				throw hbm::exception::exception("could not create timer fd");
+				throw hbm::exception::exception(std::string("could not create timer fd '") + strerror(errno) + "'");
 			}
 			m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
 		}
