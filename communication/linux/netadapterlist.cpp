@@ -43,7 +43,9 @@ namespace hbm {
 
 		struct hardwareInfo_t {
 			hardwareInfo_t()
-				: isHardware(false)
+				: hwAddrString()
+				, fwGuid(0)
+				, isHardware(false)
 			{
 			}
 
