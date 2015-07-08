@@ -59,9 +59,7 @@ namespace hbm {
 			struct epoll_event ev;
 			memset(&ev, 0, sizeof(ev));
 			ev.events = EPOLLIN | EPOLLET;
-			// important: elements of maps are guaranteed to keep there position in memory if members are added/removed!
 			ev.data.fd = fd;
-			//ev.data.ptr = &m_eventInfos[item.fd];
 			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, item.fd, &ev) == -1) {
 				syslog(LOG_ERR, "epoll_ctl failed while adding event '%s' epoll_d:%d, event_fd:%d", strerror(errno), m_epollfd, item.fd);
 				return -1;
