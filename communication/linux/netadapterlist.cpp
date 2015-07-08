@@ -75,7 +75,6 @@ namespace hbm {
 
 					switch (ifr.ifr_hwaddr.sa_family) {
 					case ARPHRD_ETHER:
-						::syslog(LOG_INFO, "new ethernet interface %s", interfaceName.c_str());
 						macLen = 6;
 						result.isHardware = true;
 						break;
