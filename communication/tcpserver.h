@@ -22,6 +22,11 @@
 
 namespace hbm {
 	namespace communication {
+#ifdef _MSC_VER
+		typedef std::shared_ptr <SocketNonblocking > workerSocket_t;
+#else
+		typedef std::unique_ptr <SocketNonblocking > workerSocket_t;
+#endif
 		class TcpServer {
 		public:
 			/// deliveres the worker socket for an accepted client
@@ -44,20 +49,15 @@ namespace hbm {
 			/// should not be assigned
 			TcpServer& operator= (const TcpServer& op);
 
-			/// \return 0 on success; -1 on error
-			int init(int domain);
-
-			/// Listens to connecting clients, a server call
-			/// @param numPorts Maximum length of the queue of pending connections
-			int listenToClient(int numPorts);
-
 			/// called by eventloop
 			/// accepts a new connection creates new worker socket anf calls acceptCb
 			int process();
 
+#ifdef _WIN32
 			/// accepts a new connecting client.
 			/// \return On success, the worker socket for the new connected client is returned. Empty worker socket on error
 			workerSocket_t acceptClient();
+#endif
 
 			int m_listeningSocket;
 #ifdef _WIN32

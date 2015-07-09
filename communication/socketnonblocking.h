@@ -41,13 +41,6 @@ namespace hbm
 
 		typedef std::list < dataBlock_t > dataBlocks_t;
 
-		class SocketNonblocking;
-#ifdef _MSC_VER
-		typedef std::shared_ptr <SocketNonblocking > workerSocket_t;
-#else
-		typedef std::unique_ptr <SocketNonblocking > workerSocket_t;
-#endif
-
 		/// the socke uses keep-alive in order to detect broken connection.
 		class SocketNonblocking
 		{
@@ -61,8 +54,12 @@ namespace hbm
 			SocketNonblocking(int fd, sys::EventLoop &eventLoop);
 			virtual ~SocketNonblocking();
 
+
+			/// this method does work blocking
 			/// \return 0: success; -1: error
 			int connect(const std::string& address, const std::string& port);
+
+			/// this method does work blocking
 			int connect(int domain, const struct sockaddr* pSockAddr, socklen_t len);
 
 			/// if setting a callback function, data receiption is done via event loop.

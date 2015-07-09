@@ -33,6 +33,10 @@ namespace hbm {
 
 		int TcpServer::start(uint16_t port, int backlog, Cb_t acceptCb)
 		{
+			if (!acceptCb) {
+				return -1;
+			}
+
 			//ipv6 does work for ipv4 too!
 			sockaddr_in6 address;
 
@@ -43,11 +47,11 @@ namespace hbm {
 
 			m_listeningSocket = ::socket(address.sin6_family, SOCK_STREAM | SOCK_NONBLOCK, 0);
 			if (m_listeningSocket==-1) {
-				syslog(LOG_ERR, "%s: Socket initialization failed '%s'", __FUNCTION__ , strerror(errno));
+				syslog(LOG_ERR, "TCP server: Socket initialization failed '%s'", strerror(errno));
 				return -1;
 			}
 			if (::bind(m_listeningSocket, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
-				syslog(LOG_ERR, "%s: Binding socket to port initialization failed '%s'", __FUNCTION__ , strerror(errno));
+				syslog(LOG_ERR, "TCP server: Binding socket to port %u failed '%s'", port, strerror(errno));
 				return -1;
 			}
 
@@ -56,9 +60,7 @@ namespace hbm {
 			}
 
 			m_acceptCb = acceptCb;
-			if (acceptCb) {
-				m_eventLoop.addEvent(m_listeningSocket, std::bind(&TcpServer::process, this));
-			}
+			m_eventLoop.addEvent(m_listeningSocket, std::bind(&TcpServer::process, this));
 
 
 			return 0;
@@ -68,31 +70,20 @@ namespace hbm {
 		{
 			m_eventLoop.eraseEvent(m_listeningSocket);
 			close(m_listeningSocket);
+			m_acceptCb = Cb_t();
 		}
-
-
-
-		workerSocket_t TcpServer::acceptClient()
-		{
-			int clientFd = accept(m_listeningSocket, NULL, NULL);
-
-			if (clientFd<0) {
-				return workerSocket_t();
-			}
-
-			return workerSocket_t(new SocketNonblocking(clientFd, m_eventLoop));
-		}
-
 
 		int TcpServer::process()
 		{
-			workerSocket_t worker = acceptClient();
-			if (worker) {
-				if (m_acceptCb) {
-					m_acceptCb(std::move(worker));
+			int clientFd = accept(m_listeningSocket, NULL, NULL);
+			if (clientFd<0) {
+				if ((errno!=EWOULDBLOCK) && (errno!=EAGAIN) && (errno!=EINTR) ) {
+					syslog(LOG_ERR, "TCP server: error accepting connection '%s'", strerror(errno));
 				}
+				return -1;
 			}
 
+			m_acceptCb(workerSocket_t(new SocketNonblocking(clientFd, m_eventLoop)));
 			return 0;
 		}
 	}
