@@ -106,7 +106,7 @@ namespace hbm {
 			DWORD timeout = INFINITE;
 			ssize_t nbytes = 0;
 			std::chrono::steady_clock::time_point endTime;
-			if (timeToWait != std::chrono::milliseconds(0)) {
+			if (timeToWait != std::chrono::milliseconds()) {
 				endTime = std::chrono::steady_clock::now() + timeToWait;
 			}
 
