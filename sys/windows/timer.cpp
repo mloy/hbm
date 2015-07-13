@@ -21,6 +21,8 @@ namespace hbm {
 			, m_isRunning(false)
 		{
 			cancel();
+
+			m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
 		}
 
 		Timer::~Timer()
@@ -42,8 +44,6 @@ namespace hbm {
 			LONG period = 0; // in ms
 
 			m_eventHandler = eventHandler;
-
-			m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
 
 			if (repeated) {
 				period = period_ms;
@@ -68,6 +68,9 @@ namespace hbm {
 		{
 			if (m_eventHandler) {
 				m_eventHandler(true);
+			}
+			else {
+				std::cout << "timer::process without callback" << std::endl;
 			}
 			return 0;
 		}
