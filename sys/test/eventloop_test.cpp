@@ -267,7 +267,7 @@ BOOST_AUTO_TEST_CASE(retrigger_timer_test)
 {
 	hbm::sys::EventLoop eventLoop;
 
-	static const std::chrono::milliseconds duration(100);
+	static const std::chrono::milliseconds duration(50);
 
 	unsigned int counter = 0;
 	bool canceled = false;
@@ -276,13 +276,30 @@ BOOST_AUTO_TEST_CASE(retrigger_timer_test)
 	hbm::sys::Timer timer(eventLoop);
 
 	timer.set(std::chrono::milliseconds(duration), false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
+
+
 	// we retrigger the timer before it does signal!
 	std::this_thread::sleep_for(duration / 2);
-	timer.set(std::chrono::milliseconds(duration), false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
-	std::this_thread::sleep_for(duration * 2);
+	timer.set(std::chrono::milliseconds(duration * 2), false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
 
-	BOOST_CHECK_EQUAL(canceled, false);
+
+	std::this_thread::sleep_for(duration);
+	// the first trigger would be signaled here. This should not be the case!
+	BOOST_CHECK_EQUAL(counter, 0);
+
+
+	std::this_thread::sleep_for(duration * 2);
+	// the second trigger should be signaled here.
 	BOOST_CHECK_EQUAL(counter, 1);
+
+
+	// start timer one more time and make sure event gets signaled
+	timer.set(std::chrono::milliseconds(duration / 2), false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
+	std::this_thread::sleep_for(duration);
+	BOOST_CHECK_EQUAL(counter, 2);
+
+
+
 
 	eventLoop.stop();
 	worker.join();
