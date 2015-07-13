@@ -24,11 +24,12 @@ namespace hbm {
 			stopEvent.fd = m_stopFd;
 			stopEvent.eventHandler = nullptr;
 
-			m_changeEvent.fd = m_changeFd;
-			m_changeEvent.eventHandler = std::bind(&EventLoop::changeHandler, this);;
+			eventInfo_t changeEvent;
+			changeEvent.fd = m_changeFd;
+			changeEvent.eventHandler = std::bind(&EventLoop::changeHandler, this);;
 
 			m_eventInfos[m_stopFd] = stopEvent;
-			m_eventInfos[m_changeFd] = m_changeEvent;
+			m_eventInfos[m_changeFd] = changeEvent;
 
 			m_handles.push_back(m_stopFd);
 			m_handles.push_back(m_changeFd);
@@ -46,7 +47,7 @@ namespace hbm {
 				for (changelist_t::const_iterator iter = m_changeList.begin(); iter != m_changeList.end(); ++iter) {
 					const eventInfo_t& item = *iter;
 					if (item.eventHandler) {
-						// add
+						// add or change
 						m_eventInfos[item.fd] = item;
 					}
 					else {

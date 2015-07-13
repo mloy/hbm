@@ -56,7 +56,6 @@ namespace hbm {
 #ifdef _WIN32
 			typedef std::list < eventInfo_t > changelist_t;
 			std::vector < HANDLE > m_handles;
-			eventInfo_t m_changeEvent;
 			event m_changeFd;
 
 			changelist_t m_changeList;
