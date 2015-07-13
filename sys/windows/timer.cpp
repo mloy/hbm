@@ -37,7 +37,6 @@ namespace hbm {
 
 		int Timer::set(unsigned int period_ms, bool repeated, Cb_t eventHandler)
 		{
-			//std::cout << "timer set " << period_ms << std::endl;
 			LARGE_INTEGER dueTimeIn100ns;
 			static const int64_t multiplier = -10000; // negative because we want a relative time
 			LONG periodInMilliseconds;
