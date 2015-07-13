@@ -20,8 +20,6 @@ namespace hbm {
 			, m_eventHandler()
 			, m_isRunning(false)
 		{
-			cancel();
-
 			m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
 		}
 
@@ -39,20 +37,23 @@ namespace hbm {
 
 		int Timer::set(unsigned int period_ms, bool repeated, Cb_t eventHandler)
 		{
-			LARGE_INTEGER dueTime;
+			//std::cout << "timer set " << period_ms << std::endl;
+			LARGE_INTEGER dueTimeIn100ns;
 			static const int64_t multiplier = -10000; // negative because we want a relative time
-			LONG period = 0; // in ms
+			LONG periodInMilliseconds;
 
 			m_eventHandler = eventHandler;
 
 			if (repeated) {
-				period = period_ms;
+				periodInMilliseconds = period_ms;
+			} else {
+				periodInMilliseconds = 0;
 			}
-			dueTime.QuadPart = period_ms*multiplier; // in 100ns
+			dueTimeIn100ns.QuadPart = period_ms*multiplier;
 			BOOL Result = SetWaitableTimer(
 				m_fd,
-				&dueTime,
-				period,
+				&dueTimeIn100ns,
+				periodInMilliseconds,
 				NULL,
 				this,
 				FALSE
@@ -68,9 +69,6 @@ namespace hbm {
 		{
 			if (m_eventHandler) {
 				m_eventHandler(true);
-			}
-			else {
-				std::cout << "timer::process without callback" << std::endl;
 			}
 			return 0;
 		}
