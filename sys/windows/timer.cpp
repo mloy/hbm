@@ -20,7 +20,6 @@ namespace hbm {
 			, m_eventHandler()
 			, m_isRunning(false)
 		{
-			m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
 		}
 
 		Timer::~Timer()
@@ -37,6 +36,8 @@ namespace hbm {
 
 		int Timer::set(unsigned int period_ms, bool repeated, Cb_t eventHandler)
 		{
+			// warning: has to be done here. Not in constructor. We need to find out why!
+			m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
 			LARGE_INTEGER dueTimeIn100ns;
 			static const int64_t multiplier = -10000; // negative because we want a relative time
 			LONG periodInMilliseconds;
