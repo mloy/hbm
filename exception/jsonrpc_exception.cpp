@@ -13,28 +13,31 @@ namespace hbm {
 		jsonrpcException::jsonrpcException(const Json::Value& error)
 			: exception("")
 			, m_error_obj(error)
-			, m_localWhat()
+			, m_code(-1)
+			, m_message()
 		{
-			Json::FastWriter writer;
-			writer.omitEndingLineFeed();
-			m_localWhat = writer.write(m_error_obj);
-			m_localWhat += exception::what();
+			const Json::Value& codeNode = error[jsonrpc::ERR][jsonrpc::CODE];
+			if (codeNode.isInt()) {
+				m_code = codeNode.asInt();
+			}
+
+			const Json::Value& messageNode = error[jsonrpc::ERR][jsonrpc::MESSAGE];
+			if (messageNode.isString()) {
+				m_message = messageNode.asString();
+			}
 		}
 
 		jsonrpcException::jsonrpcException( int code, const std::string& message)
 			: exception("")
 			, m_error_obj()
-			, m_localWhat()
+			, m_code(code)
+			, m_message(message)
 		{
 			if(message.empty()==false) {
 				m_error_obj[jsonrpc::ERR][jsonrpc::MESSAGE] = message;
 			}
 
 			m_error_obj[jsonrpc::ERR][jsonrpc::CODE] = code;
-			Json::FastWriter writer;
-			writer.omitEndingLineFeed();
-			m_localWhat = writer.write(m_error_obj);
-			m_localWhat += exception::what();
 		}
 
 		jsonrpcException::~jsonrpcException() throw()
@@ -46,9 +49,19 @@ namespace hbm {
 			return m_error_obj;
 		}
 
+		int jsonrpcException::code() const throw()
+		{
+			return m_code;
+		}
+
+		std::string jsonrpcException::message() const throw()
+		{
+			return m_message;
+		}
+
 		const char* jsonrpcException::what() const throw()
 		{
-			return m_localWhat.c_str();
+			return m_message.c_str();
 		}
 	}
 }
