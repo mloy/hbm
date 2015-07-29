@@ -35,14 +35,14 @@ namespace hbm {
 			{
 				BOOST_TEST_MESSAGE("setup Fixture1");
 				int result = m_server.start(PORT, 3, std::bind(&serverFixture::acceptCb, this, std::placeholders::_1));
-				BOOST_CHECK_NE(result, -1);
+				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 				m_serverWorker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(m_eventloop)));
 			}
 
 			serverFixture::~serverFixture()
 			{
 				BOOST_TEST_MESSAGE("teardown Fixture1");
-				m_workers.clear();
+				m_worker->disconnect();
 				m_eventloop.stop();
 				m_serverWorker.join();
 			}
@@ -50,25 +50,19 @@ namespace hbm {
 
 			void serverFixture::acceptCb(workerSocket_t worker)
 			{
-				worker->setDataCb(std::bind(&serverFixture::serverEcho, this, std::placeholders::_1));
-
-				m_workers.insert(std::move(worker));
+				m_worker = std::move(worker);
+				m_worker->setDataCb(std::bind(&serverFixture::serverEcho, this));
 			}
 
-			void serverFixture::removeWorker(workerSocket_t worker)
-			{
-
-			}
-
-			int serverFixture::serverEcho(hbm::communication::SocketNonblocking* pSocket)
+			int serverFixture::serverEcho()
 			{
 				char buffer[1024];
 				ssize_t result;
 
 				do {
-					result = pSocket->receive(buffer, sizeof(buffer));
+					result = m_worker->receive(buffer, sizeof(buffer));
 					if (result>0) {
-						result = pSocket->sendBlock(buffer, result, false);
+						result = m_worker->sendBlock(buffer, result, false);
 					} else if (result==0) {
 						// socket got closed
 					} else {
@@ -82,12 +76,12 @@ namespace hbm {
 
 
 
-			int serverFixture::clientReceive(hbm::communication::SocketNonblocking* pSocket)
+			int serverFixture::clientReceive(hbm::communication::SocketNonblocking& socket)
 			{
 				char buffer[1024];
 				ssize_t result;
 
-				result = pSocket->receive(buffer, sizeof(buffer));
+				result = socket.receive(buffer, sizeof(buffer));
 				if (result>0) {
 					m_answer += buffer;
 				}
@@ -109,13 +103,14 @@ namespace hbm {
 
 				hbm::communication::SocketNonblocking client(eventloop);
 				result = client.connect("127.0.0.1", std::to_string(PORT));
-				BOOST_CHECK_NE(result, -1);
-				client.setDataCb(std::bind(&serverFixture::clientReceive, this, std::placeholders::_1));
+				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
+				client.setDataCb(std::bind(&serverFixture::clientReceive, this, std::ref(client)));
 
 				clearAnswer();
 				result = client.sendBlock(msg, sizeof(msg), false);
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-				BOOST_CHECK_EQUAL(result, sizeof(msg));
+				BOOST_CHECK_MESSAGE(result == sizeof(msg), strerror(errno));
+
 				client.disconnect();
 
 				BOOST_CHECK_EQUAL(getAnswer(), msg);
@@ -145,16 +140,16 @@ namespace hbm {
 
 				hbm::communication::SocketNonblocking client(eventloop);
 				result = client.connect("127.0.0.1", std::to_string(PORT));
-				BOOST_CHECK_NE(result, -1);
+				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 
-				client.setDataCb(std::bind(&serverFixture::clientReceive, this, std::placeholders::_1));
+				client.setDataCb(std::bind(&serverFixture::clientReceive, this, std::ref(client)));
 
 				clearAnswer();
 				result = client.sendBlocks(dataBlocks);
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 				client.disconnect();
 
-				BOOST_CHECK_EQUAL(result, bufferSize);
+				BOOST_CHECK_MESSAGE(result == bufferSize, strerror(errno));
 
 
 				eventloop.stop();
@@ -166,9 +161,3 @@ namespace hbm {
 		}
 	}
 }
-
-
-
-
-
-

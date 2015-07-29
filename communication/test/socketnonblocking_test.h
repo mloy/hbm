@@ -20,13 +20,12 @@ namespace hbm {
 
 			class serverFixture {
 			public:
-				int clientReceive(hbm::communication::SocketNonblocking* pSocket);
+				int clientReceive(SocketNonblocking &socket);
 			protected:
 				serverFixture();
 				virtual ~serverFixture();
 				void acceptCb(workerSocket_t worker);
-				int serverEcho(SocketNonblocking* pSocket);
-				void removeWorker(workerSocket_t worker);
+				int serverEcho();
 				void clearAnswer()
 				{
 					m_answer.clear();
@@ -39,7 +38,8 @@ namespace hbm {
 
 			private:
 				std::string m_answer;
-				std::set < workerSocket_t > m_workers;
+				//std::set < workerSocket_t > m_workers;
+				workerSocket_t m_worker;
 				std::thread m_serverWorker;
 				sys::EventLoop m_eventloop;
 				TcpServer m_server;
