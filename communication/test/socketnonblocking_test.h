@@ -37,12 +37,12 @@ namespace hbm {
 				}
 
 			private:
-				std::string m_answer;
-				//std::set < workerSocket_t > m_workers;
-				workerSocket_t m_worker;
-				std::thread m_serverWorker;
 				sys::EventLoop m_eventloop;
+				std::thread m_serverWorker;
+				workerSocket_t m_worker;
 				TcpServer m_server;
+
+				std::string m_answer;
 			};
 		}
 	}

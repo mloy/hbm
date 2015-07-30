@@ -42,7 +42,7 @@ namespace hbm {
 			serverFixture::~serverFixture()
 			{
 				BOOST_TEST_MESSAGE("teardown Fixture1");
-				m_worker->disconnect();
+				//m_worker->disconnect();
 				m_eventloop.stop();
 				m_serverWorker.join();
 			}
