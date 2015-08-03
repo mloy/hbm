@@ -52,11 +52,13 @@ namespace hbm {
 
 			virtual ~MulticastServer();
 
+			/// \return 1 if interface was added succesfully, 0 interface already member of multicast group, -1 error
 			int addInterface(const std::string& interfaceAddress);
 
 			/// all interfaces known to the internal netadapter list are added as receiving interfaces.
 			void addAllInterfaces();
 
+			/// \return 1 if interface was dropped succesfully, 0 interface not member of multicast group, -1 error
 			int dropInterface(const std::string& interfaceAddress);
 
 			/// all interfaces known to the internal netadapter list are dropped as receiving interfaces.

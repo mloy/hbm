@@ -239,25 +239,29 @@ namespace hbm {
 
 
 			retVal = setsockopt(m_ReceiveSocket, IPPROTO_IP, optionName, &im, sizeof(im));
-
-			if(add) {
-				if(retVal!=0) {
+			if (add) {
+				if (retVal!=0) {
 					if(errno==EADDRINUSE) {
 						// ignore already added
 						return 0;
 					}
-
+					syslog(LOG_ERR, "interface address %s could not be added to multicastgroup %s '%s'", interfaceAddress.c_str(), m_address.c_str(), strerror(errno));
+					return -1;
 				}
+				syslog(LOG_INFO, "interface address %s succesfully added to multicastgroup %s", interfaceAddress.c_str(), m_address.c_str());
+				return 1;
 			} else {
 				if(retVal!=0) {
 					if (errno == EADDRNOTAVAIL) {
 						// ignore already dropped
 						return 0;
 					}
+					syslog(LOG_ERR, "interface address %s could not be dropped from multicastgroup %s '%s'", interfaceAddress.c_str(), m_address.c_str(), strerror(errno));
+					return -1;
 				}
+				syslog(LOG_INFO, "interface address %s succesfully dropped from multicastgroup %s", interfaceAddress.c_str(), m_address.c_str());
+				return 1;
 			}
-
-			return retVal;
 		}
 
 		int MulticastServer::process()

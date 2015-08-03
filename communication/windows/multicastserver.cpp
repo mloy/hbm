@@ -237,25 +237,25 @@ namespace hbm {
 
 
 			retVal = setsockopt(m_ReceiveSocket, IPPROTO_IP, optionName, reinterpret_cast < char* >(&im), sizeof(im));
-
-			if(add) {
-				if(retVal!=0) {
-					if (errno == WSAEADDRINUSE) {
+			if (add) {
+				if (retVal!=0) {
+					if(errno==WSAEADDRINUSE) {
 						// ignore already added
 						return 0;
 					}
-
+					return -1;
 				}
+				return 1;
 			} else {
 				if(retVal!=0) {
 					if (errno == WSAEADDRNOTAVAIL) {
 						// ignore already dropped
 						return 0;
 					}
+					return -1;
 				}
+				return 1;
 			}
-
-			return retVal;
 		}
 
 		int MulticastServer::process()
