@@ -256,7 +256,6 @@ namespace hbm {
 						// ignore already dropped
 						return 0;
 					}
-					syslog(LOG_ERR, "interface address %s could not be dropped from multicastgroup %s '%s'", interfaceAddress.c_str(), m_address.c_str(), strerror(errno));
 					return -1;
 				}
 				syslog(LOG_INFO, "interface address %s succesfully dropped from multicastgroup %s", interfaceAddress.c_str(), m_address.c_str());
