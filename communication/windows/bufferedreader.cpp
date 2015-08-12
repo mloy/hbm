@@ -37,23 +37,34 @@ namespace hbm {
 			return static_cast < ssize_t > (bytesLeft);
 		}
 
-		// try to read as much as possible into the buffer
-		ssize_t retVal = ::recv(sockfd, (char*)m_buffer, sizeof(m_buffer), flags);
 
-		if(retVal<=0) {
-			return retVal;
+		WSABUF buffers[2];
+		DWORD Flags = 0;
+		DWORD numberOfBytesRecvd;
+
+		bufferd[0].buf = buf;
+		buffers[0].len = desiredLen;
+		bufferd[1].buf = m_buffer;
+		buffers[1].len = sizeof(m_buffer);
+
+
+		int retVal = WSARecv(sockfd, buffers, 2, &numberOfBytesRecvd, &Flags, NULL, NULL);
+		m_alreadyRead = 0;
+		if (retVal < 0) {
+			int retVal = WSAGetLastError();
+			if ((retVal != WSAEWOULDBLOCK) && (retVal != WSAEINTR) && (retVal != WSAEINPROGRESS)) {
+				m_fillLevel = 0;
+				return retVal;
+			}
 		}
 
-		m_fillLevel = retVal;
 
-		// length to return is up to the desired length.
-		// remember the number of bytes already read.
-		if(m_fillLevel>=desiredLen) {
-			m_alreadyRead = desiredLen;
-		} else {
-			m_alreadyRead = m_fillLevel;
+		if (numberOfBytesRecvd>static_cast < DWORD > (desiredLen)) {
+			// readv returns the total number of bytes read
+			m_fillLevel = retVal-numberOfBytesRecvd;
+			return static_cast < ssize_t > (desiredLen);
 		}
-		memcpy(buf, m_buffer, m_alreadyRead);
-		return static_cast < ssize_t > (m_alreadyRead);
+		m_fillLevel = 0;
+		return retVal;
 	}
 }
