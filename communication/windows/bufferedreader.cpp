@@ -5,13 +5,9 @@
 #include <fstream>
 #include <stdexcept>
 
-#ifdef _WIN32
 #include <WinSock2.h>
 #undef max
 #undef min
-#else
-#include <sys/socket.h>
-#endif
 
 #include <cstring>
 
@@ -42,11 +38,7 @@ namespace hbm {
 		}
 
 		// try to read as much as possible into the buffer
-	#ifdef _WIN32
 		ssize_t retVal = ::recv(sockfd, (char*)m_buffer, sizeof(m_buffer), flags);
-	#else
-		ssize_t retVal = ::recv(sockfd, m_buffer, sizeof(m_buffer), flags);
-	#endif
 
 		if(retVal<=0) {
 			return retVal;
