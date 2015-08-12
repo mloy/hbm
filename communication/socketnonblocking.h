@@ -66,7 +66,9 @@ namespace hbm
 			/// if setting an empty callback function DataCb_t(), the event is taken out of the eventloop.
 			void setDataCb(DataCb_t dataCb);
 
+			/// send everything or until connection closes
 			ssize_t sendBlocks(const dataBlocks_t& blocks);
+			/// send everything or until connection closes
 			ssize_t sendBlock(const void* pBlock, size_t len, bool more);
 
 			/// might return with less bytes the requested
