@@ -5,9 +5,6 @@
 #ifndef _HBM__BUFFEREDREADER_H
 #define _HBM__BUFFEREDREADER_H
 
-#include <fstream>
-#include <stdexcept>
-
 #ifdef _WIN32
 #ifndef ssize_t
 #define ssize_t int
@@ -17,24 +14,26 @@
 #endif
 
 namespace hbm {
-	/// try to receive a big chunk even if only a small amount of data is requested.
-	/// return the requested data and keep the remaining data.
-	/// \warning not reentrant
-	class BufferedReader
-	{
-	public:
-		BufferedReader();
+	namespace communication {
+		/// try to receive a big chunk even if only a small amount of data is requested.
+		/// return the requested data and keep the remaining data.
+		/// \warning not reentrant
+		class BufferedReader
+		{
+		public:
+			BufferedReader();
 
-		/// behaves like ::recv
-		ssize_t recv(int sockfd, void *buf, size_t len, int flags);
+			/// behaves like ::recv
+			ssize_t recv(int sockfd, void *buf, size_t len, int flags);
 
-	private:
-		BufferedReader(const BufferedReader& op);
-		BufferedReader& operator=(const BufferedReader& op);
+		private:
+			BufferedReader(const BufferedReader& op);
+			BufferedReader& operator=(const BufferedReader& op);
 
-		unsigned char m_buffer[65536];
-		size_t m_fillLevel;
-		size_t m_alreadyRead;
-	};
+			unsigned char m_buffer[65536];
+			size_t m_fillLevel;
+			size_t m_alreadyRead;
+		};
+	}
 }
 #endif // BUFFEREDREADER_H
