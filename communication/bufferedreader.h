@@ -24,7 +24,7 @@ namespace hbm {
 			BufferedReader();
 
 			/// behaves like ::recv
-			ssize_t recv(int sockfd, void *buf, size_t len, int flags);
+			ssize_t recv(int sockfd, void *buf, size_t len);
 
 		private:
 			BufferedReader(const BufferedReader& op);

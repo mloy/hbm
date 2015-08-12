@@ -21,7 +21,7 @@ namespace hbm {
 		{
 		}
 
-		ssize_t BufferedReader::recv(int sockfd, void *buf, size_t desiredLen, int flags)
+		ssize_t BufferedReader::recv(int sockfd, void *buf, size_t desiredLen)
 		{
 			// check whether there is something left
 			size_t bytesLeft = m_fillLevel - m_alreadyRead;
