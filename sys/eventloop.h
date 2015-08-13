@@ -17,7 +17,6 @@
 	typedef int event;
 #endif
 #include <functional>
-#include <chrono>
 #include <mutex>
 #include <thread>
 
@@ -42,8 +41,6 @@ namespace hbm {
 
 			/// \return 0 stopped; -1 error
 			int execute();
-			/// \return 0 stopped or if given time to wait was reached; -1 error
-			int execute_for(std::chrono::milliseconds timeToWait);
 
 			void stop();
 

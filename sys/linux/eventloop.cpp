@@ -2,7 +2,6 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
-#include <chrono>
 #include <cstring>
 #include <unistd.h>
 #include <functional>
@@ -94,64 +93,6 @@ namespace hbm {
 
 				if (nfds<=0) {
 					// 0 means time out but is not possible here!
-					syslog(LOG_ERR, "epoll_wait failed ('%s') in eventloop ", strerror(errno));
-				}
-
-
-				{
-					std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-					for (int n = 0; n < nfds; ++n) {
-						if(events[n].events & EPOLLIN) {
-							int fd = events[n].data.fd;
-							if (fd==m_stopFd) {
-								// stop notification!
-								return 0;
-							}
-
-							eventInfos_t::iterator iter = m_eventInfos.find(fd);
-							if (iter!=m_eventInfos.end()) {
-								const eventInfo_t& eventInfo = iter->second;
-
-								ssize_t result;
-								do {
-									// we are working edge triggered, hence we need to read everything that is available
-									result = eventInfo.eventHandler();
-								} while (result>0);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		int EventLoop::execute_for(std::chrono::milliseconds timeToWait)
-		{
-			int timeout;
-			std::chrono::steady_clock::time_point endTime;
-			if(timeToWait!=std::chrono::milliseconds(0)) {
-				endTime = std::chrono::steady_clock::now() + timeToWait;
-			}
-
-			int nfds;
-			struct epoll_event events[MAXEVENTS];
-
-			while (true) {
-				std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-				if(now>=endTime) {
-					return 0;
-				}
-				std::chrono::milliseconds timediff = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-now);
-
-				timeout = static_cast< int > (timediff.count());
-
-				do {
-					nfds = epoll_wait(m_epollfd, events, MAXEVENTS, timeout);
-				} while ((nfds==-1) && (errno==EINTR));
-
-				if (nfds==0) {
-					// time out!
-					return nfds;
-				} else if (nfds<0) {
 					syslog(LOG_ERR, "epoll_wait failed ('%s') in eventloop ", strerror(errno));
 				}
 

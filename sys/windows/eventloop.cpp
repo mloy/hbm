@@ -98,59 +98,52 @@ namespace hbm {
 
 		int EventLoop::execute()
 		{
-			return execute_for(std::chrono::milliseconds());
-		}
-
-		int EventLoop::execute_for(std::chrono::milliseconds timeToWait)
-		{
 			DWORD timeout = INFINITE;
 			ssize_t nbytes = 0;
 			std::chrono::steady_clock::time_point endTime;
 			if (timeToWait != std::chrono::milliseconds()) {
-				endTime = std::chrono::steady_clock::now() + timeToWait;
+			endTime = std::chrono::steady_clock::now() + timeToWait;
 			}
 
 			DWORD dwEvent;
 			eventInfo_t evi;
 			do {
-					
-				if (endTime != std::chrono::steady_clock::time_point()) {
-					std::chrono::milliseconds timediff = std::chrono::duration_cast <std::chrono::milliseconds> (endTime - std::chrono::steady_clock::now());
-					if (timediff.count() > 0) {
-						timeout = static_cast<int> (timediff.count());
-					} else {
-						timeout = 0;
-					}
-				}
-				dwEvent = WaitForMultipleObjects(static_cast < DWORD > (m_handles.size()), &m_handles[0], FALSE, timeout);
-				if (dwEvent == WAIT_FAILED) {
-					int lastError = GetLastError();
-					// ERROR_INVALID_HANDLE might happen on removal of events.
-					if (lastError != ERROR_INVALID_HANDLE) {
-						return -1;
-					}
-					changeHandler();
-				} else if (dwEvent == WAIT_TIMEOUT) {
-					// stop because of timeout
-					return 0;
+			
+			if (endTime != std::chrono::steady_clock::time_point()) {
+				std::chrono::milliseconds timediff = std::chrono::duration_cast <std::chrono::milliseconds> (endTime - std::chrono::steady_clock::now());
+				if (timediff.count() > 0) {
+				timeout = static_cast<int> (timediff.count());
 				} else {
-					event fd = m_handles[WAIT_OBJECT_0 + dwEvent];
-					evi = m_eventInfos[fd];
-					// this is a workaround. WSARecvMsg does not reset the event!
-					WSAResetEvent(fd);
-
-					if (evi.eventHandler == nullptr) {
-						break;
-					}
-
-					do {
-						// we do this until nothing is left. This is important because of our call to WSAResetEvent above.
-						nbytes = evi.eventHandler();
-					} while (nbytes > 0);
+				timeout = 0;
 				}
+			}
+			dwEvent = WaitForMultipleObjects(static_cast < DWORD > (m_handles.size()), &m_handles[0], FALSE, timeout);
+			if (dwEvent == WAIT_FAILED) {
+				int lastError = GetLastError();
+				// ERROR_INVALID_HANDLE might happen on removal of events.
+				if (lastError != ERROR_INVALID_HANDLE) {
+				return -1;
+				}
+				changeHandler();
+			} else if (dwEvent == WAIT_TIMEOUT) {
+				// stop because of timeout
+				return 0;
+			} else {
+				event fd = m_handles[WAIT_OBJECT_0 + dwEvent];
+				evi = m_eventInfos[fd];
+				// this is a workaround. WSARecvMsg does not reset the event!
+				WSAResetEvent(fd);
 
+				if (evi.eventHandler == nullptr) {
+				break;
+				}
+				do {
+				// we do this until nothing is left. This is important because of our call to WSAResetEvent above.
+				nbytes = evi.eventHandler();
+				} while (nbytes > 0);
+			}
+			
 			} while (true);
-
 
 			return 0;
 		}
