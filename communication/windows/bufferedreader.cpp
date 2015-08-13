@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <stdexcept>
+#include <iostream>
 
 #include <WinSock2.h>
 #undef max
@@ -40,28 +41,25 @@ namespace hbm {
 			WSABUF buffers[2];
 			DWORD Flags = 0;
 			DWORD numberOfBytesRecvd;
-			bufferd[0].buf = buf;
+			buffers[0].buf = reinterpret_cast < CHAR* > (buf);
 			buffers[0].len = desiredLen;
-			bufferd[1].buf = m_buffer;
+			buffers[1].buf = reinterpret_cast < CHAR* > (m_buffer);
 			buffers[1].len = sizeof(m_buffer);
 
 			int retVal = WSARecv(sockfd, buffers, 2, &numberOfBytesRecvd, &Flags, NULL, NULL);
 			m_alreadyRead = 0;
 			if (retVal < 0) {
-				int retVal = WSAGetLastError();
-				if ((retVal != WSAEWOULDBLOCK) && (retVal != WSAEINTR) && (retVal != WSAEINPROGRESS)) {
-					m_fillLevel = 0;
-					return retVal;
-				}
+				m_fillLevel = 0;
+				return retVal;
 			}
 
 			if (numberOfBytesRecvd>static_cast < DWORD > (desiredLen)) {
-				// readv returns the total number of bytes read
-				m_fillLevel = retVal-numberOfBytesRecvd;
+				// WSARecv returns the total number of bytes read
+				m_fillLevel = numberOfBytesRecvd - desiredLen;
 				return static_cast < ssize_t > (desiredLen);
 			}
 			m_fillLevel = 0;
-			return retVal;
+			return numberOfBytesRecvd;
 		}
 	}
 }

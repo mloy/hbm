@@ -168,7 +168,7 @@ int hbm::communication::SocketNonblocking::process()
 
 ssize_t hbm::communication::SocketNonblocking::receive(void* pBlock, size_t size)
 {
-  return m_bufferedReader.recv(m_fd, pBlock, size, 0);
+  return m_bufferedReader.recv(m_fd, pBlock, size);
 }
 
 ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, size_t len, int msTimeout)
@@ -198,7 +198,7 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 
 
   while (DataToGet > 0) {
-    numBytes = m_bufferedReader.recv(m_fd, reinterpret_cast<char*>(pDat), static_cast < int >(DataToGet), 0);
+    numBytes = m_bufferedReader.recv(m_fd, reinterpret_cast<char*>(pDat), static_cast < int >(DataToGet));
     if(numBytes>0) {
       pDat += numBytes;
       DataToGet -= numBytes;
