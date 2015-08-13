@@ -98,26 +98,13 @@ namespace hbm {
 
 		int EventLoop::execute()
 		{
-			DWORD timeout = INFINITE;
 			ssize_t nbytes = 0;
-			std::chrono::steady_clock::time_point endTime;
-			if (timeToWait != std::chrono::milliseconds()) {
-			endTime = std::chrono::steady_clock::now() + timeToWait;
-			}
 
 			DWORD dwEvent;
 			eventInfo_t evi;
 			do {
 			
-			if (endTime != std::chrono::steady_clock::time_point()) {
-				std::chrono::milliseconds timediff = std::chrono::duration_cast <std::chrono::milliseconds> (endTime - std::chrono::steady_clock::now());
-				if (timediff.count() > 0) {
-				timeout = static_cast<int> (timediff.count());
-				} else {
-				timeout = 0;
-				}
-			}
-			dwEvent = WaitForMultipleObjects(static_cast < DWORD > (m_handles.size()), &m_handles[0], FALSE, timeout);
+			dwEvent = WaitForMultipleObjects(static_cast < DWORD > (m_handles.size()), &m_handles[0], FALSE, INFINITE);
 			if (dwEvent == WAIT_FAILED) {
 				int lastError = GetLastError();
 				// ERROR_INVALID_HANDLE might happen on removal of events.
