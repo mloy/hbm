@@ -19,6 +19,7 @@
 #include <functional>
 #include <chrono>
 #include <mutex>
+#include <thread>
 
 #include "hbm/exception/exception.hpp"
 #include "hbm/sys/defines.h"
@@ -45,6 +46,12 @@ namespace hbm {
 			int execute_for(std::chrono::milliseconds timeToWait);
 
 			void stop();
+
+			std::thread::id getThreadId()
+			{
+				return std::this_thread::get_id();
+			}
+
 		private:
 			struct eventInfo_t {
 				event fd;
