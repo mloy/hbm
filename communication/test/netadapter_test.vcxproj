@@ -83,7 +83,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\netadapter.cpp" />
+    <ClCompile Include="..\windows\netadapter.cpp" />
     <ClCompile Include="netadapter_test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
