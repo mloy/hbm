@@ -180,11 +180,11 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 
 	struct timeval timeVal;
 	struct timeval* pTimeVal;
-  fd_set recvFds;
+	fd_set recvFds;
 
 	FD_ZERO(&recvFds);
-  FD_SET(m_fd,&recvFds);
-  int err;
+	FD_SET(m_fd,&recvFds);
+	int err;
 
 	if(msTimeout>=0) {
 		timeVal.tv_sec = msTimeout / 1000;
@@ -289,37 +289,27 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 	int err;
 
 	while (BytesLeft > 0) {
-		// wir warten ohne timeout, bis wir schreiben koennen
-		err = select(static_cast < int >(m_fd) + 1, NULL, &recvFds, NULL, NULL);
-
-		if(err==1) {
-			if(FD_ISSET(m_fd, &recvFds)) {
-				numBytes = send(m_fd, reinterpret_cast < const char* >(pDat), static_cast < int >(BytesLeft), 0);
-				if (numBytes > 0) {
-					pDat += numBytes;
-					BytesLeft -= numBytes;
-				} else if(numBytes==0){
+		numBytes = send(m_fd, reinterpret_cast < const char* >(pDat), static_cast < int >(BytesLeft), 0);
+		if (numBytes > 0) {
+			pDat += numBytes;
+			BytesLeft -= numBytes;
+		} else if(numBytes==0){
+			// connection closed
+			BytesLeft = 0;
+			retVal = -1;
+		} else {
+			// -1: error
+			int retVal = WSAGetLastError();
+			if ((retVal == WSAEWOULDBLOCK) || (retVal == WSAEINPROGRESS)) {
+				err = select(static_cast < int >(m_fd)+1, NULL, &recvFds, NULL, NULL);
+				if (err != 1) {
 					BytesLeft = 0;
 					retVal = -1;
-				} else {
-					// -1: error
-					int retVal = WSAGetLastError();
-					if( (retVal!=WSAEWOULDBLOCK) && (retVal!=WSAEINTR) && (retVal!=WSAEINPROGRESS) ) {
-						BytesLeft = 0;
-						retVal = -1;
-					}
 				}
-			}
-		} else if(err==-1) {
-			// ignore EINTR
-			if( WSAGetLastError()!=WSAEINTR) {
+			} else if (retVal != WSAEINTR) {
+				BytesLeft = 0;
 				retVal = -1;
-				break;
 			}
-		} else {
-			// 0: timeout, should not happen here...
-			retVal = -1;
-			break;
 		}
 	}
 	return retVal;
