@@ -94,6 +94,7 @@ namespace hbm {
 				if (nfds<=0) {
 					// 0 means time out but is not possible here!
 					syslog(LOG_ERR, "epoll_wait failed ('%s') in eventloop ", strerror(errno));
+					return -1;
 				}
 
 
@@ -102,10 +103,6 @@ namespace hbm {
 					for (int n = 0; n < nfds; ++n) {
 						if(events[n].events & EPOLLIN) {
 							int fd = events[n].data.fd;
-							if (fd==m_stopFd) {
-								// stop notification!
-								return 0;
-							}
 
 							eventInfos_t::iterator iter = m_eventInfos.find(fd);
 							if (iter!=m_eventInfos.end()) {
@@ -116,6 +113,11 @@ namespace hbm {
 									// we are working edge triggered, hence we need to read everything that is available
 									result = eventInfo.eventHandler();
 								} while (result>0);
+							} else {
+								if (fd==m_stopFd) {
+									// stop notification!
+									return 0;
+								}
 							}
 						}
 					}
