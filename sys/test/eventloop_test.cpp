@@ -73,11 +73,13 @@ BOOST_AUTO_TEST_CASE(stop_test)
 BOOST_AUTO_TEST_CASE(waitforend_test)
 {
 	hbm::sys::EventLoop eventLoop;
-
+	hbm::sys::Timer executionTimer(eventLoop);
 	static const std::chrono::milliseconds duration(100);
+	
 
 	std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
-	int result = eventLoop.execute_for(duration);
+	executionTimer.set(duration, false, std::bind(&hbm::sys::EventLoop::stop, std::ref(eventLoop)));
+	int result = eventLoop.execute();
 	std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
 
 	std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-startTime);
@@ -89,12 +91,14 @@ BOOST_AUTO_TEST_CASE(waitforend_test)
 BOOST_AUTO_TEST_CASE(restart_test)
 {
 	hbm::sys::EventLoop eventLoop;
+	hbm::sys::Timer executionTimer(eventLoop);
 
 	static const std::chrono::milliseconds duration(100);
 
 	for (unsigned int i=0; i<10; ++i) {
 		std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
-		int result = eventLoop.execute_for(duration);
+		executionTimer.set(duration, false, std::bind(&hbm::sys::EventLoop::stop, std::ref(eventLoop)));
+		int result = eventLoop.execute();
 		std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
 		std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-startTime);
 
@@ -147,9 +151,10 @@ BOOST_AUTO_TEST_CASE(oneshottimer_test)
 	bool canceled = false;
 
 	hbm::sys::Timer timer(eventLoop);
+	hbm::sys::Timer executionTimer(eventLoop);
 	timer.set(timerCycle, false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
-
-	int result = eventLoop.execute_for(duration);
+	executionTimer.set(duration, false, std::bind(&hbm::sys::EventLoop::stop, std::ref(eventLoop)));
+	int result = eventLoop.execute();
 	BOOST_CHECK_EQUAL(counter, 1);
 	BOOST_CHECK_EQUAL(result, 0);
 
@@ -182,9 +187,11 @@ BOOST_AUTO_TEST_CASE(cyclictimer_test)
 	bool canceled = false;
 
 	hbm::sys::Timer cyclicTimer(eventLoop);
+	hbm::sys::Timer executionTimer(eventLoop);
 	cyclicTimer.set(timerCycle, true, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
+	executionTimer.set(duration, false, std::bind(&hbm::sys::EventLoop::stop, std::ref(eventLoop)));
+	int result = eventLoop.execute();
 
-	int result = eventLoop.execute_for(duration);
 	BOOST_CHECK_GE(counter, excpectedMinimum);
 	BOOST_CHECK_EQUAL(result, 0);
 }
@@ -226,8 +233,11 @@ BOOST_AUTO_TEST_CASE(canceltimer_test)
 	bool canceled = false;
 
 	hbm::sys::Timer timer(eventLoop);
+	hbm::sys::Timer executionTimer(eventLoop);
 	timer.set(timerCycle, false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
-	std::thread worker = std::thread(std::bind(&hbm::sys::EventLoop::execute_for, std::ref(eventLoop), duration));
+	executionTimer.set(duration, false, std::bind(&hbm::sys::EventLoop::stop, std::ref(eventLoop)));
+
+	std::thread worker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
 
 	timer.cancel();
 
@@ -298,9 +308,6 @@ BOOST_AUTO_TEST_CASE(retrigger_timer_test)
 	std::this_thread::sleep_for(duration);
 	BOOST_CHECK_EQUAL(counter, 2);
 
-
-
-
 	eventLoop.stop();
 	worker.join();
 }
@@ -314,10 +321,12 @@ BOOST_AUTO_TEST_CASE(removenotifier_test)
 	static const unsigned int timerCount = 10;
 	static const std::chrono::milliseconds duration(timerCycle * timerCount);
 	hbm::sys::EventLoop eventLoop;
+	hbm::sys::Timer executionTimer(eventLoop);
 
 	unsigned int counter = 0;
 	bool canceled = false;
-	std::thread worker = std::thread(std::bind(&hbm::sys::EventLoop::execute_for, std::ref(eventLoop), duration));
+	executionTimer.set(duration, false, std::bind(&hbm::sys::EventLoop::stop, std::ref(eventLoop)));
+	std::thread worker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
 
 	{
 		// leaving this scope leads to destruction of the timer and the removal from the event loop
