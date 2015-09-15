@@ -111,15 +111,9 @@ namespace hbm {
 									while (rtl && RTA_OK(rth, rtl)) {
 										if (rth->rta_type == IFA_LOCAL) {
 											// this is to be ignored if there are more than one ipv4 addresses assigned to the interface!
-											try {
-												communication::Netadapter adapter = m_netadapterlist.getAdapterByInterfaceIndex(pIfaddrmsg->ifa_index);
-												if(adapter.getIpv4Addresses().size()==1) {
-													if (m_interfaceAddressEventHandler) {
-														struct in_addr* pIn = reinterpret_cast < struct in_addr* > (RTA_DATA(rth));
-														m_interfaceAddressEventHandler(NEW, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
-													}
-												}
-											} catch(const hbm::exception::exception&) {
+											if (m_interfaceAddressEventHandler) {
+												struct in_addr* pIn = reinterpret_cast < struct in_addr* > (RTA_DATA(rth));
+												m_interfaceAddressEventHandler(NEW, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
 											}
 										}
 										rth = RTA_NEXT(rth, rtl);
@@ -135,17 +129,9 @@ namespace hbm {
 									int rtl = IFA_PAYLOAD(nh);
 									while (rtl && RTA_OK(rth, rtl)) {
 										if (rth->rta_type == IFA_LOCAL) {
-
-											// this is to be ignored if there is another ipv4 address left for the interface!
-											try {
-												communication::Netadapter adapter = m_netadapterlist.getAdapterByInterfaceIndex(pIfaddrmsg->ifa_index);
-												if(adapter.getIpv4Addresses().empty()==true) {
-													if (m_interfaceAddressEventHandler) {
-														struct in_addr* pIn = reinterpret_cast < struct in_addr* > (RTA_DATA(rth));
-														m_interfaceAddressEventHandler(DEL, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
-													}
-												}
-											} catch(const hbm::exception::exception&) {
+											if (m_interfaceAddressEventHandler) {
+												struct in_addr* pIn = reinterpret_cast < struct in_addr* > (RTA_DATA(rth));
+												m_interfaceAddressEventHandler(DEL, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
 											}
 										}
 										rth = RTA_NEXT(rth, rtl);
