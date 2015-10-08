@@ -78,6 +78,17 @@ namespace hbm {
 				std::string text = "hallo  ";
 				hbm::string::trim(text);
 				BOOST_CHECK_EQUAL(text, "hallo");
+
+				text = " ";
+				hbm::string::trim_right(text);
+				BOOST_CHECK_EQUAL(text, "");
+			}
+			
+			BOOST_AUTO_TEST_CASE( test_case_right_if )
+			{
+				std::string text = " ";
+				hbm::string::trim_right_if(text, ' ');
+				BOOST_CHECK_EQUAL(text, "");
 			}
 
 			BOOST_AUTO_TEST_CASE( test_case_left )

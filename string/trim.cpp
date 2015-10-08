@@ -32,6 +32,10 @@ namespace hbm {
 		{
 			std::string::size_type end = text.find_last_not_of(' ');
 			if (end==std::string::npos) {
+				// special case: the only character does match!
+				if (text[0]==' ') {
+					text.clear();
+				}
 				return;
 			}
 			text.erase(end+1);
@@ -53,6 +57,10 @@ namespace hbm {
 		{
 			std::string::size_type end = text.find_last_not_of(ch);
 			if (end==std::string::npos) {
+				// special case: the only character does match!
+				if (text[0]==ch) {
+					text.clear();
+				}
 				return;
 			}
 			text.erase(end+1);
