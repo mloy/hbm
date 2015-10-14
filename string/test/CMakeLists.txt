@@ -20,15 +20,12 @@ message(STATUS "CppCheck            : " ${WITH_CPPCHECK})
 message(STATUS "-----------------------------------------------------------")
 
 
-#include(QuantumxBoost)
 
 find_package(Boost COMPONENTS unit_test_framework)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
   list(APPEND ADDITIONAL_LIBS ${Boost_LIBRARIES})
 endif(Boost_FOUND)
-
-# set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake)
 
 
 # enable coverage inspection:
@@ -41,7 +38,7 @@ option(GCOV_PACKAGE "GCOV" ON)
 include_directories(..)
 
 
-#add_definitions("-std=c++0x --coverage")
+#add_definitions("--coverage")
 
 
 set(SOURCES_SPLITTEST
