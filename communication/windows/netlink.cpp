@@ -18,14 +18,9 @@ namespace hbm {
 			: m_netadapterlist(netadapterlist)
 			, m_eventloop(eventLoop)
 		{
-			HANDLE handle = NULL;
-			m_overlap.hEvent = WSACreateEvent();
-			DWORD ret = NotifyAddrChange(&handle, &m_overlap);
-			if (ret != NO_ERROR) {
-				int error = WSAGetLastError();
-				if (error != WSA_IO_PENDING) {
-					throw hbm::exception::exception("NotifyAddrChange failed: " + WSAGetLastError());
-				}
+			m_event.overlapped.hEvent = WSACreateEvent();
+			if (orderNextEvent() == -1) {
+				throw hbm::exception::exception("NotifyAddrChange failed: " + WSAGetLastError());
 			}
 		}
 
@@ -40,16 +35,7 @@ namespace hbm {
 			if (m_interfaceAddressEventHandler) {
 				m_interfaceAddressEventHandler(COMPLETE, 0, "");
 			}
-
-			HANDLE handle = NULL;
-			DWORD ret = NotifyAddrChange(&handle, &m_overlap);
-			if (ret != NO_ERROR) {
-				int error = WSAGetLastError();
-				if (error != WSA_IO_PENDING) {
-					throw hbm::exception::exception("NotifyAddrChange failed: Error " + WSAGetLastError());
-				}
-			}
-			return 0;
+			return orderNextEvent();
 		}
 
 		int Netlink::start(interfaceAddressCb_t interfaceAddressEventHandler)
@@ -58,14 +44,26 @@ namespace hbm {
 			if (m_interfaceAddressEventHandler) {
 				m_interfaceAddressEventHandler(COMPLETE, 0, "");
 			}
-			m_eventloop.addEvent(m_overlap.hEvent, std::bind(&Netlink::process, this));
+			m_eventloop.addEvent(m_event, std::bind(&Netlink::process, this));
 			return 0;
 		}
 
 		int Netlink::stop()
 		{
-			m_eventloop.eraseEvent(m_overlap.hEvent);
-			return CloseHandle(m_overlap.hEvent);
+			m_eventloop.eraseEvent(m_event);
+			return CloseHandle(m_event.overlapped.hEvent);
+		}
+		
+		int Netlink::orderNextEvent()
+		{
+			HANDLE handle = NULL;
+			DWORD ret = NotifyAddrChange(&handle, &m_event.overlapped);
+			if (ret != NO_ERROR) {
+				int error = WSAGetLastError();
+				if (error != WSA_IO_PENDING) {
+					return -1;
+				}
+			}
 		}
 	}
 }

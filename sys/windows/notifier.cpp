@@ -14,25 +14,29 @@
 namespace hbm {
 	namespace sys {
 		Notifier::Notifier(EventLoop& eventLoop)
-			: m_fd(CreateEvent(NULL, false, false, NULL))
+			: m_fd()
 			, m_eventLoop(eventLoop)
 			, m_eventHandler()
 		{
+			m_fd.completionPort = m_eventLoop.getCompletionPort();
+			m_fd.overlapped.hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+			m_eventLoop.addEvent(m_fd, std::bind(&Notifier::process, this));
 		}
 
 		Notifier::~Notifier()
 		{
 			m_eventLoop.eraseEvent(m_fd);
-			CloseHandle(m_fd);
+			CloseHandle(m_fd.overlapped.hEvent);
 		}
 
 
 		int Notifier::notify()
 		{
-			if (SetEvent(m_fd)==0) {
+			if (PostQueuedCompletionStatus(m_fd.completionPort, 0, 0, &m_fd.overlapped)) {
+				return 0;
+			} else {
 				return -1;
 			}
-			return 0;
 		}
 
 		int Notifier::process()
@@ -46,7 +50,6 @@ namespace hbm {
 		int Notifier::set(Cb_t eventHandler)
 		{
 			m_eventHandler = eventHandler;
-			m_eventLoop.addEvent(m_fd, std::bind(&Notifier::process, this));
 			return 0;
 		}
 	}

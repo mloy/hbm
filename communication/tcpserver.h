@@ -11,6 +11,7 @@
 #ifdef _WIN32
 #include <WinSock2.h>
 #include <WS2tcpip.h>
+#include <MSWSock.h>
 #undef max
 #undef min
 #endif
@@ -57,11 +58,17 @@ namespace hbm {
 			/// accepts a new connecting client.
 			/// \return On success, the worker socket for the new connected client is returned. Empty worker socket on error
 			workerSocket_t acceptClient();
+
+			int prepareAccept();
 #endif
 
-			int m_listeningSocket;
+			sys::event m_listeningEvent;
 #ifdef _WIN32
-			WSAEVENT m_event;
+			SOCKET m_acceptSocket;
+
+			LPFN_ACCEPTEX m_acceptEx;
+			char m_acceptBuffer[1024];
+			DWORD m_acceptSize;
 #endif
 			sys::EventLoop& m_eventLoop;
 			Cb_t m_acceptCb;

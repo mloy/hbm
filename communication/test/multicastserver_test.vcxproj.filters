@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\sys">
+      <UniqueIdentifier>{baecb95c-9e7c-436e-9cd1-98ac74b4b19d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sys\windows">
+      <UniqueIdentifier>{48d437e7-7bb2-43b2-809f-a0fef89303f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\test">
+      <UniqueIdentifier>{89d00c23-2590-4e73-82e3-dd0996b265ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\communication">
+      <UniqueIdentifier>{dd9f6894-42d3-49e1-9636-c2140e698327}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\communication\windows">
+      <UniqueIdentifier>{01b62d72-bc18-40de-ad2f-257582aef190}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\sys\windows\eventloop.cpp">
+      <Filter>Source Files\sys\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="multicastserver_test.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\windows\netadapter.cpp">
+      <Filter>Source Files\communication\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\windows\multicastserver.cpp">
+      <Filter>Source Files\communication\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\windows\netadapterlist.cpp">
+      <Filter>Source Files\communication\windows</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\multicastserver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sys\defines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

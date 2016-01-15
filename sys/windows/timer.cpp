@@ -12,57 +12,64 @@
 
 #include "hbm/sys/timer.h"
 
+
+static void CALLBACK timerCb(void *pData, BOOLEAN fired)
+{
+	if (fired) {
+		hbm::sys::event* pEvent = reinterpret_cast <hbm::sys::event*> (pData);
+		PostQueuedCompletionStatus(pEvent->completionPort, 0, 0, &pEvent->overlapped);
+	}
+}
+
+
 namespace hbm {
 	namespace sys {
 		Timer::Timer(EventLoop& eventLoop)
-			: m_fd(CreateWaitableTimer(NULL, FALSE, NULL))
+			: m_fd()
 			, m_eventLoop(eventLoop)
 			, m_eventHandler()
-			, m_isRunning(false)
 		{
+			m_fd.completionPort = m_eventLoop.getCompletionPort();
 		}
 
 		Timer::~Timer()
 		{
 			m_eventLoop.eraseEvent(m_fd);
-			CloseHandle(m_fd);
-			m_fd = INVALID_HANDLE_VALUE;
+			if (m_fd.overlapped.hEvent) {
+				DeleteTimerQueueTimer(NULL, m_fd.overlapped.hEvent, NULL);
+			}
 		}
 
 		int Timer::set(std::chrono::milliseconds period, bool repeated, Cb_t eventHandler)
 		{
-			return set(static_cast < unsigned int >(period.count()), repeated, eventHandler);
+			return set(static_cast <unsigned int>(period.count()), repeated, eventHandler);
 		}
 
 		int Timer::set(unsigned int period_ms, bool repeated, Cb_t eventHandler)
 		{
-			// warning: has to be done here. Not in constructor. We need to find out why!
-			m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
-			LARGE_INTEGER dueTimeIn100ns;
-			static const int64_t multiplier = -10000; // negative because we want a relative time
-			LONG periodInMilliseconds;
+			m_eventLoop.eraseEvent(m_fd);
+
+			if (m_fd.overlapped.hEvent) {
+				DeleteTimerQueueTimer(NULL, m_fd.overlapped.hEvent, NULL);
+				m_fd.overlapped.hEvent = NULL;
+			}
+			//cancel();
+
+			DWORD repeatPeriod;
+			if (repeated) {
+				repeatPeriod = period_ms;
+			}
+			else {
+				repeatPeriod = 0;
+			}
 
 			m_eventHandler = eventHandler;
 
-			if (repeated) {
-				periodInMilliseconds = period_ms;
+			if (CreateTimerQueueTimer(&m_fd.overlapped.hEvent, NULL, &timerCb, &m_fd, period_ms, repeatPeriod, WT_EXECUTEINTIMERTHREAD)) {
+				return m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
 			} else {
-				periodInMilliseconds = 0;
-			}
-			dueTimeIn100ns.QuadPart = period_ms*multiplier;
-			BOOL Result = SetWaitableTimer(
-				m_fd,
-				&dueTimeIn100ns,
-				periodInMilliseconds,
-				NULL,
-				this,
-				FALSE
-				);
-			if(Result==0) {
 				return -1;
 			}
-			m_isRunning = true;
-			return 0;
 		}
 
 		int Timer::process()
@@ -76,28 +83,16 @@ namespace hbm {
 
 		int Timer::cancel()
 		{
-			int result = 0;
+			m_eventLoop.eraseEvent(m_fd);
 
-			// Before calling callback function with fired=false, we need to clear the callback routine. 
-			// Otherwise a recursive call might happen
-			Cb_t originalEventHandler = m_eventHandler;
-			m_eventHandler = Cb_t();
-
-			if (m_isRunning) {
-				m_isRunning = false;
-				if (originalEventHandler) {
-					originalEventHandler(false);
-				}
-
-				result = 1;
+			if (m_fd.overlapped.hEvent) {
+				DeleteTimerQueueTimer(NULL, m_fd.overlapped.hEvent, NULL);
+				m_fd.overlapped.hEvent = NULL;
 			}
-
-			LARGE_INTEGER dueTime;
-			dueTime.QuadPart = LLONG_MIN;
-			if (SetWaitableTimer(m_fd, &dueTime, 0, NULL, NULL, FALSE) == FALSE) {
-				return -1;
+			if (m_eventHandler) {
+				m_eventHandler(false);
 			}
-			return result;
+			return 0;
 		}
 	}
 }

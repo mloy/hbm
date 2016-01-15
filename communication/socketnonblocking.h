@@ -64,7 +64,7 @@ namespace hbm
 
 			/// if setting a callback function, data receiption is done via event loop.
 			/// if setting an empty callback function DataCb_t(), the event is taken out of the eventloop.
-			void setDataCb(DataCb_t dataCb);
+			int setDataCb(DataCb_t dataCb);
 
 			/// send everything or until connection closes
 			ssize_t sendBlocks(const dataBlocks_t& blocks);
@@ -84,10 +84,10 @@ namespace hbm
 
 			void disconnect();
 
-			int getFd()
-			{
-				return m_fd;
-			}
+			//int getFd()
+			//{
+			//	return m_event;
+			//}
 
 		protected:
 			/// should not be copied
@@ -101,10 +101,7 @@ namespace hbm
 			/// called by eventloop
 			int process();
 
-			int m_fd;
-			#ifdef _WIN32
-			WSAEVENT m_event;
-			#endif
+			sys::event m_event;
 
 			BufferedReader m_bufferedReader;
 

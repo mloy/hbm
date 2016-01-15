@@ -18,7 +18,6 @@ namespace hbm {
 		public:
 			/// \throws hbm::exception
 			Notifier(EventLoop& eventLoop);
-			Notifier(Notifier&& source);
 
 			virtual ~Notifier();
 

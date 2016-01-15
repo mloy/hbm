@@ -30,7 +30,7 @@ const time_t TIMEOUT_CONNECT_S = 5;
 
 
 hbm::communication::SocketNonblocking::SocketNonblocking(sys::EventLoop &eventLoop)
-	: m_fd(-1)
+	: m_event(-1)
 	, m_bufferedReader()
 	, m_eventLoop(eventLoop)
 	, m_dataHandler()
@@ -38,12 +38,12 @@ hbm::communication::SocketNonblocking::SocketNonblocking(sys::EventLoop &eventLo
 }
 
 hbm::communication::SocketNonblocking::SocketNonblocking(int fd, sys::EventLoop &eventLoop)
-	: m_fd(fd)
+	: m_event(fd)
 	, m_bufferedReader()
 	, m_eventLoop(eventLoop)
 	, m_dataHandler()
 {
-	if (fcntl(m_fd, F_SETFL, O_NONBLOCK)==-1) {
+	if (fcntl(m_event, F_SETFL, O_NONBLOCK)==-1) {
 		throw std::runtime_error("error setting socket to non-blocking");
 	}
 	if (setSocketOptions()<0) {
@@ -56,13 +56,14 @@ hbm::communication::SocketNonblocking::~SocketNonblocking()
 	disconnect();
 }
 
-void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
+int hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 {
-	m_eventLoop.eraseEvent(m_fd);
+	m_eventLoop.eraseEvent(m_event);
 	m_dataHandler = dataCb;
 	if (dataCb) {
-		m_eventLoop.addEvent(m_fd, std::bind(&SocketNonblocking::process, this));
+		m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
 	}
+	return 0;
 }
 
 int hbm::communication::SocketNonblocking::setSocketOptions()
@@ -70,7 +71,7 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 	int opt = 1;
 
 	// turn off Nagle algorithm
-	if (setsockopt(m_fd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+	if (setsockopt(m_event, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
 		syslog(LOG_ERR, "error turning off nagle algorithm");
 		return -1;
 	}
@@ -78,7 +79,7 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 	opt = 12;
 	// the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe;
 	// after the connection is marked to need keepalive, this counter is not used any further
-	if (setsockopt(m_fd, SOL_TCP, TCP_KEEPIDLE, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+	if (setsockopt(m_event, SOL_TCP, TCP_KEEPIDLE, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
 		syslog(LOG_ERR, "error setting socket option TCP_KEEPIDLE");
 		return -1;
 }
@@ -86,7 +87,7 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 
 	opt = 3;
 	// the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
-	if (setsockopt(m_fd, SOL_TCP, TCP_KEEPINTVL, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+	if (setsockopt(m_event, SOL_TCP, TCP_KEEPINTVL, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
 		syslog(LOG_ERR, "error setting socket option TCP_KEEPINTVL");
 		return -1;
 	}
@@ -94,14 +95,14 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 
 	opt = 2;
 	// the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
-	if (setsockopt(m_fd, SOL_TCP, TCP_KEEPCNT, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+	if (setsockopt(m_event, SOL_TCP, TCP_KEEPCNT, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
 		syslog(LOG_ERR, "error setting socket option TCP_KEEPCNT");
 		return -1;
 	}
 
 
 	opt = 1;
-	if (setsockopt(m_fd, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+	if (setsockopt(m_event, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
 		syslog(LOG_ERR, "error setting socket option SO_KEEPALIVE");
 		return -1;
 	}
@@ -132,8 +133,8 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 
 int hbm::communication::SocketNonblocking::connect(int domain, const struct sockaddr* pSockAddr, socklen_t len)
 {
-	m_fd = ::socket(domain, SOCK_STREAM | SOCK_NONBLOCK, 0);
-	if (m_fd==-1) {
+	m_event = ::socket(domain, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	if (m_event==-1) {
 		return -1;
 	}
 
@@ -141,7 +142,7 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 		return -1;
 	}
 
-	int err = ::connect(m_fd, pSockAddr, len);
+	int err = ::connect(m_event, pSockAddr, len);
 	if (err==-1) {
 		// success if errno equals EINPROGRESS
 		if(errno != EINPROGRESS) {
@@ -149,7 +150,7 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 			return -1;
 		}
 		struct pollfd pfd;
-		pfd.fd = m_fd;
+		pfd.fd = m_event;
 		pfd.events = POLLOUT;
 		do {
 			err = poll(&pfd, 1, TIMEOUT_CONNECT_S*1000);
@@ -160,7 +161,7 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 
 		int value;
 		len = sizeof(value);
-		getsockopt(m_fd, SOL_SOCKET, SO_ERROR, &value, &len);
+		getsockopt(m_event, SOL_SOCKET, SO_ERROR, &value, &len);
 		if(value!=0) {
 			return -1;
 		}
@@ -179,7 +180,7 @@ int hbm::communication::SocketNonblocking::process()
 
 ssize_t hbm::communication::SocketNonblocking::receive(void* pBlock, size_t size)
 {
-	return m_bufferedReader.recv(m_fd, pBlock, size);
+	return m_bufferedReader.recv(m_event, pBlock, size);
 }
 
 ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, size_t size, int msTimeout)
@@ -188,7 +189,7 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 	unsigned char* pPos = reinterpret_cast < unsigned char* > (pBlock);
 	size_t sizeLeft = size;
 	while(sizeLeft) {
-		retVal = m_bufferedReader.recv(m_fd, pPos, sizeLeft);
+		retVal = m_bufferedReader.recv(m_event, pPos, sizeLeft);
 		if(retVal>0) {
 			sizeLeft -= retVal;
 			pPos += retVal;
@@ -198,7 +199,7 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 			if(errno==EWOULDBLOCK || errno==EAGAIN) {
 				// wait for socket to become readable.
 				struct pollfd pfd;
-				pfd.fd = m_fd;
+				pfd.fd = m_event;
 				pfd.events = POLLIN;
 				int nfds;
 				do {
@@ -234,7 +235,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 	}
 
 
-	ssize_t retVal = writev(m_fd, &iovs[0], iovs.size());
+	ssize_t retVal = writev(m_event, &iovs[0], iovs.size());
 	if (retVal==0) {
 		return retVal;
 	} else if (retVal==-1) {
@@ -277,7 +278,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 	ssize_t retVal = size;
 
 	struct pollfd pfd;
-	pfd.fd = m_fd;
+	pfd.fd = m_event;
 	pfd.events = POLLOUT;
 
 	int flags = 0;
@@ -287,7 +288,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 	int err;
 
 	while (BytesLeft > 0) {
-		numBytes = send(m_fd, pDat, BytesLeft, flags);
+		numBytes = send(m_event, pDat, BytesLeft, flags);
 		if(numBytes>0) {
 			pDat += numBytes;
 			BytesLeft -= numBytes;
@@ -333,7 +334,7 @@ bool hbm::communication::SocketNonblocking::checkSockAddr(const struct ::sockadd
 		return false;
 	}
 
-	if (getpeername(m_fd, &sockAddr, &addrLen)!=0) {
+	if (getpeername(m_event, &sockAddr, &addrLen)!=0) {
 		return false;
 	}
 
@@ -353,10 +354,10 @@ bool hbm::communication::SocketNonblocking::checkSockAddr(const struct ::sockadd
 
 void hbm::communication::SocketNonblocking::disconnect()
 {
-	m_eventLoop.eraseEvent(m_fd);
-	shutdown(m_fd, SHUT_RDWR);
-	::close(m_fd);
-	m_fd = -1;
+	m_eventLoop.eraseEvent(m_event);
+	shutdown(m_event, SHUT_RDWR);
+	::close(m_event);
+	m_event = -1;
 }
 
 bool hbm::communication::SocketNonblocking::isFirewire() const
@@ -366,7 +367,7 @@ bool hbm::communication::SocketNonblocking::isFirewire() const
 	struct ifreq ifr;
 	memset(&ifr, 0, sizeof(struct ifreq));
 
-	if ((::ioctl(m_fd, SIOCGIFHWADDR, (caddr_t)&ifr, sizeof(struct ifreq))) >= 0) {
+	if ((::ioctl(m_event, SIOCGIFHWADDR, (caddr_t)&ifr, sizeof(struct ifreq))) >= 0) {
 		if (ifr.ifr_hwaddr.sa_family == ARPHRD_IEEE1394) {
 			retVal = true;
 		}

@@ -20,7 +20,7 @@
 namespace hbm {
 	namespace communication {
 		TcpServer::TcpServer(sys::EventLoop &eventLoop)
-			: m_listeningSocket(-1)
+			: m_listeningEvent(-1)
 			, m_eventLoop(eventLoop)
 			, m_acceptCb()
 		{
@@ -45,22 +45,22 @@ namespace hbm {
 			address.sin6_addr = in6addr_any;
 			address.sin6_port = htons(port);
 
-			m_listeningSocket = ::socket(address.sin6_family, SOCK_STREAM | SOCK_NONBLOCK, 0);
-			if (m_listeningSocket==-1) {
+			m_listeningEvent = ::socket(address.sin6_family, SOCK_STREAM | SOCK_NONBLOCK, 0);
+			if (m_listeningEvent==-1) {
 				syslog(LOG_ERR, "TCP server: Socket initialization failed '%s'", strerror(errno));
 				return -1;
 			}
-			if (::bind(m_listeningSocket, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
+			if (::bind(m_listeningEvent, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
 				syslog(LOG_ERR, "TCP server: Binding socket to port %u failed '%s'", port, strerror(errno));
 				return -1;
 			}
 
-			if (listen(m_listeningSocket, backlog)==-1) {
+			if (listen(m_listeningEvent, backlog)==-1) {
 				return -1;
 			}
 
 			m_acceptCb = acceptCb;
-			m_eventLoop.addEvent(m_listeningSocket, std::bind(&TcpServer::process, this));
+			m_eventLoop.addEvent(m_listeningEvent, std::bind(&TcpServer::process, this));
 
 
 			return 0;
@@ -68,14 +68,14 @@ namespace hbm {
 
 		void TcpServer::stop()
 		{
-			m_eventLoop.eraseEvent(m_listeningSocket);
-			close(m_listeningSocket);
+			m_eventLoop.eraseEvent(m_listeningEvent);
+			close(m_listeningEvent);
 			m_acceptCb = Cb_t();
 		}
 
 		int TcpServer::process()
 		{
-			int clientFd = accept(m_listeningSocket, NULL, NULL);
+			int clientFd = accept(m_listeningEvent, NULL, NULL);
 			if (clientFd<0) {
 				if ((errno!=EWOULDBLOCK) && (errno!=EAGAIN) && (errno!=EINTR) ) {
 					syslog(LOG_ERR, "TCP server: error accepting connection '%s'", strerror(errno));

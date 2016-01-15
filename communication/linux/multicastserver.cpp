@@ -41,8 +41,8 @@ namespace hbm {
 		MulticastServer::MulticastServer(NetadapterList& netadapterList, sys::EventLoop &eventLoop)
 			: m_address()
 			, m_port()
-			, m_ReceiveSocket(NO_SOCKET)
-			, m_SendSocket(NO_SOCKET)
+			, m_receiveEvent(-1)
+			, m_sendEvent(-1)
 			, m_receiveAddr()
 			, m_netadapterList(netadapterList)
 			, m_eventLoop(eventLoop)
@@ -66,7 +66,7 @@ namespace hbm {
 				memset(&hints, 0, sizeof(hints));
 
 				sprintf(portString, "%u", m_port);
-				hints.ai_family   = PF_UNSPEC;
+				hints.ai_family   = AF_UNSPEC;
 				hints.ai_socktype = SOCK_DGRAM;
 
 				if ( getaddrinfo(m_address.c_str(), portString, &hints, &pResult) != 0 ) {
@@ -74,9 +74,9 @@ namespace hbm {
 					return -1;
 				}
 
-				m_ReceiveSocket = socket(pResult->ai_family, SOCK_DGRAM | SOCK_NONBLOCK, 0);
-				if (m_ReceiveSocket < 0) {
-					m_ReceiveSocket = NO_SOCKET;
+				m_receiveEvent = socket(pResult->ai_family, SOCK_DGRAM | SOCK_NONBLOCK, 0);
+				if (m_receiveEvent < 0) {
+					m_receiveEvent = -1;
 				}
 
 				memset(&m_receiveAddr, 0, sizeof(m_receiveAddr));
@@ -91,7 +91,7 @@ namespace hbm {
 
 
 
-			if (m_ReceiveSocket < 0) {
+			if (m_receiveEvent < 0) {
 				::syslog(LOG_ERR, "Could not create receiving socket!");
 				return -1;
 			}
@@ -100,20 +100,20 @@ namespace hbm {
 
 			// sufficient buffer for several messages
 			int RcvBufSize = 128000;
-			if (setsockopt(m_ReceiveSocket, SOL_SOCKET, SO_RCVBUF, &RcvBufSize, sizeof(RcvBufSize)) < 0) {
+			if (setsockopt(m_receiveEvent, SOL_SOCKET, SO_RCVBUF, &RcvBufSize, sizeof(RcvBufSize)) < 0) {
 				return -1;
 			}
 
 			uint32_t yes = 1;
 			// allow multiple sockets to use the same PORT number
 
-			if (setsockopt(m_ReceiveSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+			if (setsockopt(m_receiveEvent, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 				::syslog(LOG_ERR, "Could not set SO_REUSEADDR!");
 				return -1;
 			}
 
 			// We do want to know the interface, we received on
-			if (setsockopt(m_ReceiveSocket, IPPROTO_IP, IP_PKTINFO, reinterpret_cast < char* >(&yes), sizeof(yes)) != 0) {
+			if (setsockopt(m_receiveEvent, IPPROTO_IP, IP_PKTINFO, reinterpret_cast < char* >(&yes), sizeof(yes)) != 0) {
 				::syslog(LOG_ERR, "Could not set IP_PKTINFO!");
 				return -1;
 			}
@@ -123,7 +123,7 @@ namespace hbm {
 			//	return -1;
 			//}
 
-			if (bind(m_ReceiveSocket, (struct sockaddr*)&m_receiveAddr, sizeof(m_receiveAddr)) < 0) {
+			if (bind(m_receiveEvent, (struct sockaddr*)&m_receiveAddr, sizeof(m_receiveAddr)) < 0) {
 				::syslog(LOG_ERR, "Could not bind socket!");
 				return -1;
 			}
@@ -134,10 +134,10 @@ namespace hbm {
 
 		int MulticastServer::setupSendSocket()
 		{
-			m_SendSocket = socket(AF_INET, SOCK_DGRAM, 0);
+			m_sendEvent = socket(AF_INET, SOCK_DGRAM, 0);
 
-			if (m_SendSocket < 0) {
-				m_SendSocket = NO_SOCKET;
+			if (m_sendEvent < 0) {
+				m_sendEvent = -1;
 				::syslog(LOG_ERR, "Could not create socket!");
 				return -1;
 			}
@@ -155,7 +155,7 @@ namespace hbm {
 				param = 1;
 			}
 
-			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_LOOP, &param, sizeof(param))) {
+			if (setsockopt(m_sendEvent, IPPROTO_IP, IP_MULTICAST_LOOP, &param, sizeof(param))) {
 				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_LOOP '%s'!", strerror(errno));
 				return -1;
 			}
@@ -212,7 +212,7 @@ namespace hbm {
 			memset(&hints, 0, sizeof(hints));
 
 			sprintf(portString, "%u", m_port);
-			hints.ai_family   = PF_UNSPEC;
+			hints.ai_family   = AF_INET;
 			hints.ai_socktype = SOCK_DGRAM;
 
 			if ( getaddrinfo(m_address.c_str(), portString, &hints, &pResult) != 0 ) {
@@ -220,8 +220,16 @@ namespace hbm {
 				return -1;
 			}
 
+			if (pResult->ai_addr->sa_family != AF_INET) {
+				::syslog(LOG_ERR, "Only IPv4 multicast IP address currently supported (%s)!", m_address.c_str());
+				return -1;
+			}
+
+			struct sockaddr_in address;
+			std::memcpy(&address, pResult->ai_addr, sizeof(address));
+
 			memset(&im, 0, sizeof(im));
-			memcpy(&im.imr_multiaddr, &(reinterpret_cast < struct sockaddr_in* > (pResult->ai_addr))->sin_addr, sizeof(im.imr_multiaddr.s_addr));
+			im.imr_multiaddr = address.sin_addr;
 
 			freeaddrinfo(pResult);
 
@@ -238,7 +246,7 @@ namespace hbm {
 			}
 
 
-			retVal = setsockopt(m_ReceiveSocket, IPPROTO_IP, optionName, &im, sizeof(im));
+			retVal = setsockopt(m_receiveEvent, IPPROTO_IP, optionName, &im, sizeof(im));
 			if (add) {
 				if (retVal!=0) {
 					if(errno==EADDRINUSE) {
@@ -274,7 +282,7 @@ namespace hbm {
 
 		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, Netadapter& adapter, int& ttl)
 		{
-			int interfaceIndex = 0;
+			unsigned int interfaceIndex = 0;
 			ssize_t nbytes = receiveTelegram(msgbuf, len, interfaceIndex, ttl);
 			if(nbytes>0) {
 				try {
@@ -289,7 +297,7 @@ namespace hbm {
 
 		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, std::string& adapterName, int& ttl)
 		{
-			int interfaceIndex = 0;
+			unsigned int interfaceIndex = 0;
 			ssize_t nbytes = receiveTelegram(msgbuf, len, interfaceIndex, ttl);
 			if(nbytes>0) {
 				try {
@@ -302,7 +310,7 @@ namespace hbm {
 			return nbytes;
 		}
 
-		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, int& ttl)
+		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, unsigned int& adapterIndex, int& ttl)
 		{
 			// we do use recvmsg here because we get some additional information: The interface we received from.
 			ttl = 1;
@@ -321,20 +329,18 @@ namespace hbm {
 			msg.msg_control = &controlbuffer;
 			msg.msg_controllen = sizeof(controlbuffer);
 			msg.msg_flags = 0;
-			nbytes = ::recvmsg(m_ReceiveSocket, &msg, 0);
+			nbytes = ::recvmsg(m_receiveEvent, &msg, 0);
 
 			if (nbytes > 0) {
 				for (struct cmsghdr* pcmsghdr = CMSG_FIRSTHDR(&msg); pcmsghdr != NULL; pcmsghdr = CMSG_NXTHDR(&msg, pcmsghdr))
 				{
 					if (pcmsghdr->cmsg_type == IP_PKTINFO) {
-						struct in_pktinfo* ppktinfo;
-						ppktinfo = reinterpret_cast <struct in_pktinfo*> (CMSG_DATA(pcmsghdr));
-						adapterIndex = ppktinfo->ipi_ifindex;
+						struct in_pktinfo pktinfo;
+						std::memcpy(&pktinfo, CMSG_DATA(pcmsghdr), sizeof(pktinfo));
+						adapterIndex = pktinfo.ipi_ifindex;
 					} else if(pcmsghdr->cmsg_type == IP_TTL) {
-						int* pTtl;
 						// returns the ttl from the received ip header (the value set by the last sender(router))
-						pTtl = reinterpret_cast <int*> (CMSG_DATA(pcmsghdr));
-						ttl = *pTtl;
+						std::memcpy(&ttl, CMSG_DATA(pcmsghdr), sizeof(ttl));
 					}
 				}
 			}
@@ -469,13 +475,13 @@ namespace hbm {
 			}
 
 
-			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_IF, &ifAddr, sizeof(ifAddr))) {
+			if (setsockopt(m_sendEvent, IPPROTO_IP, IP_MULTICAST_IF, &ifAddr, sizeof(ifAddr))) {
 				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_IF for interface %s!", interfaceIp.c_str());
 				return ERR_INVALIDADAPTER;
 			};
 
 
-			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl))) {
+			if (setsockopt(m_sendEvent, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl))) {
 				::syslog(LOG_ERR, "%s: Error setsockopt IPV6_MULTICAST_HOPS to %u!", interfaceIp.c_str(), ttl);
 				return ERR_NO_SUCCESS;
 			}
@@ -490,7 +496,7 @@ namespace hbm {
 				return ERR_NO_SUCCESS;
 			}
 
-			ssize_t nbytes = sendto(m_SendSocket, pData, length, 0, reinterpret_cast < struct sockaddr* >(&sendAddr), sizeof(sendAddr));
+			ssize_t nbytes = sendto(m_sendEvent, pData, length, 0, reinterpret_cast < struct sockaddr* >(&sendAddr), sizeof(sendAddr));
 
 			if (static_cast < size_t >(nbytes) != length) {
 				::syslog(LOG_ERR, "error sending message over interface %s!", interfaceIp.c_str());
@@ -517,7 +523,7 @@ namespace hbm {
 
 			m_dataHandler = dataHandler;
 			if (dataHandler) {
-				m_eventLoop.addEvent(m_ReceiveSocket, std::bind(&MulticastServer::process, this));
+				m_eventLoop.addEvent(m_receiveEvent, std::bind(&MulticastServer::process, this));
 			}
 			return 0;
 		}
@@ -525,19 +531,19 @@ namespace hbm {
 		void MulticastServer::stop()
 		{
 			dropAllInterfaces();
-			m_eventLoop.eraseEvent(m_ReceiveSocket);
+			m_eventLoop.eraseEvent(m_receiveEvent);
 
 
-			if (m_SendSocket != NO_SOCKET) {
-				::close(m_SendSocket);
-				m_SendSocket = NO_SOCKET;
+			if (m_sendEvent != -1) {
+				::close(m_sendEvent);
+				m_sendEvent = -1;
 			}
 
-			if (m_ReceiveSocket != NO_SOCKET) {
+			if (m_receiveEvent != -1) {
 
-				::shutdown(m_ReceiveSocket, SHUT_RDWR);
-				::close(m_ReceiveSocket);
-				m_ReceiveSocket = NO_SOCKET;
+				::shutdown(m_receiveEvent, SHUT_RDWR);
+				::close(m_receiveEvent);
+				m_receiveEvent = -1;
 			}
 		}
 	}

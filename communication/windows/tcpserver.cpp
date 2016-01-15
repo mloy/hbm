@@ -22,29 +22,41 @@
 namespace hbm {
 	namespace communication {
 		TcpServer::TcpServer(sys::EventLoop &eventLoop)
-			: m_listeningSocket(-1)
+			: m_acceptSocket(INVALID_SOCKET)
 			, m_eventLoop(eventLoop)
 			, m_acceptCb()
 		{
+			WORD RequestedSockVersion = MAKEWORD(2, 2);
 			WSADATA wsaData;
-			WSAStartup(2, &wsaData);
-			m_event = WSACreateEvent();
+			WSAStartup(RequestedSockVersion, &wsaData);
+
+			m_listeningEvent.completionPort = m_eventLoop.getCompletionPort();
+			m_listeningEvent.overlapped.hEvent = WSACreateEvent();
 		}
 
 		TcpServer::~TcpServer()
 		{
 			stop();
-			WSACloseEvent(m_event);
+			WSACloseEvent(m_listeningEvent.overlapped.hEvent);
 		}
 
 		int TcpServer::start(uint16_t port, int backlog, Cb_t acceptCb)
 		{
-			m_listeningSocket = socket(PF_INET, SOCK_STREAM, 0);
+			m_listeningEvent.fileHandle = reinterpret_cast < HANDLE > (socket(AF_INET, SOCK_STREAM, 0));
+
+			DWORD winLen;
+
+			GUID InBuffer[] = WSAID_ACCEPTEX;
+			int status = WSAIoctl(reinterpret_cast < SOCKET > (m_listeningEvent.fileHandle), SIO_GET_EXTENSION_FUNCTION_POINTER, &InBuffer, sizeof(InBuffer), &m_acceptEx, sizeof(m_acceptEx), &winLen, NULL, NULL);
+			if (status != 0) {
+				return -1;
+			}
+
 			SOCKADDR_IN address;
 			memset(&address, 0, sizeof(address));
 			address.sin_family = AF_INET;
 			address.sin_addr.s_addr = htonl(INADDR_ANY);
-			address.sin_port = htons(port);			
+			address.sin_port = htons(port);	
 
 			////ipv6 does work for ipv4 too!
 			//m_listeningSocket = ::socket(AF_INET6, SOCK_STREAM, 0);
@@ -54,52 +66,40 @@ namespace hbm {
 			//address.sin6_addr = in6addr_any;
 			//address.sin6_port = htons(port);
 
-			if (::bind(m_listeningSocket, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
+			if (::bind(reinterpret_cast < SOCKET > (m_listeningEvent.fileHandle), reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
 				printf("%s: Binding socket to port initialization failed '%s'", __FUNCTION__, strerror(errno));
 				return -1;
 			}
 
 			// switch to non blocking
 			u_long value = 1;
-			::ioctlsocket(m_listeningSocket, FIONBIO, &value);
+			if (::ioctlsocket(reinterpret_cast <SOCKET> (m_listeningEvent.fileHandle), FIONBIO, &value) == -1)
+			{
+				return -1;
+			}
 
 			m_acceptCb = acceptCb;
-			m_eventLoop.addEvent(m_event, std::bind(&TcpServer::process, this));
 
-			if (WSAEventSelect(m_listeningSocket, m_event, FD_ACCEPT | FD_CLOSE) == -1) {
+			if (listen(reinterpret_cast < SOCKET > (m_listeningEvent.fileHandle), backlog) == -1) {
 				return -1;
 			}
 
-
-
-			if (listen(m_listeningSocket, backlog) == -1) {
+			if (prepareAccept() == -1) {
 				return -1;
 			}
 
-
-			return 0;
+			return m_eventLoop.addEvent(m_listeningEvent, std::bind(&TcpServer::process, this));
 		}
 
 		void TcpServer::stop()
 		{
-			m_eventLoop.eraseEvent(m_event);
-			closesocket(m_listeningSocket);
+			m_eventLoop.eraseEvent(m_listeningEvent);
+			closesocket(reinterpret_cast < SOCKET > (m_listeningEvent.fileHandle));
 		}
 
 		workerSocket_t TcpServer::acceptClient()
 		{
-			sockaddr_in SockAddr;
-			// the length of the client's address
-			socklen_t socketAddressLen = sizeof(SockAddr);
-			int clientFd = accept(m_listeningSocket, reinterpret_cast<sockaddr*>(&SockAddr), &socketAddressLen);
-
-			if (clientFd<0) {
-				printf_s("%s: Accept failed %d!", __FUNCTION__, WSAGetLastError());
-				return workerSocket_t();
-			}
-
-
-			return workerSocket_t(new SocketNonblocking(clientFd, m_eventLoop));
+			return workerSocket_t(new SocketNonblocking(m_acceptSocket, m_eventLoop));
 		}
 
 
@@ -113,7 +113,26 @@ namespace hbm {
 			if (m_acceptCb) {
 				m_acceptCb(std::move(worker));
 			}
+			prepareAccept();
 			return 0;
+		}
+
+		int TcpServer::prepareAccept()
+		{
+			m_acceptSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+			BOOL result = m_acceptEx(reinterpret_cast < SOCKET > (m_listeningEvent.fileHandle), m_acceptSocket, m_acceptBuffer, 0, 128, 128, &m_acceptSize, &m_listeningEvent.overlapped);
+			if (result == FALSE) {
+				if (WSAGetLastError() == WSA_IO_PENDING) {
+					return 0;
+				}
+				else {
+					return -1;
+				}
+			}
+
+			return 0;
+
 		}
 	}
 }

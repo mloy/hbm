@@ -32,23 +32,18 @@ const unsigned int MAX_DATAGRAM_SIZE = 65536;
 namespace hbm {
 	namespace communication {
 		Netlink::Netlink(communication::NetadapterList &netadapterlist, sys::EventLoop &eventLoop)
-			: m_fd(socket(AF_NETLINK, SOCK_RAW | SOCK_NONBLOCK, NETLINK_ROUTE))
+			: m_event(socket(AF_NETLINK, SOCK_RAW | SOCK_NONBLOCK, NETLINK_ROUTE))
 			, m_netadapterlist(netadapterlist)
 			, m_eventloop(eventLoop)
 		{
-			if (m_fd<0) {
+			if (m_event<0) {
 				throw hbm::exception::exception("could not open netlink socket");
 			}
 
 
 			int yes = 1;
 			// allow multiple sockets to use the same PORT number
-#ifdef _WIN32
-			if (setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast < char* >(&yes), sizeof(yes)) < 0) {
-#else
-
-			if (setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
-#endif
+			if (setsockopt(m_event, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 				throw hbm::exception::exception("Could not set SO_REUSEADDR!");
 			}
 
@@ -64,7 +59,7 @@ namespace hbm {
 			netLinkAddr.nl_pid = 0;
 			netLinkAddr.nl_groups = RTMGRP_LINK | RTMGRP_NOTIFY | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR | RTMGRP_IPV4_ROUTE;
 
-			if (::bind(m_fd, reinterpret_cast < struct sockaddr *> (&netLinkAddr), sizeof(netLinkAddr))<0) {
+			if (::bind(m_event, reinterpret_cast < struct sockaddr *> (&netLinkAddr), sizeof(netLinkAddr))<0) {
 				throw hbm::exception::exception(std::string("could not bind netlink socket '")+strerror(errno)+"'");
 			}
 		}
@@ -87,7 +82,7 @@ namespace hbm {
 			msg.msg_namelen = sizeof(nladdr);
 			msg.msg_iov = &iov;
 			msg.msg_iovlen = 1;
-			return ::recvmsg(m_fd, &msg, 0);
+			return ::recvmsg(m_event, &msg, 0);
 		}
 
 		void Netlink::processNetlinkTelegram(void *pReadBuffer, size_t bufferSize) const
@@ -176,14 +171,14 @@ namespace hbm {
 				m_interfaceAddressEventHandler(COMPLETE, 0, "");
 			}
 
-			m_eventloop.addEvent(m_fd, std::bind(&Netlink::process, this));
+			m_eventloop.addEvent(m_event, std::bind(&Netlink::process, this));
 			return 0;
 		}
 
 		int Netlink::stop()
 		{
-			m_eventloop.eraseEvent(m_fd);
-			return ::close(m_fd);
+			m_eventloop.eraseEvent(m_event);
+			return ::close(m_event);
 		}
 	}
 }

@@ -13,8 +13,10 @@
 
 #ifdef _WIN32
 #include <WinSock2.h>
-#undef max
-#undef min
+#include <WS2tcpip.h>
+#include <MSWSock.h>
+//#undef max
+//#undef min
 #else
 #include <arpa/inet.h>
 #endif
@@ -95,7 +97,7 @@ namespace hbm {
 			ssize_t receiveTelegram(void* msgbuf, size_t len, std::string& adapterName, int& ttl);
 
 			/// @param[out] ttl ttl in the ip header (the value set by the last sender(router))
-			ssize_t receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, int &ttl);
+			ssize_t receiveTelegram(void* msgbuf, size_t len, unsigned int& adapterIndex, int &ttl);
 		private:
 
 			MulticastServer(const MulticastServer&);
@@ -111,17 +113,25 @@ namespace hbm {
 			/// called by eventloop
 			int process();
 
+#ifdef _WIN32
+			int orderNextMessage();
+#endif
+
 			/// The All Hosts multicast group addresses all hosts on the same network segment.
 			std::string m_address;
 
 			unsigned int m_port;
 
-			static const SOCKET NO_SOCKET = static_cast<SOCKET>(-1);
 
-			SOCKET m_ReceiveSocket;
-			SOCKET m_SendSocket;
+			sys::event m_receiveEvent;
+			sys::event m_sendEvent;
 	#ifdef _WIN32
-			WSAEVENT m_event;
+			LPFN_WSARECVMSG m_wsaRecvMsg;
+
+			WSAMSG m_msg;
+			WSABUF m_iov;
+			uint8_t m_recvBuffer[MAX_DATAGRAM_SIZE];
+			char m_recvControlBuffer[100];
 	#endif
 
 			struct sockaddr_in m_receiveAddr;

@@ -5,6 +5,7 @@
 #ifndef _HBM__BUFFEREDREADER_H
 #define _HBM__BUFFEREDREADER_H
 
+#include "hbm/sys/defines.h"
 #ifdef _WIN32
 #ifndef ssize_t
 #define ssize_t int
@@ -24,7 +25,7 @@ namespace hbm {
 			BufferedReader();
 
 			/// behaves like ::recv
-			ssize_t recv(int sockfd, void *buf, size_t len);
+			ssize_t recv(hbm::sys::event& ev, void *buf, size_t len);
 
 		private:
 			BufferedReader(const BufferedReader& op);

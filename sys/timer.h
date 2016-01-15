@@ -25,8 +25,6 @@ namespace hbm {
 			/// \throws hbm::exception
 			Timer(EventLoop& eventLoop);
 
-			Timer(Timer&& source);
-
 			~Timer();
 
 			/// @param period_ms timer interval in ms
@@ -38,6 +36,7 @@ namespace hbm {
 			int cancel();
 
 		private:
+
 			/// must not be copied
 			Timer(const Timer& op);
 			/// must not be assigned
@@ -49,9 +48,6 @@ namespace hbm {
 			event m_fd;
 			EventLoop& m_eventLoop;
 			Cb_t m_eventHandler;
-#ifdef _WIN32
-			bool m_isRunning;
-#endif
 		};
 	}
 }

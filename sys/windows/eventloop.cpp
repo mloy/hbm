@@ -10,61 +10,21 @@
 #include <chrono>
 #include <mutex>
 
-
 #include "hbm/sys/eventloop.h"
 
 namespace hbm {
 	namespace sys {
-		/// \throws hbm::exception
 		EventLoop::EventLoop()
-			: m_changeFd(CreateEvent(NULL, false, false, NULL))
-			, m_stopFd(CreateEvent(NULL, false, false, NULL))
+			: m_completionPort(CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1))
+			, m_hEventLog(RegisterEventSource(NULL, reinterpret_cast < LPCSTR > ("Application")))
 		{
-			eventInfo_t stopEvent;
-			stopEvent.fd = m_stopFd;
-			stopEvent.eventHandler = nullptr;
-
-			eventInfo_t changeEvent;
-			changeEvent.fd = m_changeFd;
-			changeEvent.eventHandler = std::bind(&EventLoop::changeHandler, this);;
-
-			m_eventInfos[m_stopFd] = stopEvent;
-			m_eventInfos[m_changeFd] = changeEvent;
-
-			m_handles.push_back(m_stopFd);
-			m_handles.push_back(m_changeFd);
 		}
 
 		EventLoop::~EventLoop()
 		{
 			stop();
+			DeregisterEventSource(m_hEventLog);
 		}
-
-		int EventLoop::changeHandler()
-		{
-			{
-				std::lock_guard < std::recursive_mutex > lock(m_changeListMtx);
-				for (changelist_t::const_iterator iter = m_changeList.begin(); iter != m_changeList.end(); ++iter) {
-					const eventInfo_t& item = *iter;
-					if (item.eventHandler) {
-						// add or change
-						m_eventInfos[item.fd] = item;
-					}
-					else {
-						// remove
-						m_eventInfos.erase(item.fd);
-					}
-				}
-				m_changeList.clear();
-			}
-			m_handles.clear();
-			for (eventInfos_t::const_iterator iter = m_eventInfos.begin(); iter != m_eventInfos.end(); ++iter) {
-				m_handles.push_back(iter->first);
-			}
-
-			return 0;
-		}
-
 
 		int EventLoop::addEvent(event fd, EventHandler_t eventHandler)
 		{
@@ -72,72 +32,89 @@ namespace hbm {
 				return -1;
 			}
 
-			eventInfo_t evi;
-			evi.fd = fd;
-			evi.eventHandler = eventHandler;
 			{
-				std::lock_guard < std::recursive_mutex> lock(m_changeListMtx);
-				m_changeList.push_back(evi);
+				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
+				m_eventInfos[fd.overlapped.hEvent] = eventHandler;
 			}
-			SetEvent(m_changeFd);
+			
+			if (fd.fileHandle == INVALID_HANDLE_VALUE) {
+				return 0;
+			}
+
+			if (CreateIoCompletionPort(fd.fileHandle, m_completionPort, 0, 1) == NULL) {
+				int lastError = GetLastError();
+				// ERROR_INVALID_PARAMETER means that this handle is already registered
+				if (lastError != ERROR_INVALID_PARAMETER) {
+					std::string message;
+					LPCSTR messages;
+
+					message = "Could not add event to event loop '" + std::to_string(lastError) + "'";
+					messages = message.c_str();
+					ReportEvent(m_hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL, 1, 0, reinterpret_cast < LPCSTR* > (&messages), NULL);
+					return -1;
+				}
+			}
 			return 0;
+
 		}
 
 		int EventLoop::eraseEvent(event fd)
 		{
-			eventInfo_t evi;
-			evi.fd = fd;
-			evi.eventHandler = EventHandler_t();
-			{
-				std::lock_guard < std::recursive_mutex> lock(m_changeListMtx);
-				m_changeList.push_back(evi);
-			}
-			SetEvent(m_changeFd);
+			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
+			m_eventInfos.erase(fd.overlapped.hEvent);
 			return 0;
 		}
 
 		int EventLoop::execute()
 		{
-			ssize_t nbytes = 0;
-
-			DWORD dwEvent;
-			eventInfo_t evi;
+			BOOL result;
+			DWORD size;
+			ULONG_PTR completionKey;
+			OVERLAPPED* pOverlapped;
+			
 			do {
-			
-			dwEvent = WaitForMultipleObjects(static_cast < DWORD > (m_handles.size()), &m_handles[0], FALSE, INFINITE);
-			if (dwEvent == WAIT_FAILED) {
-				int lastError = GetLastError();
-				// ERROR_INVALID_HANDLE might happen on removal of events.
-				if (lastError != ERROR_INVALID_HANDLE) {
-				return -1;
-				}
-				changeHandler();
-			} else if (dwEvent == WAIT_TIMEOUT) {
-				// stop because of timeout
-				return 0;
-			} else {
-				event fd = m_handles[WAIT_OBJECT_0 + dwEvent];
-				evi = m_eventInfos[fd];
-				// this is a workaround. WSARecvMsg does not reset the event!
-				WSAResetEvent(fd);
+				pOverlapped = NULL;
+				result = GetQueuedCompletionStatus(m_completionPort, &size, &completionKey, &pOverlapped, INFINITE);
+				if (result == FALSE) {
+					int lastError = GetLastError();
+					// ERROR_OPERATION_ABORTED happens on cancelation of an overlapped operation.
+					// ERROR_NETNAME_DELETED happens on closure of connection
+					if ((lastError != ERROR_OPERATION_ABORTED) && (lastError != ERROR_NETNAME_DELETED)) {
+						std::string message;
+						LPCSTR messages;
 
-				if (evi.eventHandler == nullptr) {
-				break;
+						message = "Event loop stopped with error " + std::to_string(lastError);
+						messages = message.c_str();
+						ReportEvent(m_hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL, 1, 0, reinterpret_cast < LPCSTR* > (&messages), NULL);
+						break;
+					}
 				}
-				do {
-				// we do this until nothing is left. This is important because of our call to WSAResetEvent above.
-				nbytes = evi.eventHandler();
-				} while (nbytes > 0);
-			}
-			
+				if (pOverlapped == NULL) {
+					// stop condition
+					break;
+				}
+
+				{
+					ssize_t result;
+
+					std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
+					eventInfos_t::iterator iter = m_eventInfos.find(pOverlapped->hEvent);
+					if (iter != m_eventInfos.end()) {
+						do {
+							result = iter->second();
+						} while (result > 0);
+					} 
+				}
+
+
 			} while (true);
-
 			return 0;
+
 		}
 
 		void EventLoop::stop()
 		{
-			SetEvent(m_stopFd);
+			PostQueuedCompletionStatus(m_completionPort, 0, 0, NULL);
 		}
 	}
 }

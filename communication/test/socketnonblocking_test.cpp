@@ -42,7 +42,7 @@ namespace hbm {
 			serverFixture::~serverFixture()
 			{
 				BOOST_TEST_MESSAGE("teardown Fixture1");
-				//m_worker->disconnect();
+				m_worker->disconnect();
 				m_eventloop.stop();
 				m_serverWorker.join();
 			}
@@ -89,6 +89,21 @@ namespace hbm {
 				return result;
 			}
 
+			int serverFixture::clientReceiveSingleBytes(hbm::communication::SocketNonblocking& socket)
+			{
+				char buffer;
+				ssize_t result;
+
+				result = socket.receive(&buffer, sizeof(buffer));
+				if (result > 0) {
+					if (buffer != '\0') {
+						m_answer += buffer;
+					}
+				}
+
+				return result;
+			}
+
 
 			BOOST_FIXTURE_TEST_SUITE( socket_test, serverFixture )
 
@@ -96,7 +111,8 @@ namespace hbm {
 			BOOST_AUTO_TEST_CASE(echo_test)
 			{
 				int result;
-				const char msg[] = "hallo!";
+				static const char msg[] = "hallo";
+				static const char msg2[] = "!";
 
 				hbm::sys::EventLoop eventloop;
 				std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventloop)));
@@ -104,21 +120,107 @@ namespace hbm {
 				hbm::communication::SocketNonblocking client(eventloop);
 				result = client.connect("127.0.0.1", std::to_string(PORT));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
-				client.setDataCb(std::bind(&serverFixture::clientReceive, this, std::ref(client)));
+				client.setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::ref(client)));
 
 				clearAnswer();
 				result = client.sendBlock(msg, sizeof(msg), false);
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 				BOOST_CHECK_MESSAGE(result == sizeof(msg), strerror(errno));
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				std::string answer = getAnswer();
+				BOOST_CHECK_EQUAL(answer, msg);
+
+				clearAnswer();
+				result = client.sendBlock(msg2, sizeof(msg2), false);
+				BOOST_CHECK_MESSAGE(result == sizeof(msg2), strerror(errno));
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				answer = getAnswer();
+				BOOST_CHECK_EQUAL(answer, msg2);
+
+
+				clearAnswer();
+				result = client.sendBlock(msg, sizeof(msg), false);
+				result = client.sendBlock(msg2, sizeof(msg2), false);
+
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				answer = getAnswer();
+				BOOST_CHECK_EQUAL(answer, std::string(msg) + msg2);
 
 				client.disconnect();
 
-				BOOST_CHECK_EQUAL(getAnswer(), msg);
 
 
 				eventloop.stop();
 				worker.join();
 			}
+
+			BOOST_AUTO_TEST_CASE(echo_test_ipv6)
+			{
+				int result;
+				static const char msg[] = "hallo";
+
+				hbm::sys::EventLoop eventloop;
+				std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventloop)));
+
+				hbm::communication::SocketNonblocking client(eventloop);
+				result = client.connect("::1", std::to_string(PORT));
+				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
+				client.setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::ref(client)));
+
+				clearAnswer();
+				result = client.sendBlock(msg, sizeof(msg), false);
+				BOOST_CHECK_MESSAGE(result == sizeof(msg), strerror(errno));
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				std::string answer = getAnswer();
+				BOOST_CHECK_EQUAL(answer, msg);
+
+				client.disconnect();
+
+
+				eventloop.stop();
+				worker.join();
+			}
+
+			BOOST_AUTO_TEST_CASE(setting_data_callback)
+			{
+				int result;
+				static const char msg[] = "hallo";
+
+				hbm::sys::EventLoop eventloop;
+				std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventloop)));
+
+				hbm::communication::SocketNonblocking client(eventloop);
+				result = client.connect("127.0.0.1", std::to_string(PORT));
+				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
+				client.setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::ref(client)));
+
+				clearAnswer();
+				result = client.sendBlock(msg, sizeof(msg), false);
+				BOOST_CHECK_MESSAGE(result == sizeof(msg), strerror(errno));
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				std::string answer = getAnswer();
+				BOOST_CHECK_EQUAL(answer, msg);
+
+				// set callback function again
+				client.setDataCb(std::bind(&serverFixture::clientReceive, this, std::ref(client)));
+				clearAnswer();
+				result = client.sendBlock(msg, sizeof(msg), false);
+
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+				BOOST_CHECK_MESSAGE(result == sizeof(msg), strerror(errno));
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				answer = getAnswer();
+				clearAnswer();
+				BOOST_CHECK_EQUAL(answer, msg);
+
+				client.disconnect();
+
+
+
+				eventloop.stop();
+				worker.join();
+			}
+
 
 			BOOST_AUTO_TEST_CASE(writev_test)
 			{

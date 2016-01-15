@@ -11,6 +11,8 @@
 #define BOOST_TEST_MODULE eventloop tests
 #include <iostream>
 #include <chrono>
+#include <mutex>
+#include <condition_variable>
 #include <thread>
 #include <functional>
 #include <vector>
@@ -23,31 +25,47 @@
 #include "hbm/exception/exception.hpp"
 
 
-static void eventHandlerPrint()
-{
-	std::cout << __FUNCTION__ << std::endl;
-}
+static unsigned int incrementCount = 0;
+static unsigned int incrementLimit = 0;
+static std::mutex incrementLimitMtx;
+static std::condition_variable incrementLimitCnd;
 
-
-/// by returning error, the execute() method, that is doing the eventloop, exits
 static void timerEventHandlerIncrement(bool fired, unsigned int& value, bool& canceled)
 {
 	if (fired) {
 		++value;
 		canceled = false;
-	} else {
+	}
+	else {
 		canceled = true;
 	}
 }
 
-/// by returning error, the execute() method, that is doing the eventloop, exits
-static void notifierEventHandlerIncrement(unsigned int& value)
+static void executionTimerCb(bool fired, hbm::sys::EventLoop& eventloop)
+{
+	if (fired) {
+		eventloop.stop();
+	}
+}
+
+
+static void notifierIncrement(unsigned int& value)
 {
 	++value;
 }
 
+static void notifierIncrementCheckLimit()
+{
+	++incrementCount;
+	if (incrementCount==incrementLimit) {
+		incrementLimitCnd.notify_one();
+	}
+}
 
-
+static bool getLimitReached()
+{
+	return incrementCount>=incrementLimit;
+}
 
 
 /// start the eventloop in a separate thread wait some time and stop it.
@@ -78,7 +96,7 @@ BOOST_AUTO_TEST_CASE(waitforend_test)
 	
 
 	std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
-	executionTimer.set(duration, false, std::bind(&hbm::sys::EventLoop::stop, std::ref(eventLoop)));
+	executionTimer.set(duration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventLoop)));
 	int result = eventLoop.execute();
 	std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
 
@@ -97,13 +115,14 @@ BOOST_AUTO_TEST_CASE(restart_test)
 
 	for (unsigned int i=0; i<10; ++i) {
 		std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
-		executionTimer.set(duration, false, std::bind(&hbm::sys::EventLoop::stop, std::ref(eventLoop)));
+		executionTimer.set(duration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventLoop)));
 		int result = eventLoop.execute();
 		std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
 		std::chrono::milliseconds delta = std::chrono::duration_cast < std::chrono::milliseconds > (endTime-startTime);
+		executionTimer.cancel();
 
 		BOOST_CHECK_EQUAL(result, 0);
-		BOOST_CHECK_GE(delta.count(), duration.count()-3);
+		BOOST_CHECK_GE(delta.count(), duration.count());
 	}
 }
 
@@ -115,7 +134,7 @@ BOOST_AUTO_TEST_CASE(notify_test)
 	static const std::chrono::milliseconds duration(100);
 	hbm::sys::EventLoop eventLoop;
 	hbm::sys::Notifier notifier(eventLoop);
-	notifier.set(std::bind(&notifierEventHandlerIncrement, std::ref(value)));
+	notifier.set(std::bind(&notifierIncrement, std::ref(value)));
 	BOOST_CHECK_EQUAL(value, 0);
 
 	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, &eventLoop));
@@ -132,7 +151,7 @@ BOOST_AUTO_TEST_CASE(notify_test)
 	}
 
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
 	eventLoop.stop();
 	worker.join();
 
@@ -153,7 +172,7 @@ BOOST_AUTO_TEST_CASE(oneshottimer_test)
 	hbm::sys::Timer timer(eventLoop);
 	hbm::sys::Timer executionTimer(eventLoop);
 	timer.set(timerCycle, false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
-	executionTimer.set(duration, false, std::bind(&hbm::sys::EventLoop::stop, std::ref(eventLoop)));
+	executionTimer.set(duration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventLoop)));
 	int result = eventLoop.execute();
 	BOOST_CHECK_EQUAL(counter, 1);
 	BOOST_CHECK_EQUAL(result, 0);
@@ -189,7 +208,7 @@ BOOST_AUTO_TEST_CASE(cyclictimer_test)
 	hbm::sys::Timer cyclicTimer(eventLoop);
 	hbm::sys::Timer executionTimer(eventLoop);
 	cyclicTimer.set(timerCycle, true, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
-	executionTimer.set(duration, false, std::bind(&hbm::sys::EventLoop::stop, std::ref(eventLoop)));
+	executionTimer.set(duration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventLoop)));
 	int result = eventLoop.execute();
 
 	BOOST_CHECK_GE(counter, excpectedMinimum);
@@ -235,7 +254,7 @@ BOOST_AUTO_TEST_CASE(canceltimer_test)
 	hbm::sys::Timer timer(eventLoop);
 	hbm::sys::Timer executionTimer(eventLoop);
 	timer.set(timerCycle, false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
-	executionTimer.set(duration, false, std::bind(&hbm::sys::EventLoop::stop, std::ref(eventLoop)));
+	executionTimer.set(duration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventLoop)));
 
 	std::thread worker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
 
@@ -253,6 +272,7 @@ BOOST_AUTO_TEST_CASE(restart_timer_test)
 
 	static const std::chrono::milliseconds duration(100);
 
+	static const unsigned int restartCount = 10;
 	unsigned int counter = 0;
 	bool canceled = false;
 
@@ -263,11 +283,14 @@ BOOST_AUTO_TEST_CASE(restart_timer_test)
 	std::this_thread::sleep_for(duration / 2);
 	timer.cancel();
 	BOOST_CHECK_EQUAL(canceled, true);
-	timer.set(std::chrono::milliseconds(duration), false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
-	std::this_thread::sleep_for(duration * 2);
 
+	for (unsigned int i = 0; i < restartCount; ++i) {
+		timer.set(std::chrono::milliseconds(duration), false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
+		std::this_thread::sleep_for(duration * 2);
+	}
 	BOOST_CHECK_EQUAL(canceled, false);
-	BOOST_CHECK_EQUAL(counter, 1);
+	BOOST_CHECK_EQUAL(counter, restartCount);
+
 
 	eventLoop.stop();
 	worker.join();
@@ -325,7 +348,7 @@ BOOST_AUTO_TEST_CASE(removenotifier_test)
 
 	unsigned int counter = 0;
 	bool canceled = false;
-	executionTimer.set(duration, false, std::bind(&hbm::sys::EventLoop::stop, std::ref(eventLoop)));
+	executionTimer.set(duration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventLoop)));
 	std::thread worker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
 
 	{
@@ -338,4 +361,47 @@ BOOST_AUTO_TEST_CASE(removenotifier_test)
 	worker.join();
 
 	BOOST_CHECK_LT(counter, timerCount);
+}
+
+BOOST_AUTO_TEST_CASE(addandremoveevents_test)
+{
+	typedef std::vector < std::unique_ptr < hbm::sys::Notifier > > Notifiers;
+	static const unsigned int cycleCount = 10;
+	static const unsigned int eventCount = 1000;
+	hbm::sys::EventLoop eventLoop;
+
+
+	Notifiers notifiers;
+
+	incrementLimit = eventCount;
+	bool signaled;
+	
+
+	std::thread worker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
+
+
+	for (unsigned int cycle = 0; cycle < cycleCount; ++cycle) {
+		incrementCount = 0;
+		for (unsigned int i = 0; i < eventCount; ++i) {
+			std::unique_ptr < hbm::sys::Notifier >notifier(new hbm::sys::Notifier(eventLoop));
+			//notifier->set(std::bind(&notifierIncrement, std::ref(eventCounter)));
+			notifier->set(std::bind(&notifierIncrementCheckLimit));
+			notifiers.push_back(std::move(notifier));
+		}
+		for (unsigned int i = 0; i < eventCount; ++i) {
+			notifiers[i]->notify();
+		}
+		
+		{
+			std::unique_lock < std::mutex > lock(incrementLimitMtx);
+			signaled = incrementLimitCnd.wait_for(lock, std::chrono::milliseconds(100), getLimitReached);
+		}
+		BOOST_CHECK_EQUAL(signaled, true);
+		BOOST_CHECK_EQUAL(incrementCount, eventCount);
+
+		notifiers.clear();
+	}
+
+	eventLoop.stop();
+	worker.join();
 }

@@ -152,36 +152,38 @@ namespace hbm {
 								family = interface->ifa_addr->sa_family;
 
 								if (family == AF_INET) {
+									struct sockaddr_in ipv4_address;
+									std::memcpy(&ipv4_address, interface->ifa_addr, sizeof(ipv4_address));
+
 									ipv4Address_t addressWithNetmask;
-									struct sockaddr_in* pSin = reinterpret_cast <struct sockaddr_in*> (interface->ifa_addr);
-									if (inet_ntop(family, &pSin->sin_addr, buf, sizeof(buf))) {
+									if (inet_ntop(family, &ipv4_address.sin_addr, buf, sizeof(buf))) {
 										addressWithNetmask.address = buf;
 									}
 
-									pSin = reinterpret_cast <struct sockaddr_in*> (interface->ifa_netmask);
-									if (inet_ntop(family, &pSin->sin_addr, buf, sizeof(buf))) {
+									std::memcpy(&ipv4_address, interface->ifa_netmask, sizeof(ipv4_address));
+									if (inet_ntop(family, &ipv4_address.sin_addr, buf, sizeof(buf))) {
 										addressWithNetmask.netmask = buf;
 									}
 
 									Adapt.m_ipv4Addresses.push_back(addressWithNetmask);
-								}	else if (family == AF_INET6) {
-									ipv6Address_t address;
+								} else if (family == AF_INET6) {
+									struct sockaddr_in6 ipv6_address;
+									std::memcpy(&ipv6_address, interface->ifa_addr, sizeof(ipv6_address));
 
-									struct sockaddr_in6* pSin = reinterpret_cast <struct sockaddr_in6*> (interface->ifa_addr);
-									if (inet_ntop(family, &pSin->sin6_addr, buf, sizeof(buf))) {
+									ipv6Address_t address;
+									if (inet_ntop(family, &ipv6_address.sin6_addr, buf, sizeof(buf))) {
 										address.address = buf;
 									}
 
-									pSin = reinterpret_cast <struct sockaddr_in6*> (interface->ifa_netmask);
-
+									std::memcpy(&ipv6_address, interface->ifa_netmask, sizeof(ipv6_address));
 									// calculate prefix: count bits in netmask. ipv6 forces the following form for the prefix 111..11110..00 gaps filled with zero like 101 are not allowed!
 									unsigned int bitCount = 0;
-									for(unsigned int bytePos=0; bytePos<sizeof(pSin->sin6_addr); ++bytePos) {
-										if(pSin->sin6_addr.s6_addr[bytePos]==0) {
+									for (unsigned int bytePos = 0; bytePos < sizeof(ipv6_address.sin6_addr); ++bytePos) {
+										if (ipv6_address.sin6_addr.s6_addr[bytePos] == 0) {
 											break;
 										}
 
-										unsigned char byte = pSin->sin6_addr.s6_addr[bytePos];
+										unsigned char byte = ipv6_address.sin6_addr.s6_addr[bytePos];
 										unsigned char mask = 1;
 										for(unsigned int bitPos=0; bitPos<8; ++bitPos) {
 											if(byte & mask) {

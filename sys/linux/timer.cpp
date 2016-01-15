@@ -26,18 +26,9 @@ namespace hbm {
 			if (m_fd<0) {
 				throw hbm::exception::exception(std::string("could not create timer fd '") + strerror(errno) + "'");
 			}
-			m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
-		}
-
-		Timer::Timer(Timer&& source)
-			: m_fd(source.m_fd)
-			, m_eventLoop(source.m_eventLoop)
-			, m_eventHandler(source.m_eventHandler)
-#ifdef _WIN32
-			, m_isRunning(source.m_isRunning)
-#endif
-		{
-			m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
+			if (m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this))<0) {
+				throw hbm::exception::exception("could not add timer to event loop");
+			}
 		}
 
 		Timer::~Timer()

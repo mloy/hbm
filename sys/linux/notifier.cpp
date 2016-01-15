@@ -23,14 +23,10 @@ namespace hbm {
 			if (m_fd<0) {
 				throw hbm::exception::exception("could not create event fd");
 			}
-		}
-
-		Notifier::Notifier(Notifier&& source)
-			: m_fd(source.m_fd)
-			, m_eventLoop(source.m_eventLoop)
-			, m_eventHandler(source.m_eventHandler)
-		{
-			m_eventLoop.addEvent(m_fd, std::bind(&Notifier::process, this));
+			
+			if (m_eventLoop.addEvent(m_fd, std::bind(&Notifier::process, this))<0) {
+				throw hbm::exception::exception("could not add timer to event loop");
+			}
 		}
 
 		Notifier::~Notifier()
@@ -42,11 +38,6 @@ namespace hbm {
 		int Notifier::set(Cb_t eventHandler)
 		{
 			m_eventHandler = eventHandler;
-			if (eventHandler) {
-				m_eventLoop.addEvent(m_fd, std::bind(&Notifier::process, this));
-			} else {
-				m_eventLoop.eraseEvent(m_fd);
-			}
 			return 0;
 		}
 

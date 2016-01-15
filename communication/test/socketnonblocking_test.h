@@ -21,6 +21,7 @@ namespace hbm {
 			class serverFixture {
 			public:
 				int clientReceive(SocketNonblocking &socket);
+				int clientReceiveSingleBytes(SocketNonblocking& socket);
 			protected:
 				serverFixture();
 				virtual ~serverFixture();

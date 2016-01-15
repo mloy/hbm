@@ -9,12 +9,8 @@
 
 #include <unordered_map>
 #ifdef _WIN32
-	#include <list>
 	#include <WinSock2.h>
 	#include <Windows.h>
-	typedef HANDLE event;
-#else
-	typedef int event;
 #endif
 #include <functional>
 #include <mutex>
@@ -49,33 +45,26 @@ namespace hbm {
 				return std::this_thread::get_id();
 			}
 
-		private:
-			struct eventInfo_t {
-				event fd;
-				EventHandler_t eventHandler;
-			};
-
-			/// fd is the key
-			typedef std::unordered_map <event, eventInfo_t > eventInfos_t;
 #ifdef _WIN32
-			typedef std::list < eventInfo_t > changelist_t;
-			std::vector < HANDLE > m_handles;
-			event m_changeFd;
-
-			changelist_t m_changeList;
-			std::recursive_mutex m_changeListMtx;
-
-
-			int changeHandler();
-			std::recursive_mutex m_updateListMtx;
-#else
-			int m_epollfd;
+			HANDLE getCompletionPort() const
+			{
+				return m_completionPort;
+			}
 #endif
+
+		private:
+#ifdef _WIN32
+			typedef std::unordered_map <HANDLE, EventHandler_t > eventInfos_t;
+			HANDLE m_completionPort;
+			HANDLE m_hEventLog;
+#else
+			typedef std::unordered_map <event, EventHandler_t > eventInfos_t;
+			int m_epollfd;
 			event m_stopFd;
+#endif
 			/// events handled by event loop
 			eventInfos_t m_eventInfos;
 			std::recursive_mutex m_eventInfosMtx;
-
 		};
 	}
 }

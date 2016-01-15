@@ -30,5 +30,8 @@
     <ClCompile Include="..\windows\netadapter.cpp">
       <Filter>Source Files\communication\windows</Filter>
     </ClCompile>
+    <ClCompile Include="..\windows\netadapterlist.cpp">
+      <Filter>Source Files\communication\windows</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

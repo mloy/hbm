@@ -6,12 +6,11 @@
 #include <vector>
 #include <cstring>
 #include <cstdio>
+#include <iostream>
 
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <MSWSock.h>
-#undef max
-#undef min
 
 #define syslog fprintf
 #define sprintf sprintf_s
@@ -24,29 +23,33 @@
 
 #include "hbm/communication/multicastserver.h"
 
+
+static WSABUF signalBuffer = { 0, NULL };
+
 namespace hbm {
 	namespace communication {
 		MulticastServer::MulticastServer(NetadapterList& netadapterList, sys::EventLoop &eventLoop)
 			: m_address()
 			, m_port()
-			, m_ReceiveSocket(NO_SOCKET)
-			, m_SendSocket(NO_SOCKET)
 			, m_receiveAddr()
 			, m_netadapterList(netadapterList)
 			, m_eventLoop(eventLoop)
 			, m_dataHandler()
 		{
-
-			WORD RequestedSockVersion = MAKEWORD(2, 0);
+			WORD RequestedSockVersion = MAKEWORD(2, 2);
 			WSADATA wsaData;
 			WSAStartup(RequestedSockVersion, &wsaData);
-			m_event = WSACreateEvent();
+
+			m_receiveEvent.completionPort = m_eventLoop.getCompletionPort();
+			m_receiveEvent.overlapped.hEvent = WSACreateEvent();
+			m_receiveEvent.fileHandle = INVALID_HANDLE_VALUE;
+			m_sendEvent.fileHandle = INVALID_HANDLE_VALUE;
 		}
 
 		MulticastServer::~MulticastServer()
 		{
 			stop();
-			WSACloseEvent(m_event);
+			WSACloseEvent(m_receiveEvent.overlapped.hEvent);
 		}
 
 		int MulticastServer::setupReceiveSocket()
@@ -67,9 +70,9 @@ namespace hbm {
 					return -1;
 				}
 
-				m_ReceiveSocket = socket(pResult->ai_family, SOCK_DGRAM, 0);
-				if (m_ReceiveSocket < 0) {
-					m_ReceiveSocket = NO_SOCKET;
+				m_receiveEvent.fileHandle = reinterpret_cast < HANDLE > (::WSASocket(pResult->ai_family, SOCK_DGRAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED));
+				if (m_receiveEvent.fileHandle < 0) {
+					m_receiveEvent.fileHandle = INVALID_HANDLE_VALUE;
 				}
 
 				memset(&m_receiveAddr, 0, sizeof(m_receiveAddr));
@@ -79,38 +82,35 @@ namespace hbm {
 
 				freeaddrinfo(pResult);
 			}
+						
 
 
-
-
-
-			if (m_ReceiveSocket < 0) {
+			if (m_receiveEvent.fileHandle < 0) {
 				::syslog(LOG_ERR, "Could not create receiving socket!");
 				return -1;
 			}
 
-			// WSAEventSelect automatically sets the socket to non blocking!
-			if (WSAEventSelect(m_ReceiveSocket, m_event, FD_READ)<0) {
-				::syslog(LOG_ERR, "WSAEventSelect failed!");
-				return -1;
-			}
+			// switch to non blocking
+			u_long value = 1;
+			::ioctlsocket(reinterpret_cast < SOCKET > (m_receiveEvent.fileHandle), FIONBIO, &value);
+
 
 
 			// sufficient buffer for several messages
 			int RcvBufSize = 128000;
-			if (setsockopt(m_ReceiveSocket, SOL_SOCKET, SO_RCVBUF, reinterpret_cast < char* >(&RcvBufSize), sizeof(RcvBufSize)) < 0) {
+			if (setsockopt(reinterpret_cast < SOCKET > (m_receiveEvent.fileHandle), SOL_SOCKET, SO_RCVBUF, reinterpret_cast < char* >(&RcvBufSize), sizeof(RcvBufSize)) < 0) {
 				return -1;
 			}
 
 			uint32_t yes = 1;
 			// allow multiple sockets to use the same PORT number
-			if (setsockopt(m_ReceiveSocket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast < char* >(&yes), sizeof(yes)) < 0) {
+			if (setsockopt(reinterpret_cast < SOCKET > (m_receiveEvent.fileHandle), SOL_SOCKET, SO_REUSEADDR, reinterpret_cast < char* >(&yes), sizeof(yes)) < 0) {
 				::syslog(LOG_ERR, "Could not set SO_REUSEADDR!");
 				return -1;
 			}
 
 			// We do want to know the interface, we received on
-			if (setsockopt(m_ReceiveSocket, IPPROTO_IP, IP_PKTINFO, reinterpret_cast < char* >(&yes), sizeof(yes)) != 0) {
+			if (setsockopt(reinterpret_cast < SOCKET > (m_receiveEvent.fileHandle), IPPROTO_IP, IP_PKTINFO, reinterpret_cast < char* >(&yes), sizeof(yes)) != 0) {
 				::syslog(LOG_ERR, "Could not set IP_PKTINFO!");
 				return -1;
 			}
@@ -120,8 +120,17 @@ namespace hbm {
 			//	return -1;
 			//}
 
-			if (bind(m_ReceiveSocket, (struct sockaddr*)&m_receiveAddr, sizeof(m_receiveAddr)) < 0) {
+			if (bind(reinterpret_cast < SOCKET > (m_receiveEvent.fileHandle), (struct sockaddr*)&m_receiveAddr, sizeof(m_receiveAddr)) < 0) {
 				::syslog(LOG_ERR, "Could not bind socket!");
+				return -1;
+			}
+
+			DWORD winLen;
+
+			GUID InBuffer[] = WSAID_WSARECVMSG;
+			int status = WSAIoctl(reinterpret_cast < SOCKET > (m_receiveEvent.fileHandle), SIO_GET_EXTENSION_FUNCTION_POINTER, &InBuffer, sizeof(InBuffer), &m_wsaRecvMsg, sizeof(m_wsaRecvMsg), &winLen, NULL, NULL);
+			if (status != 0) {
+				::syslog(LOG_ERR, "could not initialize WSARecvMsg");
 				return -1;
 			}
 
@@ -131,10 +140,8 @@ namespace hbm {
 
 		int MulticastServer::setupSendSocket()
 		{
-			m_SendSocket = socket(AF_INET, SOCK_DGRAM, 0);
-
-			if (m_SendSocket < 0) {
-				m_SendSocket = NO_SOCKET;
+			m_sendEvent.fileHandle = reinterpret_cast < HANDLE > (WSASocket(AF_INET, SOCK_DGRAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED));
+			if (m_sendEvent.fileHandle == INVALID_HANDLE_VALUE) {
 				::syslog(LOG_ERR, "Could not create socket!");
 				return -1;
 			}
@@ -152,7 +159,7 @@ namespace hbm {
 				param = 1;
 			}
 
-			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_LOOP, reinterpret_cast <char* > (&param), sizeof(param))) {
+			if (setsockopt(reinterpret_cast < SOCKET > (m_sendEvent.fileHandle), IPPROTO_IP, IP_MULTICAST_LOOP, reinterpret_cast <char* > (&param), sizeof(param))) {
 				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_LOOP!");
 				return -1;
 			}
@@ -236,7 +243,7 @@ namespace hbm {
 			}
 
 
-			retVal = setsockopt(m_ReceiveSocket, IPPROTO_IP, optionName, reinterpret_cast < char* >(&im), sizeof(im));
+			retVal = setsockopt(reinterpret_cast < SOCKET > (m_receiveEvent.fileHandle), IPPROTO_IP, optionName, reinterpret_cast < char* >(&im), sizeof(im));
 			if (add) {
 				if (retVal!=0) {
 					if(errno==WSAEADDRINUSE) {
@@ -269,7 +276,7 @@ namespace hbm {
 
 		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, Netadapter& adapter, int& ttl)
 		{
-			int interfaceIndex = 0;
+			unsigned int interfaceIndex = 0;
 			ssize_t nbytes = receiveTelegram(msgbuf, len, interfaceIndex, ttl);
 			if(nbytes>0) {
 				try {
@@ -284,7 +291,7 @@ namespace hbm {
 
 		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, std::string& adapterName, int& ttl)
 		{
-			int interfaceIndex = 0;
+			unsigned int interfaceIndex = 0;
 			ssize_t nbytes = receiveTelegram(msgbuf, len, interfaceIndex, ttl);
 			if(nbytes>0) {
 				try {
@@ -297,64 +304,38 @@ namespace hbm {
 			return nbytes;
 		}
 
-		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, int& adapterIndex, int& ttl)
+		ssize_t MulticastServer::receiveTelegram(void* msgBuf, size_t msgBufSize, unsigned int& adapterIndex, int& ttl)
 		{
-			// we do use recvmsg here because we get some additional information: The interface we received from.
-			ttl = 1;
-			char controlbuffer[100];
-			ssize_t nbytes;
-
-			LPFN_WSARECVMSG WSARecvMsg;
-			DWORD winLen;
-
-			GUID InBuffer[] = WSAID_WSARECVMSG;
-			int status = WSAIoctl(m_ReceiveSocket, SIO_GET_EXTENSION_FUNCTION_POINTER, &InBuffer, sizeof(InBuffer), &WSARecvMsg, sizeof(WSARecvMsg), &winLen, NULL, NULL);
-
-			if (status != 0) {
+			if (m_receiveEvent.overlapped.InternalHigh == 0) {
 				return -1;
 			}
 
-			WSAMSG msg;
-			WSABUF iov;
-			DWORD bytes_received;
+			size_t size = m_receiveEvent.overlapped.InternalHigh;
 
-			msg.name = reinterpret_cast < LPSOCKADDR >(&m_receiveAddr);
-			msg.namelen = sizeof(m_receiveAddr);
-			msg.lpBuffers = &iov;
-			msg.lpBuffers->buf = reinterpret_cast < char* >(msgbuf);
-			msg.lpBuffers->len = static_cast <u_long >(len);
-			msg.dwBufferCount = 1;
-			msg.Control.buf = controlbuffer;
-			msg.Control.len = sizeof(controlbuffer);
-			msg.dwFlags = 0;
-
-			if (WSARecvMsg(m_ReceiveSocket, &msg, &bytes_received, NULL, NULL) != 0) {
-				if(WSAGetLastError()==WSAEWOULDBLOCK) {
-					nbytes = 0;
-				} else {
-					nbytes = -1;
-				}
-			} else {
-				nbytes = bytes_received;
+			if (size > msgBufSize) {
+				size = msgBufSize;
 			}
+			memcpy(msgBuf, m_recvBuffer, size);
+			m_receiveEvent.overlapped.InternalHigh = 0;
 
-
-			if (nbytes > 0) {
-				for (WSACMSGHDR* pcmsghdr = WSA_CMSG_FIRSTHDR(&msg); pcmsghdr != NULL; pcmsghdr = WSA_CMSG_NXTHDR(&msg, pcmsghdr))
-				{
-					if (pcmsghdr->cmsg_type == IP_PKTINFO) {
-						struct in_pktinfo* ppktinfo;
-						ppktinfo = reinterpret_cast <struct in_pktinfo*> (WSA_CMSG_DATA(pcmsghdr));
-						adapterIndex = ppktinfo->ipi_ifindex;
-					} else if(pcmsghdr->cmsg_type == IP_TTL) {
-						int* pTtl;
-						// returns the ttl from the received ip header (the value set by the last sender(router))
-						pTtl = reinterpret_cast <int*> (WSA_CMSG_DATA(pcmsghdr));
-						ttl = *pTtl;
-					}
+			for (WSACMSGHDR* pcmsghdr = WSA_CMSG_FIRSTHDR(&m_msg); pcmsghdr != NULL; pcmsghdr = WSA_CMSG_NXTHDR(&m_msg, pcmsghdr))
+			{
+				if (pcmsghdr->cmsg_type == IP_PKTINFO) {
+					struct in_pktinfo* ppktinfo;
+					ppktinfo = reinterpret_cast <struct in_pktinfo*> (WSA_CMSG_DATA(pcmsghdr));
+					adapterIndex = ppktinfo->ipi_ifindex;
+				}
+				else if (pcmsghdr->cmsg_type == IP_TTL) {
+					int* pTtl;
+					// returns the ttl from the received ip header (the value set by the last sender(router))
+					pTtl = reinterpret_cast <int*> (WSA_CMSG_DATA(pcmsghdr));
+					ttl = *pTtl;
 				}
 			}
-			return nbytes;
+
+			orderNextMessage();
+
+			return size;
 		}
 
 		int MulticastServer::send(const void* pData, size_t length, unsigned int ttl) const
@@ -380,7 +361,6 @@ namespace hbm {
 		{
 			return send(data.c_str(), data.length(), ttl);
 		}
-
 
 		int MulticastServer::sendOverInterface(const Netadapter& adapter, const std::string& data, unsigned int ttl) const
 		{
@@ -485,12 +465,12 @@ namespace hbm {
 				return ERR_INVALIDIPADDRESS;
 			}
 
-			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast < char* >(&ifAddr), sizeof(ifAddr))) {
+			if (setsockopt(reinterpret_cast < SOCKET > (m_sendEvent.fileHandle), IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast < char* >(&ifAddr), sizeof(ifAddr))) {
 				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_IF for interface %s!", interfaceIp.c_str());
 				return ERR_INVALIDADAPTER;
 			};
 
-			if (setsockopt(m_SendSocket, IPPROTO_IP, IP_MULTICAST_TTL, reinterpret_cast < char* >(&ttl), sizeof(ttl))) {
+			if (setsockopt(reinterpret_cast < SOCKET > (m_sendEvent.fileHandle), IPPROTO_IP, IP_MULTICAST_TTL, reinterpret_cast < char* >(&ttl), sizeof(ttl))) {
 				::syslog(LOG_ERR, "%s: Error setsockopt IPV6_MULTICAST_HOPS to %u!", interfaceIp.c_str(), ttl);
 				return ERR_NO_SUCCESS;
 			}
@@ -506,13 +486,12 @@ namespace hbm {
 				return ERR_NO_SUCCESS;
 			}
 
-			ssize_t nbytes = sendto(m_SendSocket, reinterpret_cast < const char* > (pData), static_cast < int > (length), 0, reinterpret_cast < struct sockaddr* >(&sendAddr), sizeof(sendAddr));
+			ssize_t nbytes = sendto(reinterpret_cast < SOCKET > (m_sendEvent.fileHandle), reinterpret_cast < const char* > (pData), static_cast < int > (length), 0, reinterpret_cast < struct sockaddr* >(&sendAddr), sizeof(sendAddr));
 
 			if (static_cast < size_t >(nbytes) != length) {
 				::syslog(LOG_ERR, "error sending message over interface %s!", interfaceIp.c_str());
 				return ERR_NO_SUCCESS;
 			}
-
 			return ERR_SUCCESS;
 		}
 
@@ -526,14 +505,15 @@ namespace hbm {
 				return err;
 			}
 
-				err = setupReceiveSocket();
-				if(err<0) {
-					return err;
-				}
+			err = setupReceiveSocket();
+			if(err<0) {
+				return err;
+			}
 
 			m_dataHandler = dataHandler;
 			if (dataHandler) {
-				m_eventLoop.addEvent(m_event, std::bind(&MulticastServer::process, this));
+				orderNextMessage();
+				return m_eventLoop.addEvent(m_receiveEvent, std::bind(&MulticastServer::process, this));
 			}
 			return 0;
 		}
@@ -541,20 +521,46 @@ namespace hbm {
 		void MulticastServer::stop()
 		{
 			dropAllInterfaces();
-			m_eventLoop.eraseEvent(m_event);
 
-
-			if (m_SendSocket != NO_SOCKET) {
-				::closesocket(m_SendSocket);
-				m_SendSocket = NO_SOCKET;
+			if (m_sendEvent.fileHandle != INVALID_HANDLE_VALUE) {
+				::closesocket(reinterpret_cast < SOCKET > (m_sendEvent.fileHandle));
+				m_sendEvent.fileHandle = INVALID_HANDLE_VALUE;
 			}
 
-			if (m_ReceiveSocket != NO_SOCKET) {
-
-				::shutdown(m_ReceiveSocket, SD_BOTH);
-				::closesocket(m_ReceiveSocket);
-				m_ReceiveSocket = NO_SOCKET;
+			if (m_receiveEvent.fileHandle != INVALID_HANDLE_VALUE) {
+				::shutdown(reinterpret_cast < SOCKET > (m_receiveEvent.fileHandle), SD_BOTH);
+				::closesocket(reinterpret_cast < SOCKET > (m_receiveEvent.fileHandle));
+				m_receiveEvent.fileHandle = INVALID_HANDLE_VALUE;
 			}
+
+			m_eventLoop.eraseEvent(m_receiveEvent);
+
+
+		}
+
+		int MulticastServer::orderNextMessage()
+		{
+			DWORD recvSize;
+
+			m_msg.name = reinterpret_cast < LPSOCKADDR >(&m_receiveAddr);
+			m_msg.namelen = sizeof(m_receiveAddr);
+			m_msg.lpBuffers = &m_iov;
+			m_msg.lpBuffers->buf = reinterpret_cast < char* >(m_recvBuffer);
+			m_msg.lpBuffers->len = static_cast <u_long >(sizeof(m_recvBuffer));
+
+			m_msg.dwBufferCount = 1;
+			m_msg.Control.buf = m_recvControlBuffer;
+			m_msg.Control.len = sizeof(m_recvControlBuffer);
+			m_msg.dwFlags = 0;
+
+			if (m_wsaRecvMsg(reinterpret_cast < SOCKET > (m_receiveEvent.fileHandle), &m_msg, &recvSize, &m_receiveEvent.overlapped, NULL) != 0) {
+				if (WSAGetLastError() == WSA_IO_PENDING) {
+					return 0;
+				} else {
+					return -1;
+				}
+			}
+			return recvSize;
 		}
 	}
 }

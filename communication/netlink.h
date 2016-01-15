@@ -41,7 +41,7 @@ namespace hbm {
 			ssize_t process();
 
 	#ifdef _WIN32
-			OVERLAPPED m_overlap;
+			int orderNextEvent();
 	#else
 			ssize_t receive(void *pReadBuffer, size_t bufferSize) const;
 
@@ -49,9 +49,9 @@ namespace hbm {
 			/// \param[in, out] netadapterlist will be adapted when processing netlink events
 			/// \param[in, out] mcs will be adapted when processing netlink events
 			void processNetlinkTelegram(void *pReadBuffer, size_t bufferSize) const;
-
-			event m_fd;
 	#endif
+			sys::event m_event;
+			
 			communication::NetadapterList &m_netadapterlist;
 
 			sys::EventLoop& m_eventloop;

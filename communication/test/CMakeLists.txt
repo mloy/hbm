@@ -26,7 +26,7 @@ SET(MULTICASTSERVER_TEST
 )
 set_source_files_properties(
     ${MULTICASTSERVER_TEST}
-    PROPERTIES COMPILE_FLAGS "-Wextra"
+    PROPERTIES COMPILE_FLAGS "-Wextra -Winit-self -Wpointer-arith -Wformat=2 -Wcast-align -Wmissing-declarations -Werror"
 )
 
 add_executable(
@@ -77,6 +77,7 @@ add_test(socketnonblocking_test socketnonblocking.test
 
 SET(NETADAPTER_TEST
     ../linux/netadapter.cpp
+    ../linux/netadapterlist.cpp
     netadapter_test.cpp
 )
 set_source_files_properties(

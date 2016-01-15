@@ -2,6 +2,7 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
+#include <iostream>
 #include <stdint.h>
 #include <WinSock2.h>
 #include <WS2tcpip.h>
@@ -24,27 +25,31 @@
 /// Maximum time to wait for connecting
 const time_t TIMEOUT_CONNECT_S = 5;
 
+static WSABUF signalBuffer = { 0, NULL };
 
 hbm::communication::SocketNonblocking::SocketNonblocking(sys::EventLoop &eventLoop)
-	: m_fd(-1)
-	, m_bufferedReader()
+	: m_bufferedReader()
 	, m_eventLoop(eventLoop)
 	, m_dataHandler()
 {
+	WORD RequestedSockVersion = MAKEWORD(2, 2);
 	WSADATA wsaData;
-	WSAStartup(2, &wsaData);
-	m_event = WSACreateEvent();
+	WSAStartup(RequestedSockVersion, &wsaData);
+	m_event.completionPort = m_eventLoop.getCompletionPort();
+	m_event.overlapped.hEvent = WSACreateEvent();
 }
 
 hbm::communication::SocketNonblocking::SocketNonblocking(int fd, sys::EventLoop &eventLoop)
-	: m_fd(fd)
-	, m_bufferedReader()
+	: m_bufferedReader()
 	, m_eventLoop(eventLoop)
 	, m_dataHandler()
 {
+	WORD RequestedSockVersion = MAKEWORD(2, 2);
 	WSADATA wsaData;
-	WSAStartup(2, &wsaData);
-	m_event = WSACreateEvent();
+	WSAStartup(RequestedSockVersion, &wsaData);
+	m_event.completionPort = m_eventLoop.getCompletionPort();
+	m_event.overlapped.hEvent = WSACreateEvent();
+	m_event.fileHandle = reinterpret_cast < HANDLE > (fd);
 
 	if (setSocketOptions()<0) {
 		throw std::runtime_error("error setting socket options");
@@ -53,16 +58,33 @@ hbm::communication::SocketNonblocking::SocketNonblocking(int fd, sys::EventLoop 
 
 hbm::communication::SocketNonblocking::~SocketNonblocking()
 {
-	WSACloseEvent(m_event);
 	disconnect();
+	WSACloseEvent(m_event.overlapped.hEvent);
 }
 
-void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
+int hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 {
+	DWORD size;
+	DWORD flags = 0;
+	int result;
+
+	if (!dataCb) {
+		// do not accept an empty function
+		return -1;
+	}
 	m_dataHandler = dataCb;
-	m_eventLoop.eraseEvent(m_event);
-	WSAEventSelect(m_fd, m_event, FD_READ | FD_CLOSE);
-	m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
+	result = m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
+	if (result != 0) {
+		return result;
+	}
+
+	// important: Makes io completion to be signalled by the first arriving byte
+	result = WSARecv(reinterpret_cast < SOCKET > (m_event.fileHandle), &signalBuffer, 1, &size, &flags, &m_event.overlapped, NULL);
+	if ((result==SOCKET_ERROR) && (WSAGetLastError()!=WSA_IO_PENDING)) {
+		std::cerr << WSAGetLastError() << std::endl;
+		return -1;
+	}
+	return 0;
 }
 
 int hbm::communication::SocketNonblocking::setSocketOptions()
@@ -71,10 +93,10 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 
 	// switch to non blocking
 	u_long value = 1;
-	::ioctlsocket(m_fd, FIONBIO, &value);
+	::ioctlsocket(reinterpret_cast < SOCKET > (m_event.fileHandle), FIONBIO, &value);
 
 	// turn off nagle algorithm
-	setsockopt(m_fd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt));
+	setsockopt(reinterpret_cast < SOCKET > (m_event.fileHandle), IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt));
 
 
 	// configure keep alive
@@ -85,7 +107,7 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 	// from MSDN: on windows vista and later, the number of probes is set to 10 and can not be changed
 	// time until recognition: keepaliveinterval + (keepalivetime*number of probes)
 	ka.onoff = 1;
-	WSAIoctl(m_fd, SIO_KEEPALIVE_VALS, &ka, sizeof(ka), NULL, 0, &len, NULL, NULL);
+	WSAIoctl(reinterpret_cast < SOCKET > (m_event.fileHandle), SIO_KEEPALIVE_VALS, &ka, sizeof(ka), NULL, 0, &len, NULL, NULL);
 
 	return 0;
 }
@@ -105,7 +127,7 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 		return -1;
 	}
 	
-	int retVal = connect(pResult->ai_family, pResult->ai_addr, sizeof(sockaddr_in));
+	int retVal = connect(pResult->ai_family, pResult->ai_addr, pResult->ai_addrlen);
 
 	freeaddrinfo( pResult );
 
@@ -114,8 +136,9 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 
 int hbm::communication::SocketNonblocking::connect(int domain, const struct sockaddr* pSockAddr, socklen_t len)
 {
-	m_fd = static_cast <int> (::socket(domain, SOCK_STREAM, 0));
-	if (m_fd == -1) {
+
+	m_event.fileHandle = reinterpret_cast <HANDLE> (::WSASocket(domain, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED));
+	if (m_event.fileHandle == INVALID_HANDLE_VALUE) {
 		return -1;
 	}
 
@@ -124,11 +147,9 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 		return err;
 	}
 
-	err = ::connect(m_fd,pSockAddr, len);
+	err = ::connect(reinterpret_cast < SOCKET > (m_event.fileHandle), pSockAddr, len);
 	// success if WSAGetLastError returns WSAEWOULDBLOCK
-	if((err == SOCKET_ERROR) && (WSAGetLastError() == WSAEWOULDBLOCK))
-	{
-
+	if((err == SOCKET_ERROR) && (WSAGetLastError() == WSAEWOULDBLOCK)) {
 		fd_set fdWrite;
 
 		struct timeval timeout;
@@ -138,19 +159,19 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 
 
 		FD_ZERO(&fdWrite);
-		FD_SET(m_fd,&fdWrite);
+		FD_SET(reinterpret_cast < SOCKET > (m_event.fileHandle), &fdWrite);
 
-		err = select(m_fd + 1, NULL, &fdWrite, NULL, &timeout);
-		if(err==1) {
-			int value;
-			socklen_t len = sizeof(value);
-			getsockopt(m_fd, SOL_SOCKET, SO_ERROR, reinterpret_cast < char* > (&value), &len);
-			if(value!=0) {
-				err = -1;
-			}
-		} else {
-			err = -1;
+		err = select(0, NULL, &fdWrite, NULL, &timeout);
+		if (err != 1) {
+			return -1;
 		}
+		int value;
+		socklen_t len = sizeof(value);
+		getsockopt(reinterpret_cast < SOCKET > (m_event.fileHandle), SOL_SOCKET, SO_ERROR, reinterpret_cast < char* > (&value), &len);
+		if(value!=0) {
+			return -1;
+		}
+		return 0;
 	} else {
 		err = -1;
 	}
@@ -168,7 +189,7 @@ int hbm::communication::SocketNonblocking::process()
 
 ssize_t hbm::communication::SocketNonblocking::receive(void* pBlock, size_t size)
 {
-  return m_bufferedReader.recv(m_fd, pBlock, size);
+  return m_bufferedReader.recv(m_event, pBlock, size);
 }
 
 ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, size_t len, int msTimeout)
@@ -183,7 +204,7 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 	fd_set recvFds;
 
 	FD_ZERO(&recvFds);
-	FD_SET(m_fd,&recvFds);
+	FD_SET(reinterpret_cast < SOCKET > (m_event.fileHandle), &recvFds);
 	int err;
 
 	if(msTimeout>=0) {
@@ -198,7 +219,7 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 
 
   while (DataToGet > 0) {
-    numBytes = m_bufferedReader.recv(m_fd, reinterpret_cast<char*>(pDat), static_cast < int >(DataToGet));
+    numBytes = m_bufferedReader.recv(m_event, reinterpret_cast<char*>(pDat), static_cast < int >(DataToGet));
     if(numBytes>0) {
       pDat += numBytes;
       DataToGet -= numBytes;
@@ -207,10 +228,11 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
       DataToGet = 0;
       return -1;
     } else {
-      if(WSAGetLastError()==WSAEWOULDBLOCK) {
+	int lastError = WSAGetLastError();
+	if ((lastError == ERROR_IO_PENDING) || (lastError == WSAEWOULDBLOCK)) {
 	// wait until there is something to read or something bad happened
 	do {
-	  err = select(static_cast < int >(m_fd) + 1, &recvFds, NULL, NULL, pTimeVal);
+		err = select(0, &recvFds, NULL, NULL, pTimeVal);
 	} while((err==-1) && (WSAGetLastError()!=WSAEINTR));
 	if(err!=1) {
 	  return -1;
@@ -225,7 +247,8 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 
 ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &blocks)
 {
-	std::vector < WSABUF > buffers(blocks.size());
+	std::vector < WSABUF > buffers;
+	buffers.reserve(blocks.size());
 
 	size_t completeLength = 0;
 	WSABUF newWsaBuf;
@@ -241,10 +264,10 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 
 	int retVal;
 	
-	retVal = WSASend(m_fd, &buffers[0], static_cast < DWORD > (buffers.size()), static_cast < LPDWORD > (&bytesWritten), 0, NULL, NULL);
+	retVal = WSASend(reinterpret_cast < SOCKET > (m_event.fileHandle), &buffers[0], static_cast < DWORD > (buffers.size()), static_cast < LPDWORD > (&bytesWritten), 0, NULL, NULL);
 	if (retVal < 0) {
 		int retVal = WSAGetLastError();
-		if ((retVal != WSAEWOULDBLOCK) && (retVal != WSAEINTR) && (retVal != WSAEINPROGRESS)) {
+		if ((retVal != WSAEWOULDBLOCK) && (retVal != ERROR_IO_PENDING) && (retVal != WSAEINTR) && (retVal != WSAEINPROGRESS)) {
 			return retVal;
 		}
 	}
@@ -285,11 +308,11 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 	fd_set recvFds;
 
 	FD_ZERO(&recvFds);
-	FD_SET(m_fd,&recvFds);
+	FD_SET(reinterpret_cast < SOCKET > (m_event.fileHandle), &recvFds);
 	int err;
 
 	while (BytesLeft > 0) {
-		numBytes = send(m_fd, reinterpret_cast < const char* >(pDat), static_cast < int >(BytesLeft), 0);
+		numBytes = send(reinterpret_cast < SOCKET > (m_event.fileHandle), reinterpret_cast < const char* >(pDat), static_cast < int >(BytesLeft), 0);
 		if (numBytes > 0) {
 			pDat += numBytes;
 			BytesLeft -= numBytes;
@@ -300,8 +323,8 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 		} else {
 			// -1: error
 			int retVal = WSAGetLastError();
-			if ((retVal == WSAEWOULDBLOCK) || (retVal == WSAEINPROGRESS)) {
-				err = select(static_cast < int >(m_fd)+1, NULL, &recvFds, NULL, NULL);
+			if ((retVal == WSAEWOULDBLOCK) || (retVal == ERROR_IO_PENDING) || (retVal == WSAEINPROGRESS)) {
+				err = select(0, NULL, &recvFds, NULL, NULL);
 				if (err != 1) {
 					BytesLeft = 0;
 					retVal = -1;
@@ -318,9 +341,9 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 void hbm::communication::SocketNonblocking::disconnect()
 {
 	m_eventLoop.eraseEvent(m_event);
-	::shutdown(m_fd, SD_BOTH);
-	::closesocket(m_fd);
-	m_fd = -1;
+	::shutdown(reinterpret_cast < SOCKET > (m_event.fileHandle), SD_BOTH);
+	::closesocket(reinterpret_cast < SOCKET > (m_event.fileHandle));
+	m_event.fileHandle = INVALID_HANDLE_VALUE;
 }
 
 bool hbm::communication::SocketNonblocking::isFirewire() const
@@ -340,7 +363,7 @@ bool hbm::communication::SocketNonblocking::checkSockAddr(const struct ::sockadd
 	if (err != 0) {
 		return false;
 	}
-	getpeername(m_fd, &sockAddr, &addrLen);
+	getpeername(reinterpret_cast < SOCKET > (m_event.fileHandle), &sockAddr, &addrLen);
 	getnameinfo(&sockAddr, addrLen, host, sizeof(host), service, sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV);
 	if (
 		(strcmp(host, checkHost) == 0) &&

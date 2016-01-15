@@ -13,6 +13,19 @@
 #include <boost/test/unit_test.hpp>
 
 #include "hbm/communication/netadapter.h"
+#include "hbm/communication/netadapterlist.h"
+
+BOOST_AUTO_TEST_CASE(check_ipv6)
+{
+	hbm::communication::NetadapterList adapterlist;
+	hbm::communication::NetadapterList::tAdapters adapters = adapterlist.get();
+	if (adapters.empty()) {
+		return;
+	}
+	
+	hbm::communication::Netadapter adapter = adapters.begin()->second;
+	BOOST_CHECK_GT(adapter.getIpv6Addresses().size(), 0);
+}
 
 BOOST_AUTO_TEST_CASE(check_valid_ipaddresses_test)
 {
