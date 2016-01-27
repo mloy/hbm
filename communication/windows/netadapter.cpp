@@ -101,7 +101,7 @@ namespace hbm {
 		{
 			unsigned int prefix = 0;
 			unsigned int mask = 0x80000000;
-			in_addr_t addr = inet_addr(netmask.c_str());
+			unsigned long addr = inet_addr(netmask.c_str());
 			if (addr==INADDR_NONE) {
 				return -1;
 			}
