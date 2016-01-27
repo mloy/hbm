@@ -83,7 +83,10 @@ namespace hbm {
 					}
 
 					// there might be several addresses per interface
-					Adapt.m_ipv4Addresses.push_back(addressWithNetmask);
+					if (addressWithNetmask.address != "0.0.0.0") {
+						// 0.0.0.0 does mean "no address"
+						Adapt.m_ipv4Addresses.push_back(addressWithNetmask);
+					}
 
 					// an adapter usually has just one gateway however the provision exists
 					// for more than one so to "play" as nice as possible we allow for it here
@@ -96,11 +99,8 @@ namespace hbm {
 					}
 
 
-					if (addressWithNetmask.address != "0.0.0.0") { // HBM only wants connected Interfaces to be enumerated
-
-						Adapt.m_name = pNextAd->Description;
-						m_adapters[adapterIndex] = Adapt;
-					}
+					Adapt.m_name = pNextAd->Description;
+					m_adapters[adapterIndex] = Adapt;
 
 					// move forward to the next adapter in the list so
 					// that we can collect its information.
