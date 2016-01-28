@@ -12,11 +12,16 @@
 
 #include "hbm/sys/eventloop.h"
 
+#ifdef UNICODE
+#define LPSTRINGTYPE LPCWSTR
+#else
+#define LPSTRINGTYPE LPCSTR
+#endif
 namespace hbm {
 	namespace sys {
 		EventLoop::EventLoop()
 			: m_completionPort(CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1))
-			, m_hEventLog(RegisterEventSource(NULL, reinterpret_cast < LPCSTR > ("Application")))
+			, m_hEventLog(RegisterEventSource(NULL, reinterpret_cast < LPSTRINGTYPE > ("Application")))
 		{
 		}
 
@@ -50,7 +55,7 @@ namespace hbm {
 
 					message = "Could not add event to event loop '" + std::to_string(lastError) + "'";
 					messages = message.c_str();
-					ReportEvent(m_hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL, 1, 0, reinterpret_cast < LPCSTR* > (&messages), NULL);
+					ReportEvent(m_hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL, 1, 0, reinterpret_cast < LPSTRINGTYPE* > (&messages), NULL);
 					return -1;
 				}
 			}
@@ -85,7 +90,7 @@ namespace hbm {
 
 						message = "Event loop stopped with error " + std::to_string(lastError);
 						messages = message.c_str();
-						ReportEvent(m_hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL, 1, 0, reinterpret_cast < LPCSTR* > (&messages), NULL);
+						ReportEvent(m_hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL, 1, 0, reinterpret_cast < LPSTRINGTYPE* > (&messages), NULL);
 						break;
 					}
 				}
@@ -105,8 +110,6 @@ namespace hbm {
 						} while (result > 0);
 					} 
 				}
-
-
 			} while (true);
 			return 0;
 
