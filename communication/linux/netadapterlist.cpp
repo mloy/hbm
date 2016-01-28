@@ -165,7 +165,12 @@ namespace hbm {
 										addressWithNetmask.netmask = buf;
 									}
 
-									Adapt.m_ipv4Addresses.push_back(addressWithNetmask);
+									// apipa address at the end!
+									if (Netadapter::isApipaAddress(addressWithNetmask.address)) {
+										Adapt.m_ipv4Addresses.push_back(addressWithNetmask);
+									} else {
+										Adapt.m_ipv4Addresses.push_front(addressWithNetmask);
+									}
 								} else if (family == AF_INET6) {
 									struct sockaddr_in6 ipv6_address;
 									std::memcpy(&ipv6_address, interface->ifa_addr, sizeof(ipv6_address));
