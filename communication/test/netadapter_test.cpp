@@ -36,13 +36,13 @@ BOOST_AUTO_TEST_CASE(check_valid_ipaddresses_test)
     BOOST_CHECK_EQUAL(result, true);
 }
 
-BOOST_AUTO_TEST_CASE(check_isapipa_address_test)
+BOOST_AUTO_TEST_CASE(check_prefix_from_netmask)
 {
-    bool result;
-    result = hbm::communication::Netadapter::isApipaAddress("169.254.0.2");
-    BOOST_CHECK_EQUAL(result, true);
-    result = hbm::communication::Netadapter::isApipaAddress("172.169.254.0");
-    BOOST_CHECK_EQUAL(result, false);
+    int result;
+    result = hbm::communication::Netadapter::getPrefixFromNetmask("255.255.0.0");
+    BOOST_CHECK_EQUAL(result, 16);
+    result = hbm::communication::Netadapter::getPrefixFromNetmask("bla");
+    BOOST_CHECK_EQUAL(result, -1);
 }
 
 
