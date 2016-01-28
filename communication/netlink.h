@@ -38,6 +38,8 @@ namespace hbm {
 			int stop();
 
 		private:
+			Netlink(const Netlink&);
+			Netlink& operator= (const Netlink&);
 			ssize_t process();
 
 	#ifdef _WIN32
