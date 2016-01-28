@@ -140,7 +140,8 @@ namespace hbm {
 			unsigned int prefix = 0;
 			unsigned int mask = 0x80000000;
 			in_addr_t addr = inet_addr(netmask.c_str());
-			if (addr==INADDR_NONE) {
+			//255.255.255.255 is valid!
+			if ((addr==INADDR_NONE) && (netmask!="255.255.255.255")) {
 				return -1;
 			}
 			uint32_t ipv4Subnetmask = ntohl(addr);
@@ -153,6 +154,26 @@ namespace hbm {
 				}
 			} while(mask!=0);
 			return prefix;
+		}
+		
+		std::string Netadapter::getIpv4NetmaskFromPrefix(unsigned int prefix)
+		{
+			if (prefix>32) {
+				// invalid
+				return "";
+			}
+			unsigned int subnet = 0;
+			for (unsigned int count=0; count<32; ++count) {
+				subnet <<= 1;
+				if (prefix) {
+					subnet |= 1;
+					--prefix;
+				}
+			}
+			
+			struct in_addr ip_addr;
+			ip_addr.s_addr = htonl(subnet);
+			return inet_ntoa(ip_addr);
 		}
 	}
 }

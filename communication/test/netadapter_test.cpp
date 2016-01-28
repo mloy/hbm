@@ -38,15 +38,30 @@ BOOST_AUTO_TEST_CASE(check_valid_ipaddresses_test)
 
 BOOST_AUTO_TEST_CASE(check_prefix_from_netmask)
 {
-	int result;
-	result = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.0.0.0");
-	BOOST_CHECK_EQUAL(result, 8);
-	result = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.255.0.0");
-	BOOST_CHECK_EQUAL(result, 16);
-	result = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.255.255.0");
-	BOOST_CHECK_EQUAL(result, 24);
-	result = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("bla");
-	BOOST_CHECK_EQUAL(result, -1);
+	int prefix;
+	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.0.0.0");
+	BOOST_CHECK_EQUAL(prefix, 8);
+	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.255.0.0");
+	BOOST_CHECK_EQUAL(prefix, 16);
+	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.255.255.0");
+	BOOST_CHECK_EQUAL(prefix, 24);
+	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.255.255.255");
+	BOOST_CHECK_EQUAL(prefix, 32);
+	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("bla");
+	BOOST_CHECK_EQUAL(prefix, -1);
+}
+
+BOOST_AUTO_TEST_CASE(check_netmask_from_prefix)
+{
+	std::string netmask;
+	netmask = hbm::communication::Netadapter::getIpv4NetmaskFromPrefix(8);
+	BOOST_CHECK_EQUAL(netmask, "255.0.0.0");
+	netmask = hbm::communication::Netadapter::getIpv4NetmaskFromPrefix(16);
+	BOOST_CHECK_EQUAL(netmask, "255.255.0.0");
+	netmask = hbm::communication::Netadapter::getIpv4NetmaskFromPrefix(32);
+	BOOST_CHECK_EQUAL(netmask, "255.255.255.255");
+	netmask = hbm::communication::Netadapter::getIpv4NetmaskFromPrefix(33);
+	BOOST_CHECK_EQUAL(netmask, "");
 }
 
 

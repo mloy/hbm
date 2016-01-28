@@ -110,6 +110,7 @@ namespace hbm {
 			static bool isValidManualIpv4Address(const std::string& ip);
 			static bool isValidIpv4Netmask(const std::string& ip);
 			static int getPrefixFromIpv4Netmask(const std::string& netmask);
+			static std::string getIpv4NetmaskFromPrefix(unsigned int prefix);
 
 			std::string m_name;
 

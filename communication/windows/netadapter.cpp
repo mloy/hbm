@@ -102,7 +102,8 @@ namespace hbm {
 			unsigned int prefix = 0;
 			unsigned int mask = 0x80000000;
 			unsigned long addr = inet_addr(netmask.c_str());
-			if (addr==INADDR_NONE) {
+			//255.255.255.255 is valid!
+			if ((addr==INADDR_NONE) && (netmask!="255.255.255.255")) {
 				return -1;
 			}
 			uint32_t ipv4Subnetmask = ntohl(addr);
