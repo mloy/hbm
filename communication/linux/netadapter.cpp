@@ -82,7 +82,7 @@ namespace hbm {
 			}
 		}
 
-		bool Netadapter::isValidManualIpV4Address(const std::string& ip)
+		bool Netadapter::isValidManualIpv4Address(const std::string& ip)
 		{
 			in_addr address;
 			if (inet_aton(ip.c_str(), &address) == 0) {
@@ -114,7 +114,7 @@ namespace hbm {
 			return true;
 		}
 
-		bool Netadapter::isValidIpV4Netmask(const std::string& ip)
+		bool Netadapter::isValidIpv4Netmask(const std::string& ip)
 		{
 			in_addr address;
 			if (inet_aton(ip.c_str(), &address) == 0) {
@@ -132,6 +132,27 @@ namespace hbm {
 			}
 
 			return true;
+		}
+		
+		
+		int Netadapter::getPrefixFromIpv4Netmask(const std::string& netmask)
+		{
+			unsigned int prefix = 0;
+			unsigned int mask = 0x80000000;
+			in_addr_t addr = inet_addr(netmask.c_str());
+			if (addr==INADDR_NONE) {
+				return -1;
+			}
+			uint32_t ipv4Subnetmask = ntohl(addr);
+			do {
+				if (ipv4Subnetmask & mask) {
+					mask >>= 1;
+					++prefix;
+				} else {
+					break;
+				}
+			} while(mask!=0);
+			return prefix;
 		}
 	}
 }
