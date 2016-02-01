@@ -78,6 +78,7 @@ add_test(socketnonblocking_test socketnonblocking.test
 SET(NETADAPTER_TEST
     ../linux/netadapter.cpp
     ../linux/netadapterlist.cpp
+    ../../string/split.cpp
     netadapter_test.cpp
 )
 set_source_files_properties(

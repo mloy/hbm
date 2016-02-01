@@ -80,7 +80,7 @@ namespace hbm {
 				return m_ipv6Addresses;
 			}
 
-			/// returns formatted MAC address in HEX punctuated with ":"
+			/// returns formatted MAC address in HEX punctuated with ":" and upper case letters
 			std::string getMacAddressString() const { return m_macAddress; }
 
 			/// returns 0 for non FireWire adapters
