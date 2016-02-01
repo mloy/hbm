@@ -15,6 +15,8 @@
 #include "hbm/communication/netadapter.h"
 #include "hbm/communication/netadapterlist.h"
 
+#include "hbm/string/split.h"
+
 BOOST_AUTO_TEST_CASE(check_ipv6)
 {
 	hbm::communication::NetadapterList adapterlist;
@@ -68,17 +70,31 @@ BOOST_AUTO_TEST_CASE(check_netmask_from_prefix)
 
 BOOST_AUTO_TEST_CASE(check_forbidden_ipaddresses_test)
 {
-    bool result;
-    result = hbm::communication::Netadapter::isValidManualIpv4Address("not an address");
-    BOOST_CHECK_EQUAL(result, false);
-    result = hbm::communication::Netadapter::isValidManualIpv4Address("0.0.0.0");
-    BOOST_CHECK_EQUAL(result, false);
-    result = hbm::communication::Netadapter::isValidManualIpv4Address("127.0.0.1"); // loopback
-    BOOST_CHECK_EQUAL(result, false);
-    result = hbm::communication::Netadapter::isValidManualIpv4Address("169.254.0.1"); // APIPA
-    BOOST_CHECK_EQUAL(result, false);
-    result = hbm::communication::Netadapter::isValidManualIpv4Address("224.4.7.1"); // multicast
-    BOOST_CHECK_EQUAL(result, false);
-    result = hbm::communication::Netadapter::isValidManualIpv4Address("254.4.7.1"); // experimental
-    BOOST_CHECK_EQUAL(result, false);
+	bool result;
+	result = hbm::communication::Netadapter::isValidManualIpv4Address("not an address");
+	BOOST_CHECK_EQUAL(result, false);
+	result = hbm::communication::Netadapter::isValidManualIpv4Address("0.0.0.0");
+	BOOST_CHECK_EQUAL(result, false);
+	result = hbm::communication::Netadapter::isValidManualIpv4Address("127.0.0.1"); // loopback
+	BOOST_CHECK_EQUAL(result, false);
+	result = hbm::communication::Netadapter::isValidManualIpv4Address("169.254.0.1"); // APIPA
+	BOOST_CHECK_EQUAL(result, false);
+	result = hbm::communication::Netadapter::isValidManualIpv4Address("224.4.7.1"); // multicast
+	BOOST_CHECK_EQUAL(result, false);
+	result = hbm::communication::Netadapter::isValidManualIpv4Address("254.4.7.1"); // experimental
+	BOOST_CHECK_EQUAL(result, false);
+}
+
+BOOST_AUTO_TEST_CASE(check_mac_address)
+{
+	hbm::communication::NetadapterList::tAdapters adapters = hbm::communication::NetadapterList().get();
+	if (adapters.empty()) {
+		return;
+	}
+	
+	std::string macAddress = adapters.begin()->second.getMacAddressString();
+	BOOST_CHECK_GT(macAddress.length(), 0);
+	hbm::string::tokens tokens = hbm::string::split(macAddress, ':');
+	BOOST_CHECK_EQUAL(tokens.size(), 6);
+	
 }
