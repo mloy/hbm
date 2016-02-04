@@ -298,7 +298,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 }
 
 
-ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool more)
+ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool)
 {
 	const uint8_t* pDat = reinterpret_cast<const uint8_t*>(pBlock);
 	size_t BytesLeft = size;
