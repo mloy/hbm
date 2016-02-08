@@ -93,22 +93,23 @@ namespace hbm {
 						ReportEvent(m_hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL, 1, 0, reinterpret_cast < LPSTRINGTYPE* > (&messages), NULL);
 						break;
 					}
-				}
-				if (pOverlapped == NULL) {
-					// stop condition
-					break;
-				}
+				} else {
+					if (pOverlapped == NULL) {
+						// stop condition
+						break;
+					}
 
-				{
-					ssize_t result;
+					{
+						ssize_t retval;
 
-					std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-					eventInfos_t::iterator iter = m_eventInfos.find(pOverlapped->hEvent);
-					if (iter != m_eventInfos.end()) {
-						do {
-							result = iter->second();
-						} while (result > 0);
-					} 
+						std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
+						eventInfos_t::iterator iter = m_eventInfos.find(pOverlapped->hEvent);
+						if (iter != m_eventInfos.end()) {
+							do {
+								retval = iter->second();
+							} while (retval > 0);
+						}
+					}
 				}
 			} while (true);
 			return 0;
