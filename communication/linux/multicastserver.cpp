@@ -256,7 +256,6 @@ namespace hbm {
 					syslog(LOG_ERR, "interface address %s could not be added to multicastgroup %s '%s'", interfaceAddress.c_str(), m_address.c_str(), strerror(errno));
 					return -1;
 				}
-				syslog(LOG_INFO, "interface address %s succesfully added to multicastgroup %s", interfaceAddress.c_str(), m_address.c_str());
 				return 1;
 			} else {
 				if(retVal!=0) {
@@ -266,7 +265,6 @@ namespace hbm {
 					}
 					return -1;
 				}
-				syslog(LOG_INFO, "interface address %s succesfully dropped from multicastgroup %s", interfaceAddress.c_str(), m_address.c_str());
 				return 1;
 			}
 		}
