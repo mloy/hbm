@@ -54,7 +54,7 @@ target_link_libraries( splittest
 )
 
 enable_testing()
-add_test(splittest splittest.test
+add_test(splittest splittest
     --report_level=no
     --log_level=all
     --output_format=xml
@@ -74,7 +74,7 @@ target_link_libraries( replacetest
 )
 
 enable_testing()
-add_test(replacetest replacetest.test
+add_test(replacetest replacetest
     --report_level=no
     --log_level=all
     --output_format=xml
@@ -94,7 +94,7 @@ target_link_libraries( trimtest
 )
 
 enable_testing()
-add_test(trimtest trimtest.test
+add_test(trimtest trimtest
     --report_level=no
     --log_level=all
     --output_format=xml
