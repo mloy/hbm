@@ -41,6 +41,10 @@ static void timerEventHandlerIncrement(bool fired, unsigned int& value, bool& ca
 	}
 }
 
+static void timerEventHandlerNop(bool )
+{
+}
+
 static void executionTimerCb(bool fired, hbm::sys::EventLoop& eventloop)
 {
 	if (fired) {
@@ -88,12 +92,29 @@ BOOST_AUTO_TEST_CASE(stop_test)
 }
 
 
+BOOST_AUTO_TEST_CASE(stop_with_active_eventstest)
+{
+	hbm::sys::EventLoop eventLoop;
+	
+	hbm::sys::Notifier notifier(eventLoop);
+	hbm::sys::Timer timer(eventLoop);
+	static const std::chrono::milliseconds waitDuration(300);
+	timer.set(waitDuration*2, true, &timerEventHandlerNop);
+
+
+	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
+	std::this_thread::sleep_for(waitDuration);
+	eventLoop.stop();
+	worker.join();
+	int result = timer.cancel();
+}
+
+
 BOOST_AUTO_TEST_CASE(waitforend_test)
 {
 	hbm::sys::EventLoop eventLoop;
 	hbm::sys::Timer executionTimer(eventLoop);
 	static const std::chrono::milliseconds duration(100);
-	
 
 	std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 	executionTimer.set(duration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventLoop)));
