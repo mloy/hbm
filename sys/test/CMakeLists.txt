@@ -4,9 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 include_directories(../../..)
 
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../../cmake)
-
-SET(CMAKE_CXX_FLAGS "-std=c++0x -pipe -fno-common -ggdb -pthread")
+SET(CMAKE_CXX_FLAGS "-std=c++11 -pipe -fno-common -pthread -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
 
 find_package(Boost ${QX_BOOST_VERSION}  COMPONENTS unit_test_framework)
 
@@ -20,12 +18,11 @@ enable_testing()
 
 
 SET(EXECUTECOMMAND_TEST
-	../executecommand.cpp
+	../linux/executecommand.cpp
 	executecommand_test.cpp
 )
 set_source_files_properties(
 	${EXECUTECOMMAND_TEST}
-	PROPERTIES COMPILE_FLAGS "-Wextra"
 )
 
 add_executable(
@@ -45,37 +42,6 @@ target_link_libraries (
 #--log_sink=${CMAKE_BINARY_DIR}/executecommand_test.xml)
 
 
-#SET(TIMER_TEST
-#	../timer.h
-#	../notifier.h
-#	../defines.h
-#	../linux/timer.cpp
-#	timer_test.cpp
-#)
-#set_source_files_properties(
-#	${TIMER_TEST}
-#	PROPERTIES COMPILE_FLAGS "-Wextra"
-#)
-
-#add_executable(
-#	timer.test
-#	${TIMER_TEST}
-#)
-
-#target_link_libraries (
-#	timer.test
-#	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-#)
-
-
-#add_test(timer_test timer.test
-#--report_level=no
-#--log_level=all
-#--output_format=xml
-#--log_sink=${CMAKE_BINARY_DIR}/timer_test.xml)
-
-
-
 SET(EVENTLOOP_TEST
 	../linux/eventloop.cpp
 	../linux/timer.cpp
@@ -84,7 +50,6 @@ SET(EVENTLOOP_TEST
 )
 set_source_files_properties(
 	${EVENTLOOP_TEST}
-	PROPERTIES COMPILE_FLAGS "-Wextra"
 )
 
 add_executable(
