@@ -91,22 +91,43 @@ BOOST_AUTO_TEST_CASE(stop_test)
 	BOOST_CHECK_MESSAGE(delta.count()>=300, "unexpected wait difference of " << std::to_string(delta.count()) << "ms");
 }
 
-
-BOOST_AUTO_TEST_CASE(stop_with_active_eventstest)
+/// event loop might be stopped and started again.
+BOOST_AUTO_TEST_CASE(eventloop_restart_test)
 {
+	unsigned int notificationCount = 0;
 	hbm::sys::EventLoop eventLoop;
 	
 	hbm::sys::Notifier notifier(eventLoop);
 	hbm::sys::Timer timer(eventLoop);
-	static const std::chrono::milliseconds waitDuration(300);
-	timer.set(waitDuration*2, true, &timerEventHandlerNop);
+	static const std::chrono::milliseconds waitDuration(10);
+	
+	notifier.notify();
+	std::this_thread::sleep_for(waitDuration);
+	// event loop is not running yet!
+	BOOST_CHECK_EQUAL(notificationCount, 0);
 
+
+	
+	timer.set(waitDuration*2, true, &timerEventHandlerNop);
+	notifier.set(std::bind(&notifierIncrement, std::ref(notificationCount)));
 
 	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
 	std::this_thread::sleep_for(waitDuration);
+	// Event loop is running. Notification should happen!
+	BOOST_CHECK_EQUAL(notificationCount, 1);
 	eventLoop.stop();
 	worker.join();
-	int result = timer.cancel();
+
+
+	worker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
+	notifier.notify();
+	
+	std::this_thread::sleep_for(waitDuration);
+
+	eventLoop.stop();
+	worker.join();
+	// 2nd notification after restart of event loop.
+	BOOST_CHECK_EQUAL(notificationCount, 2);
 }
 
 
@@ -151,12 +172,12 @@ BOOST_AUTO_TEST_CASE(restart_test)
 
 BOOST_AUTO_TEST_CASE(notify_test)
 {
-	unsigned int value = 0;
+	unsigned int notificationCount = 0;
 	static const std::chrono::milliseconds duration(100);
 	hbm::sys::EventLoop eventLoop;
 	hbm::sys::Notifier notifier(eventLoop);
-	notifier.set(std::bind(&notifierIncrement, std::ref(value)));
-	BOOST_CHECK_EQUAL(value, 0);
+	notifier.set(std::bind(&notifierIncrement, std::ref(notificationCount)));
+	BOOST_CHECK_EQUAL(notificationCount, 0);
 
 	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, &eventLoop));
 
@@ -176,7 +197,7 @@ BOOST_AUTO_TEST_CASE(notify_test)
 	eventLoop.stop();
 	worker.join();
 
-	BOOST_CHECK_EQUAL(value, count);
+	BOOST_CHECK_EQUAL(notificationCount, count);
 }
 
 BOOST_AUTO_TEST_CASE(oneshottimer_test)
