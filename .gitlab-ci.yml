@@ -1,17 +1,9 @@
 stages:
   - build
-  - test
 
-ci_build:
+ci_build_and_test:
   stage: build
   script:
-    - mkdir build && cd build && cmake .. && make
-  tags:
-    - linux
-
-ci_test:
-  stage: test
-  script:
-    - cd build && make test
+    - mkdir build && cd build && cmake .. && make && make test
   tags:
     - linux
