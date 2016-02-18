@@ -27,17 +27,17 @@ namespace hbm {
 			}
 		}
 
-		jsonrpcException::jsonrpcException( int code, const std::string& message)
+		jsonrpcException::jsonrpcException( int excCode, const std::string& excMessage)
 			: exception("")
 			, m_error_obj()
-			, m_code(code)
-			, m_message(message)
+			, m_code(excCode)
+			, m_message(excMessage)
 		{
-			if(message.empty()==false) {
-				m_error_obj[jsonrpc::ERR][jsonrpc::MESSAGE] = message;
+			if(excMessage.empty()==false) {
+				m_error_obj[jsonrpc::ERR][jsonrpc::MESSAGE] = excMessage;
 			}
 
-			m_error_obj[jsonrpc::ERR][jsonrpc::CODE] = code;
+			m_error_obj[jsonrpc::ERR][jsonrpc::CODE] = excCode;
 		}
 
 		jsonrpcException::~jsonrpcException() throw()
