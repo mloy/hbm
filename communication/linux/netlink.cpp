@@ -134,18 +134,6 @@ namespace hbm {
 								}
 							}
 							break;
-						case RTM_NEWROUTE:
-							{
-								struct rtmsg* prtmsg = reinterpret_cast <struct rtmsg*> (NLMSG_DATA(nh));
-								//std::cout << "RTM_NEWROUTE family=" << (int)prtmsg->rtm_family << ", type=" << (int)prtmsg->rtm_type << std::endl;
-							}
-							break;
-						case RTM_DELROUTE:
-							{
-								struct rtmsg* prtmsg = reinterpret_cast <struct rtmsg*> (NLMSG_DATA(nh));
-								//std::cout << "RTM_DELROUTE family=" << (int)prtmsg->rtm_family << ", type=" << (int)prtmsg->rtm_type << std::endl;
-							}
-							break;
 						default:
 							break;
 					}

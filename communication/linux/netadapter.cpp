@@ -43,7 +43,8 @@ namespace hbm {
 						int result;
 						char deviceName[64];
 						unsigned long destination, gateway, mask;
-						int flags, refCnt, use, metric, mtu, window, irtt;
+						unsigned int flags;
+						int refCnt, use, metric, mtu, window, irtt;
 						static const int ROUTE_GW = 0x0002;
 						static const int ROUTE_UP = 0x0001;
 
