@@ -19,9 +19,6 @@ namespace hbm {
 			, m_eventloop(eventLoop)
 		{
 			m_event.overlapped.hEvent = WSACreateEvent();
-			if (orderNextEvent() == -1) {
-				throw hbm::exception::exception("NotifyAddrChange failed: " + WSAGetLastError());
-			}
 		}
 
 		Netlink::~Netlink()
@@ -44,7 +41,10 @@ namespace hbm {
 			if (m_interfaceAddressEventHandler) {
 				m_interfaceAddressEventHandler(COMPLETE, 0, "");
 			}
+
+			orderNextEvent();
 			m_eventloop.addEvent(m_event, std::bind(&Netlink::process, this));
+
 			return 0;
 		}
 
@@ -56,13 +56,13 @@ namespace hbm {
 		
 		int Netlink::orderNextEvent()
 		{
-			HANDLE handle = NULL;
-			DWORD ret = NotifyAddrChange(&handle, &m_event.overlapped);
-			if (ret != NO_ERROR) {
-				int error = WSAGetLastError();
-				if (error != WSA_IO_PENDING) {
-					return -1;
-				}
+			if (m_event.overlapped.Internal == STATUS_PENDING) {
+				return 0;
+			}
+
+			DWORD ret = NotifyAddrChange(&m_event.fileHandle, &m_event.overlapped);
+			if (WSAGetLastError() != WSA_IO_PENDING) {
+				return -1;
 			}
 			return 0;
 		}
