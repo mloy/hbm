@@ -41,6 +41,12 @@ namespace hbm {
 				return static_cast <ssize_t> (bytesLeft);
 			}
 
+			if (ev.overlapped.Internal == STATUS_PENDING) {
+				// in this case we are already waiting for data
+				WSASetLastError(WSA_IO_PENDING);
+				return -1;
+			}
+
 			WSABUF buffers[2];
 			DWORD Flags = 0;
 			DWORD numberOfBytesRecvd;
