@@ -82,6 +82,7 @@ BOOST_AUTO_TEST_CASE(start_send_stop_test)
 	hbm::communication::MulticastServer mcsSender(adapters, eventloop);
 
 	result = mcsSender.start(MULTICASTGROUP, UDP_PORT, std::bind(&receiveAndDiscard, std::placeholders::_1));
+	BOOST_CHECK_EQUAL(result,0);
 
 	mcsSender.addAllInterfaces();
 	mcsSender.setMulticastLoop(true);
