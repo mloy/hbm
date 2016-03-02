@@ -6,6 +6,8 @@
 #include "hbm/communication/netadapterlist.h"
 #include "hbm/communication/netlink.h"
 
+static hbm::communication::NetadapterList adapters;
+
 static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int adapterIndex, const std::string& ipv4Address)
 {
 	static unsigned int eventCount = 0;
@@ -14,12 +16,28 @@ static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int a
 	std::cout << eventCount << ": ";
 	switch (event) {
 		case hbm::communication::Netlink::NEW:
-			// not supported under Windows
-			std::cout << "new interface address appeared (adapterindex=" << adapterIndex << ", ipv4 address=" << ipv4Address << ")" << std::endl;
+			{
+				// not supported under Windows
+				std::string adapterName;
+				try {
+					adapterName = adapters.getAdapterByInterfaceIndex(adapterIndex).getName();
+				} catch(const std::runtime_error& e) {
+				}
+			
+				std::cout << "new interface address appeared (adapter='" << adapterName << "', ipv4 address=" << ipv4Address << ")" << std::endl;
+			}
 			break;
 		case hbm::communication::Netlink::DEL:
-			// not supported under Windows
-			std::cout << "interface address disappeared (adapterindex=" << adapterIndex << ", ipv4 address=" << ipv4Address << ")" << std::endl;
+			{
+				// not supported under Windows
+				std::string adapterName;
+				try {
+					adapterName = adapters.getAdapterByInterfaceIndex(adapterIndex).getName();
+				} catch(const std::runtime_error& e) {
+				}
+			
+				std::cout << "interface address disappeared (adapter'=" << adapterName << "', ipv4 address=" << ipv4Address << ")" << std::endl;
+			}
 			break;
 		case hbm::communication::Netlink::COMPLETE:
 			std::cout << "complete reconfiguration" << std::endl;
@@ -27,10 +45,9 @@ static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int a
 	}
 }
 
-int main(int argc, char* argv[])
+int main()
 {
 	hbm::sys::EventLoop eventloop;
-	hbm::communication::NetadapterList adapters;
 	hbm::communication::Netlink netlink(adapters, eventloop);
 	
 	netlink.start(std::bind(&netlinkCb, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
