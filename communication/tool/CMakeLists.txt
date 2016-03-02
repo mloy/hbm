@@ -3,12 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 include_directories(../../..)
 
-
-#enable_testing()
-
-#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../../cmake)
-
-SET(CMAKE_CXX_FLAGS "-std=c++0x -pipe -fno-common -ggdb -pthread")
+SET(CMAKE_CXX_FLAGS "-std=c++11 -fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
 
 SET(NETLINKVIEW_SOURCE
     ../linux/netadapter.cpp
@@ -19,7 +14,6 @@ SET(NETLINKVIEW_SOURCE
 )
 set_source_files_properties(
     ${NETLINKVIEW_SOURCE}
-    PROPERTIES COMPILE_FLAGS "-Wextra -Winit-self -Wpointer-arith -Wformat=2 -Wcast-align -Wmissing-declarations -Werror"
 )
 
 add_executable(

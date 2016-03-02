@@ -1,12 +1,9 @@
-project("hbm_utility_test" CXX)
+project("hbm_string_test" CXX)
 
 cmake_minimum_required(VERSION 2.8)
 
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake)
-
-
-SET(CMAKE_CXX_FLAGS "-std=c++0x" CACHE STRING "" FORCE)
+SET(CMAKE_CXX_FLAGS "-std=c++11 -pthread -fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
 
 option(WITH_CPPCHECK "CppCheck" OFF)
 
