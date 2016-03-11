@@ -61,7 +61,7 @@ namespace hbm {
 			}
 
 			DWORD ret = NotifyAddrChange(&m_event.fileHandle, &m_event.overlapped);
-			if (WSAGetLastError() != WSA_IO_PENDING) {
+			if (ret != WSA_IO_PENDING) {
 				return -1;
 			}
 			return 0;
