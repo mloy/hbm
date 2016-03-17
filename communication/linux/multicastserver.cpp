@@ -17,7 +17,6 @@
 #define syslog fprintf
 #define sprintf sprintf_s
 #define LOG_DEBUG stdout
-#define LOG_INFO stdout
 #define LOG_ERR stderr
 #else
 

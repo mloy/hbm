@@ -18,8 +18,6 @@
 
 #ifdef _WIN32
 #define syslog fprintf
-#define LOG_DEBUG stdout
-#define LOG_INFO stdout
 #define LOG_ERR stderr
 #define popen(a, b) _popen(a, b)
 #define pclose(a) _pclose(a)
