@@ -90,13 +90,17 @@ int hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 int hbm::communication::SocketNonblocking::setSocketOptions()
 {
 	bool opt = true;
+	int result;
 
 	// switch to non blocking
 	u_long value = 1;
 	::ioctlsocket(reinterpret_cast < SOCKET > (m_event.fileHandle), FIONBIO, &value);
 
 	// turn off nagle algorithm
-	setsockopt(reinterpret_cast < SOCKET > (m_event.fileHandle), IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt));
+	result = setsockopt(reinterpret_cast < SOCKET > (m_event.fileHandle), IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt));
+	if (result == SOCKET_ERROR) {
+		return -1;
+	}
 
 
 	// configure keep alive
@@ -107,8 +111,10 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 	// from MSDN: on windows vista and later, the number of probes is set to 10 and can not be changed
 	// time until recognition: keepaliveinterval + (keepalivetime*number of probes)
 	ka.onoff = 1;
-	WSAIoctl(reinterpret_cast < SOCKET > (m_event.fileHandle), SIO_KEEPALIVE_VALS, &ka, sizeof(ka), NULL, 0, &len, NULL, NULL);
-
+	result = WSAIoctl(reinterpret_cast < SOCKET > (m_event.fileHandle), SIO_KEEPALIVE_VALS, &ka, sizeof(ka), NULL, 0, &len, NULL, NULL);
+	if (result == SOCKET_ERROR) {
+		return -1;
+	}
 	return 0;
 }
 
@@ -298,7 +304,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 }
 
 
-ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool)
+ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool more)
 {
 	const uint8_t* pDat = reinterpret_cast<const uint8_t*>(pBlock);
 	size_t BytesLeft = size;
