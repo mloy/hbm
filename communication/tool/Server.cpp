@@ -1,3 +1,5 @@
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <stdint.h>
 #include <string>
@@ -11,22 +13,28 @@
 static void cb(hbm::communication::workerSocket_t workerSocket)
 {
 	ssize_t result;
-	unsigned char buffer[1024];
+	char buffer;
 	// simply block the server until client closes connection to worker
+	
+	std::cout << "accepted connection!" << std::endl;
 	do {
-		result = workerSocket->receive(buffer, sizeof(buffer));
-		if (result <= 0) {
+		result = workerSocket->receiveComplete(&buffer, 1);
+		if (result == 0) {
+			std::cout << "closed connection" << std::endl;
 			break;
+		} else if (result<0) {
+			std::cerr << strerror(errno) << std::endl;
 		}
-		workerSocket->sendBlock(buffer, result, false);
+		workerSocket->sendBlock(&buffer, 1, false);
 	} while (true);
 }
 
 
-void main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 	if (argc != 2) {
 		std::cout << "syntax: " << argv[0] << " < server port >" << std::endl;
+		return EXIT_SUCCESS;
 	}
 
 	hbm::sys::EventLoop eventloop;
@@ -38,4 +46,5 @@ void main(int argc, char* argv[])
 	server.start(port, 1, &cb);
 
 	eventloop.execute();
+	return EXIT_SUCCESS;
 }

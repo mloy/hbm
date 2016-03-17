@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <string>
 
@@ -6,7 +7,7 @@
 #include <hbm/communication/socketnonblocking.h>
 
 
-void main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 	int result;
 	if (argc != 3) {
@@ -20,14 +21,16 @@ void main(int argc, char* argv[])
 	std::string port = argv[2];
 
 	result = client.connect(argv[1], argv[2]);
+	if (result!=0) {
+		return EXIT_FAILURE;
+	}
 	const char sndBuffer[] = "hallo";
 	char recvBuffer[1024];
 
 	do {
-		client.sendBlock(sndBuffer, sizeof(sndBuffer), false);
-		client.receiveComplete(recvBuffer, sizeof(sndBuffer));
+		result = client.sendBlock(sndBuffer, sizeof(sndBuffer), false);
+		result = client.receiveComplete(recvBuffer, sizeof(sndBuffer));
 	} while (true);
 
-	eventloop.execute();
-
+	return EXIT_SUCCESS;
 }

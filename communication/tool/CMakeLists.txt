@@ -12,11 +12,33 @@ SET(NETLINKVIEW_SOURCE
     ../../sys/linux/eventloop.cpp
     netlinkview.cpp
 )
-set_source_files_properties(
-    ${NETLINKVIEW_SOURCE}
-)
 
 add_executable(
     netlinkview.bin
     ${NETLINKVIEW_SOURCE}
+)
+
+SET(TCPSERVER_SOURCE
+    ../linux/bufferedreader.cpp
+    ../linux/tcpserver.cpp
+    ../linux/socketnonblocking.cpp
+    ../../sys/linux/eventloop.cpp
+    Server.cpp
+)
+
+add_executable(
+    tcpserver.bin
+    ${TCPSERVER_SOURCE}
+)
+
+SET(TCPCLIENT_SOURCE
+    ../linux/bufferedreader.cpp
+    ../linux/socketnonblocking.cpp
+    ../../sys/linux/eventloop.cpp
+    Client.cpp
+)
+
+add_executable(
+    tcpclient.bin
+    ${TCPCLIENT_SOURCE}
 )
