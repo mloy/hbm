@@ -85,17 +85,15 @@ namespace hbm {
 					
 					if (lastError == ERROR_NETNAME_DELETED) {
 						// ERROR_NETNAME_DELETED happens on closure of connection
-						ssize_t retval;
-
+						// Happpens also if tcp keep alive recognizes loss of connection.
+						// We need to call the callback routine only once to handle the error.
 						std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 						eventInfos_t::iterator iter = m_eventInfos.find(pOverlapped->hEvent);
 						if (iter != m_eventInfos.end()) {
-							do {
-								retval = iter->second();
-							} while (retval > 0);
+							iter->second();
 						}
 					} else if (lastError != ERROR_OPERATION_ABORTED) {
-						// ERROR_OPERATION_ABORTED happens on cancelation of an overlapped operation.
+						// ERROR_OPERATION_ABORTED happens on cancelation of an overlapped operation and is to be ignored.
 						std::string message;
 						LPCSTR messages;
 
