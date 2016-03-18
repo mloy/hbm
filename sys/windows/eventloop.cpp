@@ -82,9 +82,18 @@ namespace hbm {
 				result = GetQueuedCompletionStatus(m_completionPort, &size, &completionKey, &pOverlapped, INFINITE);
 				if (result == FALSE) {
 					int lastError = GetLastError();
-					// ERROR_OPERATION_ABORTED happens on cancelation of an overlapped operation.
-					// ERROR_NETNAME_DELETED happens on closure of connection
-					if ((lastError != ERROR_OPERATION_ABORTED) && (lastError != ERROR_NETNAME_DELETED)) {
+					
+					if (lastError == ERROR_NETNAME_DELETED) {
+						// ERROR_NETNAME_DELETED happens on closure of connection
+						// Happpens also if tcp keep alive recognizes loss of connection.
+						// We need to call the callback routine only once to handle the error.
+						std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
+						eventInfos_t::iterator iter = m_eventInfos.find(pOverlapped->hEvent);
+						if (iter != m_eventInfos.end()) {
+							iter->second();
+						}
+					} else if (lastError != ERROR_OPERATION_ABORTED) {
+						// ERROR_OPERATION_ABORTED happens on cancelation of an overlapped operation and is to be ignored.
 						std::string message;
 						LPCSTR messages;
 
