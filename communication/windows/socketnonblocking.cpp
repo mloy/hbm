@@ -94,7 +94,10 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 
 	// switch to non blocking
 	u_long value = 1;
-	::ioctlsocket(reinterpret_cast < SOCKET > (m_event.fileHandle), FIONBIO, &value);
+	result = ::ioctlsocket(reinterpret_cast < SOCKET > (m_event.fileHandle), FIONBIO, &value);
+	if (result == SOCKET_ERROR) {
+		return -1;
+	}
 
 	// turn off nagle algorithm
 	result = setsockopt(reinterpret_cast < SOCKET > (m_event.fileHandle), IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt));
