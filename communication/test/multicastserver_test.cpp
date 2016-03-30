@@ -74,23 +74,29 @@ static void executionTimerCb(bool fired, hbm::sys::EventLoop& eventloop)
 }
 
 
+#ifndef _WIN32
 BOOST_AUTO_TEST_CASE(check_leak)
 {
 	static const std::chrono::milliseconds waitDuration(1);
 
-	pid_t processId = getpid();
 	char readBuffer[1024] = "";
-	unsigned int fdCountBefore;
-	unsigned int fdCountAfter;
 
 	
 	hbm::communication::NetadapterList adapterlist;
 
 #ifdef _WIN32
-	GetProcessHandleCount( GetCurrentProcess(), fdCountBefore);
+	DWORD fdCountBefore;
+	DWORD fdCountAfter;
+
+	GetProcessHandleCount( GetCurrentProcess(), &fdCountBefore);
 #else
+	unsigned int fdCountBefore;
+	unsigned int fdCountAfter;
+
 	FILE* pipe;
 	std::string cmd;
+	pid_t processId = getpid();
+
 	// the numbe of file descriptors of this process
 	cmd = "ls -1 /proc/" + std::to_string(processId) + "/fd | wc -l";
 	pipe = popen(cmd.c_str(), "r");
@@ -111,7 +117,7 @@ BOOST_AUTO_TEST_CASE(check_leak)
 	}
 	
 #ifdef _WIN32
-	GetProcessHandleCount( GetCurrentProcess(), fdCountAfter);
+	GetProcessHandleCount( GetCurrentProcess(), &fdCountAfter);
 #else
 	pipe = popen(cmd.c_str(), "r");
 	fgets(readBuffer, sizeof(readBuffer), pipe);
@@ -121,6 +127,7 @@ BOOST_AUTO_TEST_CASE(check_leak)
 
 	BOOST_CHECK_EQUAL(fdCountBefore, fdCountAfter);
 }
+#endif
 
 BOOST_AUTO_TEST_CASE(start_send_stop_test)
 {

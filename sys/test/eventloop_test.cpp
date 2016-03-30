@@ -74,27 +74,31 @@ static bool getLimitReached()
 }
 
 
+#ifndef _WIN32
 BOOST_AUTO_TEST_CASE(check_leak)
 {
 	static const std::chrono::milliseconds waitDuration(1);
 
-	pid_t processId = getpid();
 	char readBuffer[1024] = "";
-	unsigned int fdCountBefore;
-	unsigned int fdCountAfter;
 
 
 #ifdef _WIN32
-			GetProcessHandleCount( GetCurrentProcess(), fdCountBefore);
+	DWORD fdCountBefore;
+	DWORD fdCountAfter;
+
+	GetProcessHandleCount( GetCurrentProcess(), &fdCountBefore);
 #else
-			FILE* pipe;
-			std::string cmd;
-			// the numbe of file descriptors of this process
-			cmd = "ls -1 /proc/" + std::to_string(processId) + "/fd | wc -l";
-			pipe = popen(cmd.c_str(), "r");
-			fgets(readBuffer, sizeof(readBuffer), pipe);
-			fdCountBefore = std::stoul(readBuffer);
-			fclose(pipe);
+	unsigned int fdCountBefore;
+	unsigned int fdCountAfter;
+	pid_t processId = getpid();
+	FILE* pipe;
+	std::string cmd;
+	// the numbe of file descriptors of this process
+	cmd = "ls -1 /proc/" + std::to_string(processId) + "/fd | wc -l";
+	pipe = popen(cmd.c_str(), "r");
+	fgets(readBuffer, sizeof(readBuffer), pipe);
+	fdCountBefore = std::stoul(readBuffer);
+	fclose(pipe);
 #endif
 
 	for (unsigned cycle = 0; cycle<10; ++cycle) {
@@ -107,7 +111,7 @@ BOOST_AUTO_TEST_CASE(check_leak)
 	}
 	
 #ifdef _WIN32
-	GetProcessHandleCount( GetCurrentProcess(), fdCountAfter);
+	GetProcessHandleCount( GetCurrentProcess(), &fdCountAfter);
 #else
 	pipe = popen(cmd.c_str(), "r");
 	fgets(readBuffer, sizeof(readBuffer), pipe);
@@ -117,6 +121,7 @@ BOOST_AUTO_TEST_CASE(check_leak)
 
 	BOOST_CHECK_EQUAL(fdCountBefore, fdCountAfter);
 }
+#endif
 
 
 /// start the eventloop in a separate thread wait some time and stop it.
