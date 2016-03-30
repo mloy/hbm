@@ -40,6 +40,7 @@ namespace hbm {
 		{
 			stop();
 			close(m_epollfd);
+			close(m_stopFd);
 		}
 
 		int EventLoop::addEvent(event fd, EventHandler_t eventHandler)
