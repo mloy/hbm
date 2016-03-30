@@ -9,6 +9,7 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE eventloop tests
+
 #include <iostream>
 #include <chrono>
 #include <mutex>
@@ -22,6 +23,7 @@
 #include "hbm/sys/eventloop.h"
 #include "hbm/sys/timer.h"
 #include "hbm/sys/notifier.h"
+#include "hbm/sys/executecommand.h"
 #include "hbm/exception/exception.hpp"
 
 
@@ -69,6 +71,51 @@ static void notifierIncrementCheckLimit()
 static bool getLimitReached()
 {
 	return incrementCount>=incrementLimit;
+}
+
+
+BOOST_AUTO_TEST_CASE(check_leak)
+{
+	static const std::chrono::milliseconds waitDuration(1);
+
+	pid_t processId = getpid();
+	char readBuffer[1024] = "";
+	unsigned int fdCountBefore;
+	unsigned int fdCountAfter;
+
+
+#ifdef _WIN32
+			GetProcessHandleCount( GetCurrentProcess(), fdCountBefore);
+#else
+			FILE* pipe;
+			std::string cmd;
+			// the numbe of file descriptors of this process
+			cmd = "ls -1 /proc/" + std::to_string(processId) + "/fd | wc -l";
+			pipe = popen(cmd.c_str(), "r");
+			fgets(readBuffer, sizeof(readBuffer), pipe);
+			fdCountBefore = std::stoul(readBuffer);
+			fclose(pipe);
+#endif
+
+	for (unsigned cycle = 0; cycle<10; ++cycle) {
+		hbm::sys::EventLoop eventloop;
+		hbm::sys::Timer executionTimer(eventloop);
+		hbm::sys::Notifier notifier(eventloop);
+		executionTimer.set(waitDuration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventloop)));
+		notifier.notify();
+		eventloop.execute();
+	}
+	
+#ifdef _WIN32
+	GetProcessHandleCount( GetCurrentProcess(), fdCountAfter);
+#else
+	pipe = popen(cmd.c_str(), "r");
+	fgets(readBuffer, sizeof(readBuffer), pipe);
+	fdCountAfter = std::stoul(readBuffer);
+	fclose(pipe);
+#endif
+
+	BOOST_CHECK_EQUAL(fdCountBefore, fdCountAfter);
 }
 
 
