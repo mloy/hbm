@@ -67,7 +67,7 @@ namespace hbm {
 			void dropAllInterfaces();
 
 			/// @param dataHandler set to empty(DataHandler_t()) if object is used as sender only.
-			int start(const std::string& address, unsigned int port, DataHandler_t dataHandler);
+			int start(const std::string& multicastGroup, unsigned int port, DataHandler_t dataHandler);
 
 			void stop();
 
@@ -118,8 +118,7 @@ namespace hbm {
 			int orderNextMessage();
 #endif
 
-			/// The All Hosts multicast group addresses all hosts on the same network segment.
-			std::string m_address;
+			std::string m_mutlicastgroup;
 
 			unsigned int m_port;
 

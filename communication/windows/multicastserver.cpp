@@ -29,7 +29,7 @@ static WSABUF signalBuffer = { 0, NULL };
 namespace hbm {
 	namespace communication {
 		MulticastServer::MulticastServer(NetadapterList& netadapterList, sys::EventLoop &eventLoop)
-			: m_address()
+			: m_mutlicastgroup()
 			, m_port()
 			, m_receiveAddr()
 			, m_netadapterList(netadapterList)
@@ -65,7 +65,7 @@ namespace hbm {
 				hints.ai_family   = PF_UNSPEC;
 				hints.ai_socktype = SOCK_DGRAM;
 
-				if ( getaddrinfo(m_address.c_str(), portString, &hints, &pResult) != 0 ) {
+				if ( getaddrinfo(m_mutlicastgroup.c_str(), portString, &hints, &pResult) != 0 ) {
 					::syslog(LOG_ERR, "Not a valid multicast IP address!");
 					return -1;
 				}
@@ -219,8 +219,8 @@ namespace hbm {
 			hints.ai_family   = PF_UNSPEC;
 			hints.ai_socktype = SOCK_DGRAM;
 
-			if ( getaddrinfo(m_address.c_str(), portString, &hints, &pResult) != 0 ) {
-				::syslog(LOG_ERR, "Not a valid multicast IP address (%s)!", m_address.c_str());
+			if ( getaddrinfo(m_mutlicastgroup.c_str(), portString, &hints, &pResult) != 0 ) {
+				::syslog(LOG_ERR, "Not a valid multicast IP address (%s)!", m_mutlicastgroup.c_str());
 				return -1;
 			}
 
@@ -479,7 +479,7 @@ namespace hbm {
 			memset(&sendAddr, 0, sizeof(sendAddr));
 			sendAddr.sin_family = AF_INET;
 			sendAddr.sin_port = htons(m_port);
-			sendAddr.sin_addr.s_addr = inet_addr(m_address.c_str());
+			sendAddr.sin_addr.s_addr = inet_addr(m_mutlicastgroup.c_str());
 
 			if (sendAddr.sin_addr.s_addr == INADDR_NONE) {
 				::syslog(LOG_ERR, "Not a valid multicast IP address!");
@@ -498,7 +498,7 @@ namespace hbm {
 
 		int MulticastServer::start(const std::string& address, unsigned int port, const DataHandler_t dataHandler)
 		{
-			m_address = address;
+			m_mutlicastgroup = address;
 			m_port = port;
 			int err = setupSendSocket();
 			if(err<0) {
