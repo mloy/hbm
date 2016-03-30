@@ -21,6 +21,7 @@ SET(MULTICASTSERVER_TEST
     ../linux/netadapterlist.cpp
     ../linux/multicastserver.cpp
     ../../sys/linux/eventloop.cpp
+    ../../sys/linux/timer.cpp
     multicastserver_test.cpp
 )
 set_source_files_properties(
@@ -48,6 +49,7 @@ SET(SOCKETNONBLOCKING_TEST
     ../linux/tcpserver.cpp
     ../linux/bufferedreader.cpp
     ../../sys/linux/eventloop.cpp
+    ../../sys/linux/timer.cpp
     socketnonblocking_test.cpp
 )
 set_source_files_properties(

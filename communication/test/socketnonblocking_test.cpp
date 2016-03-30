@@ -22,6 +22,8 @@
 #include "hbm/communication/tcpserver.h"
 #include "hbm/communication/test/socketnonblocking_test.h"
 #include "hbm/sys/eventloop.h"
+#include "hbm/sys/timer.h"
+
 
 namespace hbm {
 	namespace communication {
@@ -29,6 +31,12 @@ namespace hbm {
 
 			static const unsigned int PORT = 22222;
 
+			static void executionTimerCb(bool fired, hbm::sys::EventLoop& eventloop)
+			{
+				if (fired) {
+					eventloop.stop();
+				}
+			}
 
 			serverFixture::serverFixture()
 				: m_server(m_eventloop)
@@ -104,8 +112,59 @@ namespace hbm {
 				return result;
 			}
 
+#ifndef _WIN32
+		BOOST_AUTO_TEST_CASE(check_leak)
+		{
+			static const std::chrono::milliseconds waitDuration(1);
+		
+			char readBuffer[1024] = "";
+		
+			
+#ifdef _WIN32
+			DWORD fdCountBefore;
+			DWORD fdCountAfter;
 
+			GetProcessHandleCount( GetCurrentProcess(), &fdCountBefore);
+#else
+			unsigned int fdCountBefore;
+			unsigned int fdCountAfter;
+			
+			FILE* pipe;
+			std::string cmd;
+			pid_t processId = getpid();
+
+			// the numbe of file descriptors of this process
+			cmd = "ls -1 /proc/" + std::to_string(processId) + "/fd | wc -l";
+			pipe = popen(cmd.c_str(), "r");
+			fgets(readBuffer, sizeof(readBuffer), pipe);
+			fdCountBefore = std::stoul(readBuffer);
+			fclose(pipe);
+#endif
+
+
+			for (unsigned cycle = 0; cycle<10; ++cycle) {
+				hbm::sys::EventLoop eventloop;
+				hbm::sys::Timer executionTimer(eventloop);
+				hbm::communication::SocketNonblocking socket(eventloop);
+				executionTimer.set(waitDuration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventloop)));
+				eventloop.execute();
+			}
+			
+#ifdef _WIN32
+			GetProcessHandleCount( GetCurrentProcess(), &fdCountAfter);
+#else
+			pipe = popen(cmd.c_str(), "r");
+			fgets(readBuffer, sizeof(readBuffer), pipe);
+			fdCountAfter = std::stoul(readBuffer);
+			fclose(pipe);
+#endif
+		
+			BOOST_CHECK_EQUAL(fdCountBefore, fdCountAfter);
+		}
+#endif
+		
 			BOOST_FIXTURE_TEST_SUITE( socket_test, serverFixture )
+			
 
 
 			BOOST_AUTO_TEST_CASE(echo_test)

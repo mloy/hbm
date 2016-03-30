@@ -25,6 +25,7 @@
 #include "hbm/communication/netadapterlist.h"
 
 #include "hbm/sys/eventloop.h"
+#include "hbm/sys/timer.h"
 
 
 static std::string received;
@@ -64,6 +65,69 @@ static int receiveAndDiscard(hbm::communication::MulticastServer* pMcs)
 	} while(result>=0);
 	return 0;
 }
+
+static void executionTimerCb(bool fired, hbm::sys::EventLoop& eventloop)
+{
+	if (fired) {
+		eventloop.stop();
+	}
+}
+
+
+#ifndef _WIN32
+BOOST_AUTO_TEST_CASE(check_leak)
+{
+	static const std::chrono::milliseconds waitDuration(1);
+
+	char readBuffer[1024] = "";
+
+	
+	hbm::communication::NetadapterList adapterlist;
+
+#ifdef _WIN32
+	DWORD fdCountBefore;
+	DWORD fdCountAfter;
+
+	GetProcessHandleCount( GetCurrentProcess(), &fdCountBefore);
+#else
+	unsigned int fdCountBefore;
+	unsigned int fdCountAfter;
+
+	FILE* pipe;
+	std::string cmd;
+	pid_t processId = getpid();
+
+	// the numbe of file descriptors of this process
+	cmd = "ls -1 /proc/" + std::to_string(processId) + "/fd | wc -l";
+	pipe = popen(cmd.c_str(), "r");
+	fgets(readBuffer, sizeof(readBuffer), pipe);
+	fdCountBefore = std::stoul(readBuffer);
+	fclose(pipe);
+#endif
+
+
+	for (unsigned cycle = 0; cycle<10; ++cycle) {
+		hbm::sys::EventLoop eventloop;
+		hbm::sys::Timer executionTimer(eventloop);
+		hbm::communication::MulticastServer mcs(adapterlist, eventloop);
+		executionTimer.set(waitDuration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventloop)));
+		eventloop.execute();
+		
+		mcs.stop();
+	}
+	
+#ifdef _WIN32
+	GetProcessHandleCount( GetCurrentProcess(), &fdCountAfter);
+#else
+	pipe = popen(cmd.c_str(), "r");
+	fgets(readBuffer, sizeof(readBuffer), pipe);
+	fdCountAfter = std::stoul(readBuffer);
+	fclose(pipe);
+#endif
+
+	BOOST_CHECK_EQUAL(fdCountBefore, fdCountAfter);
+}
+#endif
 
 BOOST_AUTO_TEST_CASE(start_send_stop_test)
 {

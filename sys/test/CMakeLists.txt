@@ -45,6 +45,7 @@ target_link_libraries (
 
 SET(EVENTLOOP_TEST
 	../linux/eventloop.cpp
+	../linux/executecommand.cpp
 	../linux/timer.cpp
 	../linux/notifier.cpp
 	eventloop_test.cpp

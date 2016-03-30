@@ -37,9 +37,6 @@ namespace hbm {
 		std::string executeCommand(const std::string& command)
 		{
 			std::string retVal;
-#ifdef _STANDARD_HARDWARE
-			std::cout << command << std::endl;
-#else
 			FILE* f = popen(command.c_str(),"r");
 			if (f == NULL) {
 				std::string msg = std::string(__FUNCTION__) + "popen failed (cmd=" + command + ")!";
@@ -55,21 +52,11 @@ namespace hbm {
 				} while(true);
 				pclose(f);
 			}
-#endif
 			return retVal;
 		}
 
 		int executeCommand(const std::string& command, const params_t &params, const std::string& stdinString)
 		{
-#ifdef _STANDARD_HARDWARE
-			std::cout << command << " ";
-
-			for(params_t::const_iterator iter = params.begin(); iter!=params.end(); ++iter) {
-				std::cout << *iter << " ";
-			}
-
-			std::cout << " < " << stdinString << std::endl;
-#else
 			static const unsigned int PIPE_READ = 0;
 			static const unsigned int PIPE_WRITE = 1;
 			int pfd[2];
@@ -145,7 +132,6 @@ namespace hbm {
 				close(pfd[PIPE_WRITE]);
 				return -1;
 			}
-#endif
 			return 0;
 		}
 	}
