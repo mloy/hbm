@@ -29,6 +29,7 @@ namespace hbm {
 		{
 			stop();
 			DeregisterEventSource(m_hEventLog);
+			CloseHandle(m_completionPort);
 		}
 
 		int EventLoop::addEvent(event fd, EventHandler_t eventHandler)

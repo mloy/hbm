@@ -112,7 +112,6 @@ namespace hbm {
 				return result;
 			}
 
-#ifndef _WIN32
 		BOOST_AUTO_TEST_CASE(check_leak)
 		{
 			static const std::chrono::milliseconds waitDuration(1);
@@ -124,7 +123,15 @@ namespace hbm {
 			DWORD fdCountBefore;
 			DWORD fdCountAfter;
 
-			GetProcessHandleCount( GetCurrentProcess(), &fdCountBefore);
+			{
+				// Do one create and destruct cycle under windows before retrieving the number of handles before. This is important beacuse a lot of handles will be created on the first run.
+				hbm::sys::EventLoop eventloop;
+				hbm::sys::Timer executionTimer(eventloop);
+				hbm::communication::SocketNonblocking socket(eventloop);
+				executionTimer.set(waitDuration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventloop)));
+				eventloop.execute();
+			}
+			GetProcessHandleCount(GetCurrentProcess(), &fdCountBefore);
 #else
 			unsigned int fdCountBefore;
 			unsigned int fdCountAfter;
@@ -161,7 +168,6 @@ namespace hbm {
 		
 			BOOST_CHECK_EQUAL(fdCountBefore, fdCountAfter);
 		}
-#endif
 		
 			BOOST_FIXTURE_TEST_SUITE( socket_test, serverFixture )
 			

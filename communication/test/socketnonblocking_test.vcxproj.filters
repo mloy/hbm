@@ -45,6 +45,9 @@
     <ClCompile Include="..\..\sys\windows\eventloop.cpp">
       <Filter>Source Files\sys\windows</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\sys\windows\timer.cpp">
+      <Filter>Source Files\sys\windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\socketnonblocking.h">

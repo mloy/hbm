@@ -45,6 +45,9 @@
     <ClCompile Include="..\windows\netadapterlist.cpp">
       <Filter>Source Files\communication\windows</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\sys\windows\timer.cpp">
+      <Filter>Source Files\sys\windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\multicastserver.h">
