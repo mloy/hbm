@@ -74,7 +74,6 @@ static void executionTimerCb(bool fired, hbm::sys::EventLoop& eventloop)
 }
 
 
-#ifndef _WIN32
 BOOST_AUTO_TEST_CASE(check_leak)
 {
 	static const std::chrono::milliseconds waitDuration(1);
@@ -88,7 +87,19 @@ BOOST_AUTO_TEST_CASE(check_leak)
 	DWORD fdCountBefore;
 	DWORD fdCountAfter;
 
-	GetProcessHandleCount( GetCurrentProcess(), &fdCountBefore);
+
+	{
+		// Do one create and destruct cycle under windows before retrieving the number of handles before. This is important beacuse a lot of handles will be created on the first run.
+		hbm::sys::EventLoop eventloop;
+		hbm::sys::Timer executionTimer(eventloop);
+		hbm::communication::MulticastServer mcs(adapterlist, eventloop);
+		executionTimer.set(waitDuration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventloop)));
+		eventloop.execute();
+
+		mcs.stop();
+	}
+	GetProcessHandleCount(GetCurrentProcess(), &fdCountBefore);
+
 #else
 	unsigned int fdCountBefore;
 	unsigned int fdCountAfter;
@@ -114,10 +125,11 @@ BOOST_AUTO_TEST_CASE(check_leak)
 		eventloop.execute();
 		
 		mcs.stop();
+		GetProcessHandleCount(GetCurrentProcess(), &fdCountAfter);
 	}
 	
 #ifdef _WIN32
-	GetProcessHandleCount( GetCurrentProcess(), &fdCountAfter);
+	GetProcessHandleCount(GetCurrentProcess(), &fdCountAfter);
 #else
 	pipe = popen(cmd.c_str(), "r");
 	fgets(readBuffer, sizeof(readBuffer), pipe);
@@ -127,7 +139,6 @@ BOOST_AUTO_TEST_CASE(check_leak)
 
 	BOOST_CHECK_EQUAL(fdCountBefore, fdCountAfter);
 }
-#endif
 
 BOOST_AUTO_TEST_CASE(start_send_stop_test)
 {

@@ -85,6 +85,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sys\windows\eventloop.cpp" />
+    <ClCompile Include="..\..\sys\windows\timer.cpp" />
     <ClCompile Include="..\windows\multicastserver.cpp" />
     <ClCompile Include="..\windows\netadapter.cpp" />
     <ClCompile Include="..\windows\netadapterlist.cpp" />

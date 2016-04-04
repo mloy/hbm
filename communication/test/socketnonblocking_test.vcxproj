@@ -85,6 +85,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sys\windows\eventloop.cpp" />
+    <ClCompile Include="..\..\sys\windows\timer.cpp" />
     <ClCompile Include="..\windows\bufferedreader.cpp" />
     <ClCompile Include="..\windows\socketnonblocking.cpp" />
     <ClCompile Include="..\windows\tcpserver.cpp" />
