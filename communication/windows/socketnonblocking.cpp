@@ -190,7 +190,7 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 int hbm::communication::SocketNonblocking::process()
 {
 	if (m_dataHandler) {
-		return m_dataHandler();
+		return m_dataHandler(*this);
 	} else {
 		return -1;
 	}

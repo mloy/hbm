@@ -37,14 +37,14 @@ static bool checkReceived()
 	return !received.empty();
 }
 
-static int receiveAndKeep(hbm::communication::MulticastServer* pMcs)
+static int receiveAndKeep(hbm::communication::MulticastServer& mcs)
 {
 	ssize_t result;
 	do {
 		char buf[1042];
 		unsigned int adapterIndex;
 		int ttl;
-		result = pMcs->receiveTelegram(buf, sizeof(buf), adapterIndex, ttl);
+		result = mcs.receiveTelegram(buf, sizeof(buf), adapterIndex, ttl);
 		if(result>0) {
 			received = std::string(buf, result);
 			receivedCnd.notify_one();
@@ -54,14 +54,14 @@ static int receiveAndKeep(hbm::communication::MulticastServer* pMcs)
 	return 0;
 }
 
-static int receiveAndDiscard(hbm::communication::MulticastServer* pMcs)
+static int receiveAndDiscard(hbm::communication::MulticastServer& mcs)
 {
 	ssize_t result;
 	do {
 		char buf[1042];
 		unsigned int adapterIndex;
 		int ttl;
-		result = pMcs->receiveTelegram(buf, sizeof(buf), adapterIndex, ttl);
+		result = mcs.receiveTelegram(buf, sizeof(buf), adapterIndex, ttl);
 	} while(result>=0);
 	return 0;
 }

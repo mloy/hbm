@@ -268,7 +268,7 @@ namespace hbm {
 		int MulticastServer::process()
 		{
 			if (m_dataHandler) {
-				return m_dataHandler(this);
+				return m_dataHandler(*this);
 			} else {
 				return -1;
 			}

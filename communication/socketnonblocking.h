@@ -46,7 +46,7 @@ namespace hbm
 		{
 		public:
 			/// called on the arrival of data
-			typedef std::function < ssize_t () > DataCb_t;
+			typedef std::function < ssize_t (SocketNonblocking& socket) > DataCb_t;
 			SocketNonblocking(sys::EventLoop &eventLoop);
 
 			/// used when accepting connection via tcp server.
@@ -83,11 +83,6 @@ namespace hbm
 			bool checkSockAddr(const struct sockaddr* pCheckSockAddr, socklen_t checkSockAddrLen) const;
 
 			void disconnect();
-
-			//int getFd()
-			//{
-			//	return m_event;
-			//}
 
 		protected:
 			/// should not be copied
