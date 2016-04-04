@@ -125,7 +125,6 @@ BOOST_AUTO_TEST_CASE(check_leak)
 		eventloop.execute();
 		
 		mcs.stop();
-		GetProcessHandleCount(GetCurrentProcess(), &fdCountAfter);
 	}
 	
 #ifdef _WIN32
