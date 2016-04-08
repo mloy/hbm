@@ -62,6 +62,8 @@ namespace hbm
 			/// this method does work blocking
 			int connect(int domain, const struct sockaddr* pSockAddr, socklen_t len);
 
+			void disconnect();
+
 			/// if setting a callback function, data receiption is done via event loop.
 			/// if setting an empty callback function DataCb_t(), the event is taken out of the eventloop.
 			int setDataCb(DataCb_t dataCb);
@@ -81,10 +83,8 @@ namespace hbm
 			bool isFirewire() const;
 
 			bool checkSockAddr(const struct sockaddr* pCheckSockAddr, socklen_t checkSockAddrLen) const;
-
-			void disconnect();
-
-		protected:
+			
+private:			
 			/// should not be copied
 			SocketNonblocking(const SocketNonblocking& op);
 
