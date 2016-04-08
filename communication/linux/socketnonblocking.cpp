@@ -58,9 +58,12 @@ hbm::communication::SocketNonblocking::~SocketNonblocking()
 
 int hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 {
-	m_eventLoop.eraseEvent(m_event);
 	m_dataHandler = dataCb;
-	if (dataCb) {
+	if (m_event==-1) {
+		return -1;
+	}
+	m_eventLoop.eraseEvent(m_event);
+	if (m_dataHandler) {
 		m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
 	}
 	return 0;
@@ -127,6 +130,10 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 	int retVal = connect(pResult->ai_family, pResult->ai_addr, pResult->ai_addrlen);
 
 	freeaddrinfo( pResult );
+	
+	if (m_dataHandler) {
+		m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
+	}
 
 	return retVal;
 }
