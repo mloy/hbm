@@ -39,30 +39,35 @@ namespace hbm {
 			}
 
 			serverFixture::serverFixture()
-				: m_server(m_serverEventloop)
+				: m_server(m_eventloop)
 			{
 				BOOST_TEST_MESSAGE("setup Fixture1");
 				int result = m_server.start(PORT, 3, std::bind(&serverFixture::acceptCb, this, std::placeholders::_1));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
-				m_serverWorker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(m_serverEventloop)));
 			}
 
 			serverFixture::~serverFixture()
 			{
 				BOOST_TEST_MESSAGE("teardown serverFixture");
-				m_serverEventloop.stop();
-				m_serverWorker.join();
+				stop();
 			}
 
+			size_t serverFixture::getClientCount() const
+			{
+				return m_workers.size();
+			}
 			
-			int serverFixture::startTcpServer()
+			void serverFixture::start()
 			{
-				return m_server.start(PORT, 3, std::bind(&serverFixture::acceptCb, this, std::placeholders::_1));
+				m_serverWorker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(m_eventloop)));
 			}
 
-			void serverFixture::stopTcpServer()
+			void serverFixture::stop()
 			{
-				m_server.stop();
+				m_eventloop.stop();
+				if (m_serverWorker.joinable()) {
+					m_serverWorker.join();
+				}
 			}
 			
 
@@ -197,7 +202,6 @@ namespace hbm {
 		}
 		
 			BOOST_FIXTURE_TEST_SUITE( socket_test, serverFixture )
-			
 
 
 			BOOST_AUTO_TEST_CASE(echo_test)
@@ -206,10 +210,9 @@ namespace hbm {
 				static const char msg[] = "hallo";
 				static const char msg2[] = "!";
 
-				hbm::sys::EventLoop eventloop;
-				std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventloop)));
+				start();
 
-				hbm::communication::SocketNonblocking client(eventloop);
+				hbm::communication::SocketNonblocking client(m_eventloop);
 				result = client.connect("127.0.0.1", std::to_string(PORT));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 				client.setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::placeholders::_1));
@@ -241,49 +244,48 @@ namespace hbm {
 
 
 
-				eventloop.stop();
-				worker.join();
+				stop();
 			}
 			
-			BOOST_AUTO_TEST_CASE(edge_trigger_test)
-			{
-				static const size_t clientCount = 10;
-				int result;
-				static const std::string msgPrefix = "hallo";
+//			BOOST_AUTO_TEST_CASE(edge_trigger_test)
+//			{
+//				static const size_t clientCount = 10;
+//				int result;
+//				static const std::string msgPrefix = "hallo";
 
-				hbm::sys::EventLoop eventloop;
-				
 
-				std::vector < std::string > targets(clientCount);
-				std::vector < std::unique_ptr < hbm::communication::SocketNonblocking > > clients;
+//				std::vector < std::string > targets(clientCount);
+//				std::vector < std::unique_ptr < hbm::communication::SocketNonblocking > > clients;
 				
-				for (size_t clientIndex=0; clientIndex<clientCount; ++clientIndex) {
-					clients.push_back( std::unique_ptr < hbm::communication::SocketNonblocking >(new hbm::communication::SocketNonblocking(eventloop)));
-				}
+//				for (size_t clientIndex=0; clientIndex<clientCount; ++clientIndex) {
+//					clients.push_back( std::unique_ptr < hbm::communication::SocketNonblocking >(new hbm::communication::SocketNonblocking(m_eventloop)));
+//				}
 				
-				unsigned int index = 0;
-				for (auto iter = clients.begin(); iter!=clients.end(); ++iter) {
-					(*iter)->setDataCb(std::bind(&serverFixture::clientReceiveTarget, this, std::placeholders::_1, std::ref(targets[index])));
-					result = (*iter)->connect("127.0.0.1", std::to_string(PORT));
-					BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
-					index++;
-				}
-				
-				std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventloop)));
+//				unsigned int index = 0;
+//				for (auto iter = clients.begin(); iter!=clients.end(); ++iter) {
+//					(*iter)->setDataCb(std::bind(&serverFixture::clientReceiveTarget, this, std::placeholders::_1, std::ref(targets[index])));
+//					result = (*iter)->connect("127.0.0.1", std::to_string(PORT));
+//					BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
+//					index++;
+//				}
 				
 				
-				index = 0;
-				for (auto iter = clients.begin(); iter!=clients.end(); ++iter) {
-					std::string msg = msgPrefix + std::to_string(index);
-					result = (*iter)->sendBlock(msg.c_str(), msg.length(), false);
-					BOOST_CHECK_MESSAGE(static_cast < size_t > (result) == msg.length(), strerror(errno));
-					index++;
-				}
+//				start();
 				
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
-				eventloop.stop();
-				worker.join();
-			}
+////				index = 0;
+////				for (auto iter = clients.begin(); iter!=clients.end(); ++iter) {
+////					std::string msg = msgPrefix + std::to_string(index);
+////					result = (*iter)->sendBlock(msg.c_str(), msg.length(), false);
+////					BOOST_CHECK_MESSAGE(static_cast < size_t > (result) == msg.length(), strerror(errno));
+////					index++;
+////				}
+
+//				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				
+//				size_t realClientCount = getClientCount();
+//				BOOST_CHECK_EQUAL(clientCount, realClientCount);
+//				stop();
+//			}
 
 			BOOST_AUTO_TEST_CASE(multiclient_echo_test)
 			{
@@ -291,13 +293,12 @@ namespace hbm {
 				int result;
 				static const std::string msgPrefix = "hallo";
 
-				hbm::sys::EventLoop eventloop;
-				std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventloop)));
+				start();
 
 				std::vector < std::unique_ptr < hbm::communication::SocketNonblocking > > clients;
 				
 				for (size_t clientIndex=0; clientIndex<clientCount; ++clientIndex) {
-					clients.push_back( std::unique_ptr < hbm::communication::SocketNonblocking >(new hbm::communication::SocketNonblocking(eventloop)));
+					clients.push_back( std::unique_ptr < hbm::communication::SocketNonblocking >(new hbm::communication::SocketNonblocking(m_eventloop)));
 				}
 				
 				unsigned int index = 0;
@@ -320,9 +321,7 @@ namespace hbm {
 				}
 
 
-
-				eventloop.stop();
-				worker.join();
+				stop();
 			}
 			
 			
@@ -331,10 +330,9 @@ namespace hbm {
 				int result;
 				static const char msg[] = "hallo";
 
-				hbm::sys::EventLoop eventloop;
-				std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventloop)));
+				start();
 
-				hbm::communication::SocketNonblocking client(eventloop);
+				hbm::communication::SocketNonblocking client(m_eventloop);
 				result = client.connect("::1", std::to_string(PORT));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 				client.setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::placeholders::_1));
@@ -349,8 +347,7 @@ namespace hbm {
 				client.disconnect();
 
 
-				eventloop.stop();
-				worker.join();
+				stop();
 			}
 
 			BOOST_AUTO_TEST_CASE(setting_data_callback)
@@ -358,10 +355,9 @@ namespace hbm {
 				int result;
 				static const char msg[] = "hallo";
 
-				hbm::sys::EventLoop eventloop;
-				std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventloop)));
+				start();
 
-				hbm::communication::SocketNonblocking client(eventloop);
+				hbm::communication::SocketNonblocking client(m_eventloop);
 				result = client.connect("127.0.0.1", std::to_string(PORT));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 				client.setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::placeholders::_1));
@@ -390,8 +386,7 @@ namespace hbm {
 
 
 
-				eventloop.stop();
-				worker.join();
+				stop();
 			}
 
 
@@ -410,10 +405,9 @@ namespace hbm {
 					dataBlocks.push_back(dataBlock);
 				}
 
-				hbm::sys::EventLoop eventloop;
-				std::thread worker(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventloop)));
+				start();
 
-				hbm::communication::SocketNonblocking client(eventloop);
+				hbm::communication::SocketNonblocking client(m_eventloop);
 				result = client.connect("127.0.0.1", std::to_string(PORT));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 
@@ -427,8 +421,7 @@ namespace hbm {
 				BOOST_CHECK_MESSAGE(result == bufferSize, strerror(errno));
 
 
-				eventloop.stop();
-				worker.join();
+				stop();
 			}
 
 

@@ -24,9 +24,10 @@ namespace hbm {
 				int clientReceiveTarget(SocketNonblocking& socket, std::string& target);
 				int clientReceiveSingleBytes(SocketNonblocking& socket);
 				
-				int startTcpServer();
-				void stopTcpServer();
+				void start();
+				void stop();
 				size_t getClientCount() const;
+				sys::EventLoop m_eventloop;
 			protected:
 				serverFixture();
 				virtual ~serverFixture();
@@ -43,7 +44,6 @@ namespace hbm {
 				}
 
 			private:
-				sys::EventLoop m_serverEventloop;
 				std::thread m_serverWorker;
 
 				std::map < int, workerSocket_t> m_workers;
