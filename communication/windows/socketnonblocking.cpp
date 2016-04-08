@@ -350,7 +350,6 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 void hbm::communication::SocketNonblocking::disconnect()
 {
 	m_eventLoop.eraseEvent(m_event);
-	::shutdown(reinterpret_cast < SOCKET > (m_event.fileHandle), SD_BOTH);
 	::closesocket(reinterpret_cast < SOCKET > (m_event.fileHandle));
 	m_event.fileHandle = INVALID_HANDLE_VALUE;
 }
