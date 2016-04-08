@@ -354,9 +354,13 @@ bool hbm::communication::SocketNonblocking::checkSockAddr(const struct ::sockadd
 
 void hbm::communication::SocketNonblocking::disconnect()
 {
-	m_eventLoop.eraseEvent(m_event);
-	shutdown(m_event, SHUT_RDWR);
-	::close(m_event);
+	if (m_event!=-1) {
+		if (::close(m_event)) {
+			syslog(LOG_ERR, "closing socket %d failed '%s'", m_event, strerror(errno));
+		}
+		m_eventLoop.eraseEvent(m_event);
+	}
+
 	m_event = -1;
 }
 

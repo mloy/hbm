@@ -50,19 +50,23 @@ namespace hbm {
 				syslog(LOG_ERR, "TCP server: Socket initialization failed '%s'", strerror(errno));
 				return -1;
 			}
+			
+			uint32_t yes = 1;
+			// important for start after stop. Otherwise we have to wait some time until the port is really freed by the operating system.
+			if (setsockopt(m_listeningEvent, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+				::syslog(LOG_ERR, "TCP server: Could not set SO_REUSEADDR!");
+				return -1;
+			}
+			
 			if (::bind(m_listeningEvent, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
 				syslog(LOG_ERR, "TCP server: Binding socket to port %u failed '%s'", port, strerror(errno));
 				return -1;
 			}
-
 			if (listen(m_listeningEvent, backlog)==-1) {
 				return -1;
 			}
-
 			m_acceptCb = acceptCb;
 			m_eventLoop.addEvent(m_listeningEvent, std::bind(&TcpServer::process, this));
-
-
 			return 0;
 		}
 
@@ -82,9 +86,9 @@ namespace hbm {
 				}
 				return -1;
 			}
-
 			m_acceptCb(workerSocket_t(new SocketNonblocking(clientFd, m_eventLoop)));
-			return 0;
+			// we are working edge triggered. Returning > 0 tells the eventloop to call process again to try whether there is more in the queue.
+			return 1;
 		}
 	}
 }
