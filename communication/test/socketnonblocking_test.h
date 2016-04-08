@@ -6,7 +6,7 @@
 #define __HBM__COMMUNICATION_SOCKETTEST_H
 
 #include <thread>
-#include <set>
+#include <map>
 
 #include "hbm/communication/socketnonblocking.h"
 #include "hbm/communication/tcpserver.h"
@@ -21,12 +21,17 @@ namespace hbm {
 			class serverFixture {
 			public:
 				int clientReceive(SocketNonblocking &socket);
+				int clientReceiveTarget(SocketNonblocking& socket, std::string& target);
 				int clientReceiveSingleBytes(SocketNonblocking& socket);
+				
+				int startTcpServer();
+				void stopTcpServer();
+				size_t getClientCount() const;
 			protected:
 				serverFixture();
 				virtual ~serverFixture();
 				void acceptCb(workerSocket_t worker);
-				int serverEcho();
+				ssize_t serverEcho(int clientId);
 				void clearAnswer()
 				{
 					m_answer.clear();
@@ -38,9 +43,10 @@ namespace hbm {
 				}
 
 			private:
-				sys::EventLoop m_eventloop;
+				sys::EventLoop m_serverEventloop;
 				std::thread m_serverWorker;
-				workerSocket_t m_worker;
+
+				std::map < int, workerSocket_t> m_workers;
 				TcpServer m_server;
 
 				std::string m_answer;
