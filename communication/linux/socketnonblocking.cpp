@@ -43,12 +43,16 @@ hbm::communication::SocketNonblocking::SocketNonblocking(int fd, sys::EventLoop 
 	, m_eventLoop(eventLoop)
 	, m_dataHandler()
 {
+	if (m_event==-1) {
+		throw std::runtime_error("not a valid socket");
+	}
 	if (fcntl(m_event, F_SETFL, O_NONBLOCK)==-1) {
 		throw std::runtime_error("error setting socket to non-blocking");
 	}
 	if (setSocketOptions()<0) {
 		throw std::runtime_error("error setting socket options");
 	}
+	m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
 }
 
 hbm::communication::SocketNonblocking::~SocketNonblocking()
@@ -59,13 +63,6 @@ hbm::communication::SocketNonblocking::~SocketNonblocking()
 int hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 {
 	m_dataHandler = dataCb;
-	if (m_event==-1) {
-		return -1;
-	}
-	m_eventLoop.eraseEvent(m_event);
-	if (m_dataHandler) {
-		m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
-	}
 	return 0;
 }
 
@@ -130,11 +127,6 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 	int retVal = connect(pResult->ai_family, pResult->ai_addr, pResult->ai_addrlen);
 
 	freeaddrinfo( pResult );
-	
-	if (m_dataHandler) {
-		m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
-	}
-
 	return retVal;
 }
 
@@ -144,6 +136,8 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 	if (m_event==-1) {
 		return -1;
 	}
+	
+	m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
 
 	if (setSocketOptions()<0) {
 		return -1;
