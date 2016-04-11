@@ -213,9 +213,9 @@ namespace hbm {
 				start();
 
 				hbm::communication::SocketNonblocking client(m_eventloop);
+				client.setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::placeholders::_1));
 				result = client.connect("127.0.0.1", std::to_string(PORT));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
-				client.setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::placeholders::_1));
 
 				clearAnswer();
 				result = client.sendBlock(msg, sizeof(msg), false);
