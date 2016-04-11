@@ -42,7 +42,9 @@ namespace hbm {
 
 		int TcpServer::start(uint16_t port, int backlog, Cb_t acceptCb)
 		{
+			////ipv6 does work for ipv4 too!
 			m_listeningEvent.fileHandle = reinterpret_cast < HANDLE > (socket(AF_INET, SOCK_STREAM, 0));
+			//m_listeningEvent.fileHandle = reinterpret_cast < HANDLE > (socket(AF_INET6, SOCK_STREAM, 0));
 
 			DWORD winLen;
 
@@ -58,8 +60,7 @@ namespace hbm {
 			address.sin_addr.s_addr = htonl(INADDR_ANY);
 			address.sin_port = htons(port);	
 
-			////ipv6 does work for ipv4 too!
-			//m_listeningSocket = ::socket(AF_INET6, SOCK_STREAM, 0);
+
 			//sockaddr_in6 address;
 			//memset(&address, 0, sizeof(address));
 			//address.sin6_family = AF_INET6;
@@ -120,6 +121,7 @@ namespace hbm {
 		int TcpServer::prepareAccept()
 		{
 			m_acceptSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+			//m_acceptSocket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 
 			BOOL result = m_acceptEx(reinterpret_cast < SOCKET > (m_listeningEvent.fileHandle), m_acceptSocket, m_acceptBuffer, 0, 128, 128, &m_acceptSize, &m_listeningEvent.overlapped);
 			if (result == FALSE) {

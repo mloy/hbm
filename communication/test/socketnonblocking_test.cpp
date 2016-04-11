@@ -325,6 +325,8 @@ namespace hbm {
 			}
 			
 			
+#ifndef _WIN32
+			// under windows tcpserver does not support ipv6 yet
 			BOOST_AUTO_TEST_CASE(echo_test_ipv6)
 			{
 				int result;
@@ -349,6 +351,7 @@ namespace hbm {
 
 				stop();
 			}
+#endif
 
 			BOOST_AUTO_TEST_CASE(setting_data_callback)
 			{
