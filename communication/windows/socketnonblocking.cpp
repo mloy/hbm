@@ -186,34 +186,8 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 		}
 	}
 
-	return setDataCb(m_dataHandler);
-	//if((err == SOCKET_ERROR) && (WSAGetLastError() == WSAEWOULDBLOCK)) {
-	//	fd_set fdWrite;
-
-	//	struct timeval timeout;
-
-	//	timeout.tv_sec = TIMEOUT_CONNECT_S;
-	//	timeout.tv_usec = 0;
-
-
-	//	FD_ZERO(&fdWrite);
-	//	FD_SET(reinterpret_cast < SOCKET > (m_event.fileHandle), &fdWrite);
-
-	//	err = select(0, NULL, &fdWrite, NULL, &timeout);
-	//	if (err != 1) {
-	//		return -1;
-	//	}
-	//	int value;
-	//	socklen_t len = sizeof(value);
-	//	getsockopt(reinterpret_cast < SOCKET > (m_event.fileHandle), SOL_SOCKET, SO_ERROR, reinterpret_cast < char* > (&value), &len);
-	//	if(value!=0) {
-	//		return -1;
-	//	}
-	//	return 0;
-	//} else {
-	//	err = -1;
-	//}
-	//return err;
+	setDataCb(m_dataHandler);
+	return 0;
 }
 
 int hbm::communication::SocketNonblocking::process()
