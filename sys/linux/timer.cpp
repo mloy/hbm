@@ -5,6 +5,7 @@
 #include <syslog.h>
 #include <cstring>
 #include <iostream>
+#include <inttypes.h>
 
 #include <sys/timerfd.h>
 #include <sys/poll.h>
@@ -94,14 +95,18 @@ namespace hbm {
 
 		int Timer::process()
 		{
-			uint64_t timerEventCount;
+			uint64_t timerEventCount = 0;
 			ssize_t readStatus = ::read(m_fd, &timerEventCount, sizeof(timerEventCount));
 			if (readStatus>0) {
+				if (timerEventCount>1) {
+					// this is possible for cyclic timers only!
+					syslog(LOG_WARNING, "cyclic timer elapsed %" PRIu64 " times before callback was executed.", timerEventCount);
+				}
 				if (m_eventHandler) {
 					m_eventHandler(true);
 				}
 			}
-			return 0;
+			return readStatus;
 		}
 	}
 }
