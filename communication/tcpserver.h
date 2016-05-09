@@ -52,7 +52,7 @@ namespace hbm {
 #ifdef _WIN32
 			/// accepts a new connecting client.
 			/// \return On success, the worker socket for the new connected client is returned. Empty worker socket on error
-			workerSocket_t acceptClient();
+			clientSocket_t acceptClient();
 
 			int prepareAccept();
 #endif

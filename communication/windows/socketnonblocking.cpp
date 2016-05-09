@@ -71,7 +71,7 @@ void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 	m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
 
 	// important: Makes io completion to be signalled by the first arriving byte
-	result = WSARecv(reinterpret_cast < SOCKET > (m_event.fileHandle), &signalBuffer, 1, &size, &flags, &m_event.overlapped, NULL);
+	WSARecv(reinterpret_cast < SOCKET > (m_event.fileHandle), &signalBuffer, 1, &size, &flags, &m_event.overlapped, NULL);
 }
 
 int hbm::communication::SocketNonblocking::setSocketOptions()

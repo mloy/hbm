@@ -98,15 +98,15 @@ namespace hbm {
 			closesocket(reinterpret_cast < SOCKET > (m_listeningEvent.fileHandle));
 		}
 
-		workerSocket_t TcpServer::acceptClient()
+		clientSocket_t TcpServer::acceptClient()
 		{
-			return workerSocket_t(new SocketNonblocking(m_acceptSocket, m_eventLoop));
+			return clientSocket_t(new SocketNonblocking(m_acceptSocket, m_eventLoop));
 		}
 
 
 		int TcpServer::process()
 		{
-			workerSocket_t worker = acceptClient();
+			clientSocket_t worker = acceptClient();
 			if (!worker) {
 				return 0;
 			}
