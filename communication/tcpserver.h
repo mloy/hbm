@@ -23,15 +23,10 @@
 
 namespace hbm {
 	namespace communication {
-#ifdef _MSC_VER
-		typedef std::shared_ptr <SocketNonblocking > workerSocket_t;
-#else
-		typedef std::unique_ptr <SocketNonblocking > workerSocket_t;
-#endif
 		class TcpServer {
 		public:
 			/// deliveres the worker socket for an accepted client
-			typedef std::function < void (workerSocket_t) > Cb_t;
+			typedef std::function < void (clientSocket_t) > Cb_t;
 
 			TcpServer(sys::EventLoop &eventLoop);
 			virtual ~TcpServer();
@@ -57,7 +52,7 @@ namespace hbm {
 #ifdef _WIN32
 			/// accepts a new connecting client.
 			/// \return On success, the worker socket for the new connected client is returned. Empty worker socket on error
-			workerSocket_t acceptClient();
+			clientSocket_t acceptClient();
 
 			int prepareAccept();
 #endif

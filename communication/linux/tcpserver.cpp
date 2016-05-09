@@ -86,7 +86,7 @@ namespace hbm {
 				}
 				return -1;
 			}
-			m_acceptCb(workerSocket_t(new SocketNonblocking(clientFd, m_eventLoop)));
+			m_acceptCb(clientSocket_t(new SocketNonblocking(clientFd, m_eventLoop)));
 			// we are working edge triggered. Returning > 0 tells the eventloop to call process again to try whether there is more in the queue.
 			return 1;
 		}

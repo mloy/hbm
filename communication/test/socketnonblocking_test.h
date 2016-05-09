@@ -31,7 +31,7 @@ namespace hbm {
 			protected:
 				serverFixture();
 				virtual ~serverFixture();
-				void acceptCb(workerSocket_t worker);
+				void acceptCb(clientSocket_t worker);
 				ssize_t serverEcho(int clientId);
 				void clearAnswer()
 				{
@@ -46,7 +46,7 @@ namespace hbm {
 			private:
 				std::thread m_serverWorker;
 
-				std::map < int, workerSocket_t> m_workers;
+				std::map < int, clientSocket_t> m_workers;
 				TcpServer m_server;
 
 				std::string m_answer;

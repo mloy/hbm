@@ -60,10 +60,9 @@ hbm::communication::SocketNonblocking::~SocketNonblocking()
 	disconnect();
 }
 
-int hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
+void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 {
 	m_dataHandler = dataCb;
-	return 0;
 }
 
 int hbm::communication::SocketNonblocking::setSocketOptions()
