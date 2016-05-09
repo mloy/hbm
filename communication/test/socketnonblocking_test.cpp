@@ -71,7 +71,7 @@ namespace hbm {
 			}
 			
 
-			void serverFixture::acceptCb(workerSocket_t worker)
+			void serverFixture::acceptCb(clientSocket_t worker)
 			{
 				static int clientId = 0;
 				++clientId;

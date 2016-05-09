@@ -62,29 +62,16 @@ hbm::communication::SocketNonblocking::~SocketNonblocking()
 	WSACloseEvent(m_event.overlapped.hEvent);
 }
 
-int hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
+void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 {
 	DWORD size;
 	DWORD flags = 0;
-	int result;
 
-	if (!dataCb) {
-		// do not accept an empty function
-		return -1;
-	}
 	m_dataHandler = dataCb;
-	result = m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
-	if (result != 0) {
-		return result;
-	}
+	m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
 
 	// important: Makes io completion to be signalled by the first arriving byte
 	result = WSARecv(reinterpret_cast < SOCKET > (m_event.fileHandle), &signalBuffer, 1, &size, &flags, &m_event.overlapped, NULL);
-	if ((result==SOCKET_ERROR) && (WSAGetLastError()!=WSA_IO_PENDING)) {
-		std::cerr << WSAGetLastError() << std::endl;
-		return -1;
-	}
-	return 0;
 }
 
 int hbm::communication::SocketNonblocking::setSocketOptions()

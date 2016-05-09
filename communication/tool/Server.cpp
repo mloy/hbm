@@ -10,7 +10,7 @@
 #include <hbm/communication/socketnonblocking.h>
 
 
-static void cb(hbm::communication::workerSocket_t workerSocket)
+static void cb(hbm::communication::clientSocket_t workerSocket)
 {
 	ssize_t result;
 	char buffer;
