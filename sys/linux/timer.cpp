@@ -4,7 +4,6 @@
 
 #include <syslog.h>
 #include <cstring>
-#include <iostream>
 #include <inttypes.h>
 
 #include <sys/timerfd.h>
