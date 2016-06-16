@@ -84,6 +84,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\string\split.cpp" />
     <ClCompile Include="..\windows\netadapter.cpp" />
     <ClCompile Include="..\windows\netadapterlist.cpp" />
     <ClCompile Include="netadapter_test.cpp" />
