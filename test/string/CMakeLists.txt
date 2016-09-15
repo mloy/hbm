@@ -2,6 +2,13 @@ project("hbm_string_test" CXX)
 
 cmake_minimum_required(VERSION 2.8)
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake)
+
+find_package(JsonCpp)
+if(JSONCPP_FOUND)
+  include_directories( ${JSONCPP_INCLUDE_DIR} )
+endif()
+
 
 SET(CMAKE_CXX_FLAGS "-std=c++11 -pthread -fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
 
@@ -32,7 +39,6 @@ endif(Boost_FOUND)
 option(GCOV_PACKAGE "GCOV" ON)
 
 
-#include_directories(..)
 include_directories(../../include)
 
 
@@ -42,14 +48,13 @@ include_directories(../../include)
 
 set(SOURCES_SPLITTEST
     splittest.cpp
-#    ../split.cpp
 )
 
 add_executable( splittest ${SOURCES_SPLITTEST} )
 
 target_link_libraries( splittest
     hbm
-    jsoncpp
+    ${JSONCPP_LIBRARY}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     gcov
 )
@@ -64,14 +69,13 @@ add_test(splittest splittest
 
 set(SOURCES_REPLACETEST
     replacetest.cpp
-#    ../replace.cpp
 )
 
 add_executable( replacetest ${SOURCES_REPLACETEST} )
 
 target_link_libraries( replacetest
     hbm
-    jsoncpp
+    ${JSONCPP_LIBRARY}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     gcov
 )
@@ -86,14 +90,13 @@ add_test(replacetest replacetest
 
 set(SOURCES_TRIMTEST
     trimtest.cpp
-#    ../trim.cpp
 )
 
 add_executable( trimtest ${SOURCES_TRIMTEST} )
 
 target_link_libraries( trimtest
     hbm
-    jsoncpp
+    ${JSONCPP_LIBRARY}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     gcov
 )

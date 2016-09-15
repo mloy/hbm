@@ -1,15 +1,19 @@
 project("hbm_sys_test")
 cmake_minimum_required(VERSION 2.8)
 
-#include_directories(../../..)
 include_directories(../../include)
+
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake)
 
 
 SET(CMAKE_CXX_FLAGS "-std=c++11 -pipe -fno-common -pthread -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
 
+find_package(JsonCpp)
+if(JSONCPP_FOUND)
+  include_directories( ${JSONCPP_INCLUDE_DIR} )
+endif()
 
 find_package(Boost ${QX_BOOST_VERSION}  COMPONENTS unit_test_framework)
-
 IF(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
   LIST(APPEND ADDITIONAL_LIBS ${Boost_LIBRARIES})
@@ -20,12 +24,8 @@ enable_testing()
 
 
 SET(EXECUTECOMMAND_TEST
-#	../linux/executecommand.cpp
 	executecommand_test.cpp
 )
-#set_source_files_properties(
-#	${EXECUTECOMMAND_TEST}
-#)
 
 add_executable(
 	executecommand.test
@@ -35,7 +35,7 @@ add_executable(
 target_link_libraries (
 	executecommand.test
         hbm
-        jsoncpp
+        ${JSONCPP_LIBRARY}
         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
@@ -47,15 +47,8 @@ target_link_libraries (
 
 
 SET(EVENTLOOP_TEST
-#	../linux/eventloop.cpp
-#	../linux/executecommand.cpp
-#	../linux/timer.cpp
-#	../linux/notifier.cpp
 	eventloop_test.cpp
 )
-#set_source_files_properties(
-#	${EVENTLOOP_TEST}
-#)
 
 add_executable(
 	eventloop.test
@@ -65,10 +58,9 @@ add_executable(
 target_link_libraries (
 	eventloop.test
         hbm
-        jsoncpp
+        ${JSONCPP_LIBRARY}
         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
-
 
 add_test(eventloop_test eventloop.test
 --report_level=no
