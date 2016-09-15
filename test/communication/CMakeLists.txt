@@ -1,9 +1,14 @@
 project("hbm_communication_test")
 cmake_minimum_required(VERSION 2.8)
 
-#include_directories(../../..)
 include_directories(../../include)
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake)
+
+find_package(JsonCpp)
+if(JSONCPP_FOUND)
+  include_directories( ${JSONCPP_INCLUDE_DIR} )
+endif()
 
 enable_testing()
 
@@ -12,23 +17,14 @@ SET(CMAKE_CXX_FLAGS "-std=c++11 -pthread -fno-common -Wall -Werror -Wshadow -Wex
 
 
 find_package(Boost ${QX_BOOST_VERSION}  COMPONENTS unit_test_framework)
-
 IF(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
   LIST(APPEND ADDITIONAL_LIBS ${Boost_LIBRARIES})
 endif(Boost_FOUND)
 
 SET(MULTICASTSERVER_TEST
-#    ../linux/netadapter.cpp
-#    ../linux/netadapterlist.cpp
-#    ../linux/multicastserver.cpp
-#    ../../sys/linux/eventloop.cpp
-#    ../../sys/linux/timer.cpp
     multicastserver_test.cpp
 )
-#set_source_files_properties(
-#    ${MULTICASTSERVER_TEST}
-#)
 
 add_executable(
     multicastserver.test
@@ -38,7 +34,7 @@ add_executable(
 target_link_libraries (
     multicastserver.test
     hbm
-    jsoncpp
+    ${JSONCPP_LIBRARY}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
@@ -49,11 +45,6 @@ add_test(multicastserver_test multicastserver.test
 --log_sink=${CMAKE_BINARY_DIR}/multicastserver_test.xml)
 
 SET(SOCKETNONBLOCKING_TEST
-#    ../linux/socketnonblocking.cpp
-#    ../linux/tcpserver.cpp
-#    ../linux/bufferedreader.cpp
-#    ../../sys/linux/eventloop.cpp
-#    ../../sys/linux/timer.cpp
     socketnonblocking_test.cpp
 )
 set_source_files_properties(
@@ -69,7 +60,7 @@ add_executable(
 target_link_libraries (
     socketnonblocking.test
     hbm
-    jsoncpp
+    ${JSONCPP_LIBRARY}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
@@ -82,9 +73,6 @@ add_test(socketnonblocking_test socketnonblocking.test
 
 
 SET(NETADAPTER_TEST
-#    ../linux/netadapter.cpp
-#    ../linux/netadapterlist.cpp
-#    ../../string/split.cpp
     netadapter_test.cpp
 )
 set_source_files_properties(
@@ -100,7 +88,7 @@ add_executable(
 target_link_libraries (
     netadapter.test
     hbm
-    jsoncpp
+    ${JSONCPP_LIBRARY}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 

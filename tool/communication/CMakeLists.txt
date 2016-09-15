@@ -1,14 +1,13 @@
 project("hbm_communication_tool")
 cmake_minimum_required(VERSION 2.8)
 
-#include_directories(../../..)
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake)
+find_package(JsonCpp)
+if(JSONCPP_FOUND)
+  include_directories( ${JSONCPP_INCLUDE_DIR} )
+endif()
+
 include_directories(../../include)
-
-
-#find_package(JsonCpp)
-#if(JSONCPP_FOUND)
-#  include_directories( ${JSONCPP_INCLUDE_DIR} )
-#endif()
 
 SET(CMAKE_CXX_FLAGS "-std=c++11 -fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
 
@@ -23,8 +22,7 @@ add_executable(
 
 target_link_libraries( netlinkview.bin
     hbm
-    jsoncpp
-#    ${JSONCPP_LIBRARY}
+    ${JSONCPP_LIBRARY}
 )
 
 SET(TCPSERVER_SOURCE
@@ -38,8 +36,7 @@ add_executable(
 
 target_link_libraries( tcpserver.bin
     hbm
-    jsoncpp
-#    ${JSONCPP_LIBRARY}
+    ${JSONCPP_LIBRARY}
 )
 
 SET(TCPCLIENT_SOURCE
@@ -53,6 +50,5 @@ add_executable(
 
 target_link_libraries( tcpclient.bin
     hbm
-    jsoncpp
-#    ${JSONCPP_LIBRARY}
+    ${JSONCPP_LIBRARY}
 )
