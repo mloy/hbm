@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-#include "../replace.h"
+#include "hbm/string/replace.h"
 
 
 namespace hbm {

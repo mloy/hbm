@@ -51,10 +51,10 @@ set(HBMLIB_SOURCES
 
 set_source_files_properties(${HBMLIB_SOURCES} PROPERTIES COMPILE_FLAGS "${EXTRA_FLAGS}")
 
-add_library(hbmlib SHARED ${HBMLIB_SOURCES})
+add_library(hbm SHARED ${HBMLIB_SOURCES})
 
 set_target_properties(
-  hbmlib
+  hbm
   PROPERTIES
   SOVERSION 0
   VERSION 0.0.5

@@ -32,7 +32,9 @@ endif(Boost_FOUND)
 option(GCOV_PACKAGE "GCOV" ON)
 
 
-include_directories(..)
+#include_directories(..)
+include_directories(../../include)
+
 
 
 #add_definitions("--coverage")
@@ -40,14 +42,16 @@ include_directories(..)
 
 set(SOURCES_SPLITTEST
     splittest.cpp
-    ../split.cpp
+#    ../split.cpp
 )
 
 add_executable( splittest ${SOURCES_SPLITTEST} )
 
 target_link_libraries( splittest
-    gcov
+    hbm
+    jsoncpp
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    gcov
 )
 
 enable_testing()
@@ -60,14 +64,16 @@ add_test(splittest splittest
 
 set(SOURCES_REPLACETEST
     replacetest.cpp
-    ../replace.cpp
+#    ../replace.cpp
 )
 
 add_executable( replacetest ${SOURCES_REPLACETEST} )
 
 target_link_libraries( replacetest
-    gcov
+    hbm
+    jsoncpp
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    gcov
 )
 
 enable_testing()
@@ -80,14 +86,16 @@ add_test(replacetest replacetest
 
 set(SOURCES_TRIMTEST
     trimtest.cpp
-    ../trim.cpp
+#    ../trim.cpp
 )
 
 add_executable( trimtest ${SOURCES_TRIMTEST} )
 
 target_link_libraries( trimtest
-    gcov
+    hbm
+    jsoncpp
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    gcov
 )
 
 enable_testing()
