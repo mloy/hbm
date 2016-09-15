@@ -12,7 +12,7 @@
 #define BOOST_TEST_MODULE StringSplitTest
 #include <boost/test/unit_test.hpp>
 
-#include "../split.h"
+#include "hbm/string/split.h"
 
 
 namespace hbm {

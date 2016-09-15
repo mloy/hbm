@@ -20,7 +20,7 @@
 
 #include "hbm/communication/socketnonblocking.h"
 #include "hbm/communication/tcpserver.h"
-#include "hbm/communication/test/socketnonblocking_test.h"
+#include "socketnonblocking_test.h"
 #include "hbm/sys/eventloop.h"
 #include "hbm/sys/timer.h"
 

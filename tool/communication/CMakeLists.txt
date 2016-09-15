@@ -1,15 +1,18 @@
 project("hbm_communication_tool")
 cmake_minimum_required(VERSION 2.8)
 
-include_directories(../../..)
+#include_directories(../../..)
+include_directories(../../include)
+
+
+#find_package(JsonCpp)
+#if(JSONCPP_FOUND)
+#  include_directories( ${JSONCPP_INCLUDE_DIR} )
+#endif()
 
 SET(CMAKE_CXX_FLAGS "-std=c++11 -fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
 
 SET(NETLINKVIEW_SOURCE
-    ../linux/netadapter.cpp
-    ../linux/netadapterlist.cpp
-    ../linux/netlink.cpp
-    ../../sys/linux/eventloop.cpp
     netlinkview.cpp
 )
 
@@ -18,11 +21,13 @@ add_executable(
     ${NETLINKVIEW_SOURCE}
 )
 
+target_link_libraries( netlinkview.bin
+    hbm
+    jsoncpp
+#    ${JSONCPP_LIBRARY}
+)
+
 SET(TCPSERVER_SOURCE
-    ../linux/bufferedreader.cpp
-    ../linux/tcpserver.cpp
-    ../linux/socketnonblocking.cpp
-    ../../sys/linux/eventloop.cpp
     Server.cpp
 )
 
@@ -31,14 +36,23 @@ add_executable(
     ${TCPSERVER_SOURCE}
 )
 
+target_link_libraries( tcpserver.bin
+    hbm
+    jsoncpp
+#    ${JSONCPP_LIBRARY}
+)
+
 SET(TCPCLIENT_SOURCE
-    ../linux/bufferedreader.cpp
-    ../linux/socketnonblocking.cpp
-    ../../sys/linux/eventloop.cpp
     Client.cpp
 )
 
 add_executable(
     tcpclient.bin
     ${TCPCLIENT_SOURCE}
+)
+
+target_link_libraries( tcpclient.bin
+    hbm
+    jsoncpp
+#    ${JSONCPP_LIBRARY}
 )

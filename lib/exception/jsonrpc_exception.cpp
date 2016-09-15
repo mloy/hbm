@@ -5,7 +5,7 @@
 #include <json/value.h>
 #include <json/writer.h>
 
-#include "jsonrpc_exception.h"
+#include "hbm/exception/jsonrpc_exception.h"
 #include "hbm/jsonrpc/jsonrpc_defines.h"
 
 namespace hbm {

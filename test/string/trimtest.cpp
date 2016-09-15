@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-#include "../trim.h"
+#include "hbm/string/trim.h"
 
 
 namespace hbm {

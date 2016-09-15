@@ -3,7 +3,7 @@
 // See file LICENSE provided
 
 
-#include "split.h"
+#include "hbm/string/split.h"
 
 
 namespace hbm {

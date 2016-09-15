@@ -1,7 +1,8 @@
 project("hbm_sys_test")
 cmake_minimum_required(VERSION 2.8)
 
-include_directories(../../..)
+#include_directories(../../..)
+include_directories(../../include)
 
 
 SET(CMAKE_CXX_FLAGS "-std=c++11 -pipe -fno-common -pthread -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
@@ -19,21 +20,23 @@ enable_testing()
 
 
 SET(EXECUTECOMMAND_TEST
-	../linux/executecommand.cpp
+#	../linux/executecommand.cpp
 	executecommand_test.cpp
 )
-set_source_files_properties(
-	${EXECUTECOMMAND_TEST}
-)
+#set_source_files_properties(
+#	${EXECUTECOMMAND_TEST}
+#)
 
 add_executable(
 	executecommand.test
-	${EXECUTECOMMAND_TEST}
+        ${EXECUTECOMMAND_TEST}
 )
 
 target_link_libraries (
 	executecommand.test
-	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+        hbm
+        jsoncpp
+        ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
 #add_test(executecommand_test executecommand.test
@@ -44,15 +47,15 @@ target_link_libraries (
 
 
 SET(EVENTLOOP_TEST
-	../linux/eventloop.cpp
-	../linux/executecommand.cpp
-	../linux/timer.cpp
-	../linux/notifier.cpp
+#	../linux/eventloop.cpp
+#	../linux/executecommand.cpp
+#	../linux/timer.cpp
+#	../linux/notifier.cpp
 	eventloop_test.cpp
 )
-set_source_files_properties(
-	${EVENTLOOP_TEST}
-)
+#set_source_files_properties(
+#	${EVENTLOOP_TEST}
+#)
 
 add_executable(
 	eventloop.test
@@ -61,7 +64,9 @@ add_executable(
 
 target_link_libraries (
 	eventloop.test
-	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+        hbm
+        jsoncpp
+        ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
 

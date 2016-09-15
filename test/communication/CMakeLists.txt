@@ -1,7 +1,9 @@
 project("hbm_communication_test")
 cmake_minimum_required(VERSION 2.8)
 
-include_directories(../../..)
+#include_directories(../../..)
+include_directories(../../include)
+
 
 enable_testing()
 
@@ -17,16 +19,16 @@ IF(Boost_FOUND)
 endif(Boost_FOUND)
 
 SET(MULTICASTSERVER_TEST
-    ../linux/netadapter.cpp
-    ../linux/netadapterlist.cpp
-    ../linux/multicastserver.cpp
-    ../../sys/linux/eventloop.cpp
-    ../../sys/linux/timer.cpp
+#    ../linux/netadapter.cpp
+#    ../linux/netadapterlist.cpp
+#    ../linux/multicastserver.cpp
+#    ../../sys/linux/eventloop.cpp
+#    ../../sys/linux/timer.cpp
     multicastserver_test.cpp
 )
-set_source_files_properties(
-    ${MULTICASTSERVER_TEST}
-)
+#set_source_files_properties(
+#    ${MULTICASTSERVER_TEST}
+#)
 
 add_executable(
     multicastserver.test
@@ -35,6 +37,8 @@ add_executable(
 
 target_link_libraries (
     multicastserver.test
+    hbm
+    jsoncpp
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
@@ -45,11 +49,11 @@ add_test(multicastserver_test multicastserver.test
 --log_sink=${CMAKE_BINARY_DIR}/multicastserver_test.xml)
 
 SET(SOCKETNONBLOCKING_TEST
-    ../linux/socketnonblocking.cpp
-    ../linux/tcpserver.cpp
-    ../linux/bufferedreader.cpp
-    ../../sys/linux/eventloop.cpp
-    ../../sys/linux/timer.cpp
+#    ../linux/socketnonblocking.cpp
+#    ../linux/tcpserver.cpp
+#    ../linux/bufferedreader.cpp
+#    ../../sys/linux/eventloop.cpp
+#    ../../sys/linux/timer.cpp
     socketnonblocking_test.cpp
 )
 set_source_files_properties(
@@ -64,6 +68,8 @@ add_executable(
 
 target_link_libraries (
     socketnonblocking.test
+    hbm
+    jsoncpp
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
@@ -76,9 +82,9 @@ add_test(socketnonblocking_test socketnonblocking.test
 
 
 SET(NETADAPTER_TEST
-    ../linux/netadapter.cpp
-    ../linux/netadapterlist.cpp
-    ../../string/split.cpp
+#    ../linux/netadapter.cpp
+#    ../linux/netadapterlist.cpp
+#    ../../string/split.cpp
     netadapter_test.cpp
 )
 set_source_files_properties(
@@ -93,6 +99,8 @@ add_executable(
 
 target_link_libraries (
     netadapter.test
+    hbm
+    jsoncpp
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 

@@ -17,17 +17,20 @@
 
 #include "hbm/string/split.h"
 
-BOOST_AUTO_TEST_CASE(check_ipv6)
-{
-	hbm::communication::NetadapterList adapterlist;
-	hbm::communication::NetadapterList::tAdapters adapters = adapterlist.get();
-	if (adapters.empty()) {
-		return;
-	}
+
+// this test does not work reliably. The first interface might have no ipv6 address
+//BOOST_AUTO_TEST_CASE(check_ipv6)
+//{
+//	hbm::communication::NetadapterList adapterlist;
+//	hbm::communication::NetadapterList::tAdapters adapters = adapterlist.get();
+//	if (adapters.empty()) {
+//		return;
+//	}
 	
-	hbm::communication::Netadapter adapter = adapters.begin()->second;
-	BOOST_CHECK_GT(adapter.getIpv6Addresses().size(), 0);
-}
+//	hbm::communication::Netadapter adapter = adapters.begin()->second;
+//	hbm::communication::addressesWithPrefix_t addresses = adapter.getIpv6Addresses();
+//	BOOST_CHECK_GT(addresses.size(), 0);
+//}
 
 BOOST_AUTO_TEST_CASE(check_valid_ipaddresses_test)
 {

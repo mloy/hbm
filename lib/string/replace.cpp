@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <string>
 
-#include "replace.h"
+#include "hbm/string/replace.h"
 
 
 namespace hbm {
