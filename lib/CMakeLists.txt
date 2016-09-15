@@ -19,6 +19,7 @@ SET( HBMLIB_INTERFACE_HEADERS
     ${INTERFACE_INCLUDE_DIR}/exception/errno_exception.hpp
     ${INTERFACE_INCLUDE_DIR}/exception/exception.hpp
     ${INTERFACE_INCLUDE_DIR}/exception/jsonrpc_exception.h
+    ${INTERFACE_INCLUDE_DIR}/jsonrpc/jsonrpc_defines.h
     ${INTERFACE_INCLUDE_DIR}/string/replace.h
     ${INTERFACE_INCLUDE_DIR}/string/trim.h
     ${INTERFACE_INCLUDE_DIR}/string/split.h
@@ -60,3 +61,5 @@ set_target_properties(
   VERSION 0.0.5
   )
 
+install(TARGETS hbm LIBRARY DESTINATION lib)
+install (DIRECTORY ${INTERFACE_INCLUDE_DIR} DESTINATION include)

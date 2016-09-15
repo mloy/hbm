@@ -1,7 +1,6 @@
 project("hbm_communication_test")
 cmake_minimum_required(VERSION 2.8)
 
-#include_directories(../../..)
 include_directories(../../include)
 
 
@@ -12,7 +11,6 @@ SET(CMAKE_CXX_FLAGS "-std=c++11 -pthread -fno-common -Wall -Werror -Wshadow -Wex
 
 
 find_package(Boost ${QX_BOOST_VERSION}  COMPONENTS unit_test_framework)
-
 IF(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
   LIST(APPEND ADDITIONAL_LIBS ${Boost_LIBRARIES})
