@@ -48,11 +48,13 @@ set(HBMLIB_SOURCES
   sys/linux/executecommand.cpp
   sys/linux/notifier.cpp
   sys/linux/timer.cpp
+  sys/pidfile.cpp
 )
 
 set_source_files_properties(${HBMLIB_SOURCES} PROPERTIES COMPILE_FLAGS "${EXTRA_FLAGS}")
 
 add_library(hbm SHARED ${HBMLIB_SOURCES})
+add_library(hbm-static STATIC ${HBMLIB_SOURCES})
 
 set_target_properties(
   hbm
@@ -62,4 +64,5 @@ set_target_properties(
   )
 
 install(TARGETS hbm LIBRARY DESTINATION lib)
+install(TARGETS hbm-static ARCHIVE DESTINATION lib)
 install (DIRECTORY ${INTERFACE_INCLUDE_DIR} DESTINATION include)
