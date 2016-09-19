@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{4ac588c7-c822-4233-99c4-881dd80889ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\communication">
+      <UniqueIdentifier>{f9b7d60b-5179-4862-aad2-1edd10dce00a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\communication\windows">
+      <UniqueIdentifier>{f3288a8c-730b-4512-a2f3-e891b605e21d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\sys">
+      <UniqueIdentifier>{19d390df-c19b-4389-bad5-7438b5c0f988}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\sys\windows">
+      <UniqueIdentifier>{dede1841-e53c-4210-b24d-113b3cad9152}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{121c5c6a-dba0-4498-ab11-647c32f50f6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\communication">
+      <UniqueIdentifier>{c1e0bce0-540f-4ac3-aa46-786bd5ba8db6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\string">
+      <UniqueIdentifier>{d9899b6d-5314-49a6-9b20-3ca6c8ed2b3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\exception">
+      <UniqueIdentifier>{2f7c84dc-0bee-41ea-b1d3-32bc75222354}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="communication\windows\bufferedreader.cpp">
+      <Filter>lib\communication\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="communication\windows\multicastserver.cpp">
+      <Filter>lib\communication\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="communication\windows\netadapter.cpp">
+      <Filter>lib\communication\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="communication\windows\netadapterlist.cpp">
+      <Filter>lib\communication\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="communication\windows\netlink.cpp">
+      <Filter>lib\communication\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="communication\windows\socketnonblocking.cpp">
+      <Filter>lib\communication\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="communication\windows\tcpserver.cpp">
+      <Filter>lib\communication\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sys\windows\eventloop.cpp">
+      <Filter>lib\sys\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sys\windows\executecommand.cpp">
+      <Filter>lib\sys\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sys\windows\notifier.cpp">
+      <Filter>lib\sys\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sys\windows\timer.cpp">
+      <Filter>lib\sys\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="sys\pidfile.cpp">
+      <Filter>lib\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="string\replace.cpp">
+      <Filter>lib\string</Filter>
+    </ClCompile>
+    <ClCompile Include="string\split.cpp">
+      <Filter>lib\string</Filter>
+    </ClCompile>
+    <ClCompile Include="string\trim.cpp">
+      <Filter>lib\string</Filter>
+    </ClCompile>
+    <ClCompile Include="exception\jsonrpc_exception.cpp">
+      <Filter>lib\exception</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\hbm\communication\bufferedreader.h">
+      <Filter>include\communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\communication\multicastserver.h">
+      <Filter>include\communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\communication\netadapter.h">
+      <Filter>include\communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\communication\netadapterlist.h">
+      <Filter>include\communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\communication\netlink.h">
+      <Filter>include\communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\communication\socketnonblocking.h">
+      <Filter>include\communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\communication\tcpserver.h">
+      <Filter>include\communication</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
