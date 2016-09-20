@@ -134,7 +134,7 @@ namespace hbm {
 
 			while (interface != NULL) {
 				if (interface->ifa_addr != NULL) {
-					if ((interface->ifa_flags & IFF_UP) && (interface->ifa_flags & IFF_MULTICAST)) {
+					if (interface->ifa_flags & IFF_MULTICAST) {
 							hardwareInfo_t hardwareInfo = getHardwareInfo(interface->ifa_name);
 							if (hardwareInfo.isHardware) {
 								// If the adapter is not known yet, it will be created.
