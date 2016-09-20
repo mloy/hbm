@@ -11,6 +11,21 @@ include_directories(../../include)
 
 SET(CMAKE_CXX_FLAGS "-std=c++11 -fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
 
+
+SET(NETADAPTERVIEW_SOURCE
+    netadapterview.cpp
+)
+
+add_executable(
+    netadapterview.bin
+    ${NETADAPTERVIEW_SOURCE}
+)
+
+target_link_libraries( netadapterview.bin
+    hbm
+    ${JSONCPP_LIBRARY}
+)
+
 SET(NETLINKVIEW_SOURCE
     netlinkview.cpp
 )
