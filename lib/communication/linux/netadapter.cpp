@@ -75,7 +75,30 @@ namespace hbm {
 		bool Netadapter::isApipaAddress(const std::string& address)
 		{
 			static const std::string apipaNet("169.254");
+			
+			in_addr addr;
+			if (inet_aton(address.c_str(), &addr) == 0) {
+				return false;
+			}
+			
 			if(address.find(apipaNet)==0) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
+		bool Netadapter::isIpv6LinkLocalAddress(const std::string& address)
+		{
+			static const std::string ipv6LinkLocalNet("fe80::");
+			
+			struct in6_addr addr;
+			if (inet_pton(AF_INET6, address.c_str(), &addr) == 0) {
+				return false;
+			}
+			
+			
+			if(address.find(ipv6LinkLocalNet)==0) {
 				return true;
 			} else {
 				return false;
