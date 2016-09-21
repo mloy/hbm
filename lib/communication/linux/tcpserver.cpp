@@ -47,7 +47,7 @@ namespace hbm {
 
 			m_listeningEvent = ::socket(address.sin6_family, SOCK_STREAM | SOCK_NONBLOCK, 0);
 			if (m_listeningEvent==-1) {
-				syslog(LOG_ERR, "TCP server: Socket initialization failed '%s'", strerror(errno));
+				::syslog(LOG_ERR, "TCP server: Socket initialization failed '%s'", strerror(errno));
 				return -1;
 			}
 			
@@ -59,7 +59,7 @@ namespace hbm {
 			}
 			
 			if (::bind(m_listeningEvent, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
-				syslog(LOG_ERR, "TCP server: Binding socket to port %u failed '%s'", port, strerror(errno));
+				::syslog(LOG_ERR, "TCP server: Binding socket to port %u failed '%s'", port, strerror(errno));
 				return -1;
 			}
 			if (listen(m_listeningEvent, backlog)==-1) {
@@ -73,16 +73,16 @@ namespace hbm {
 		void TcpServer::stop()
 		{
 			m_eventLoop.eraseEvent(m_listeningEvent);
-			close(m_listeningEvent);
+			::close(m_listeningEvent);
 			m_acceptCb = Cb_t();
 		}
 
 		int TcpServer::process()
 		{
-			int clientFd = accept(m_listeningEvent, NULL, NULL);
-			if (clientFd<0) {
+			int clientFd = ::accept(m_listeningEvent, NULL, NULL);
+			if (clientFd==-1) {
 				if ((errno!=EWOULDBLOCK) && (errno!=EAGAIN) && (errno!=EINTR) ) {
-					syslog(LOG_ERR, "TCP server: error accepting connection '%s'", strerror(errno));
+					::syslog(LOG_ERR, "TCP server: error accepting connection '%s'", strerror(errno));
 				}
 				return -1;
 			}
