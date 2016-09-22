@@ -89,7 +89,7 @@ namespace hbm {
 				return -1;
 			}
 
-			return m_eventLoop.addEvent(m_listeningEvent, std::bind(&TcpServer::process, this));
+			return m_eventLoop.addEvent(m_listeningEvent, std::bind(&TcpServer::process, std::ref(*this)));
 		}
 
 		void TcpServer::stop()

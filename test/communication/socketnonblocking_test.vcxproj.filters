@@ -16,51 +16,10 @@
     <Filter Include="Source Files\test">
       <UniqueIdentifier>{b4296d1b-04d1-4546-a31a-a7217cccacfd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\sys">
-      <UniqueIdentifier>{382ca870-db51-4cd8-9450-cca319803476}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\communication">
-      <UniqueIdentifier>{721ab608-90f3-4ed9-a7bd-a2b6c1d42792}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\communication\windows">
-      <UniqueIdentifier>{ac2ea498-5de6-4a71-a792-a3a47f0ba08d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\sys\windows">
-      <UniqueIdentifier>{70d281b6-a5bc-4d02-accc-c6f94235dbe7}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="socketnonblocking_test.cpp">
       <Filter>Source Files\test</Filter>
     </ClCompile>
-    <ClCompile Include="..\windows\socketnonblocking.cpp">
-      <Filter>Source Files\communication\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\windows\tcpserver.cpp">
-      <Filter>Source Files\communication\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\windows\bufferedreader.cpp">
-      <Filter>Source Files\communication\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\sys\windows\eventloop.cpp">
-      <Filter>Source Files\sys\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\sys\windows\timer.cpp">
-      <Filter>Source Files\sys\windows</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\socketnonblocking.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\bufferedreader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\tcpserver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\sys\defines.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

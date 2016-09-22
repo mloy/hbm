@@ -13,37 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="hbm">
-      <UniqueIdentifier>{879aa645-ec75-4fee-ad6f-18b66b87d858}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="hbm\sys">
-      <UniqueIdentifier>{4a36b2e2-b31c-47a3-8d03-ca11f9897aff}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="hbm\communication">
-      <UniqueIdentifier>{8e77cbba-9f83-4762-951c-3467bdb9dc8e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="hbm\sys\windows">
-      <UniqueIdentifier>{629411ad-47aa-46bc-8a8a-38fe7b3026a6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="hbm\communication\windows">
-      <UniqueIdentifier>{7f5d1951-3d92-4504-bc66-72ba10207ffc}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="netlinkview.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\sys\windows\eventloop.cpp">
-      <Filter>hbm\sys\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\windows\netlink.cpp">
-      <Filter>hbm\communication\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\windows\netadapter.cpp">
-      <Filter>hbm\communication\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\windows\netadapterlist.cpp">
-      <Filter>hbm\communication\windows</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

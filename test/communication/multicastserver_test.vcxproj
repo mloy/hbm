@@ -53,7 +53,8 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(BOOST_1_57);../../..</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(BOOST_1_57);../../include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -72,7 +73,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_WINSOCK_DEPRECATED_NO_WARNINGS;NDEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(BOOST_1_57);../../..</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(BOOST_1_57);../../include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -84,16 +85,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\sys\windows\eventloop.cpp" />
-    <ClCompile Include="..\..\sys\windows\timer.cpp" />
-    <ClCompile Include="..\windows\multicastserver.cpp" />
-    <ClCompile Include="..\windows\netadapter.cpp" />
-    <ClCompile Include="..\windows\netadapterlist.cpp" />
     <ClCompile Include="multicastserver_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\hbm\communication\multicastserver.h" />
     <ClInclude Include="..\..\sys\defines.h" />
-    <ClInclude Include="..\multicastserver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\lib\libhbm.vcxproj">
+      <Project>{70666b4a-4cc1-4699-aa63-0e05bcbeb832}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

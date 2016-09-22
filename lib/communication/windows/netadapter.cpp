@@ -10,11 +10,40 @@
 #include <cstring>
 #include <map>
 
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <windows.h>
+
 #define syslog fprintf
 #define LOG_ERR stderr
 
 #include "hbm/communication/netadapter.h"
+
+
+static int inet_pton_forWindowsxp(int af, const char *src, void *dst)
+{
+	struct sockaddr_storage ss;
+	int size = sizeof(ss);
+	char src_copy[INET6_ADDRSTRLEN + 1];
+
+	ZeroMemory(&ss, sizeof(ss));
+	/* stupid non-const API */
+	strncpy(src_copy, src, INET6_ADDRSTRLEN + 1);
+	src_copy[INET6_ADDRSTRLEN] = 0;
+
+	if (WSAStringToAddressA(src_copy, af, NULL, (struct sockaddr *)&ss, &size) == 0) {
+		switch (af) {
+		case AF_INET:
+			*(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
+			return 1;
+		case AF_INET6:
+			*(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
+			return 1;
+		}
+	}
+	return 0;
+}
+
 
 namespace hbm {
 	namespace communication {
@@ -37,8 +66,8 @@ namespace hbm {
 		{
 			static const std::string apipaNet("169.254");
 			
-			in_addr addr;
-			if (inet_aton(address.c_str(), &addr) == 0) {
+			unsigned long addr = inet_addr(address.c_str());
+			if (addr == INADDR_NONE) {
 				return false;
 			}
 			
@@ -54,7 +83,7 @@ namespace hbm {
 			static const std::string ipv6LinkLocalNet("fe80::");
 			
 			struct in6_addr addr;
-			if (inet_pton(AF_INET6, address.c_str(), &addr) == 0) {
+			if (inet_pton_forWindowsxp(AF_INET6, address.c_str(), &addr) == 0) {
 				return false;
 			}
 			
@@ -69,7 +98,6 @@ namespace hbm {
 		bool Netadapter::isValidManualIpv4Address(const std::string& ip)
 		{
 			unsigned long address = inet_addr(ip.c_str());
-
 			if (address == INADDR_NONE) {
 				return false;
 			}
