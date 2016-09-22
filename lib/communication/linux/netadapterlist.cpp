@@ -3,6 +3,7 @@
 // See file LICENSE provided
 
 
+#include <cstring>
 #include <iomanip>
 #include <sstream>
 #include <string>
