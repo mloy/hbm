@@ -66,7 +66,7 @@ namespace hbm {
 			m_eventHandler = eventHandler;
 
 			if (CreateTimerQueueTimer(&m_fd.overlapped.hEvent, NULL, &timerCb, &m_fd, period_ms, repeatPeriod, WT_EXECUTEINTIMERTHREAD)) {
-				return m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, this));
+				return m_eventLoop.addEvent(m_fd, std::bind(&Timer::process, std::ref(*this)));
 			} else {
 				return -1;
 			}

@@ -16,28 +16,10 @@
     <Filter Include="Source Files\test">
       <UniqueIdentifier>{9df75f44-dbdd-47a6-9af5-e415169ab908}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\communication">
-      <UniqueIdentifier>{52862bec-1ddf-48d2-93af-dc4c9165ea59}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\communication\windows">
-      <UniqueIdentifier>{f2f43231-19eb-4150-b893-658f1229dd73}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\string">
-      <UniqueIdentifier>{bf8f0b35-1e36-448e-ab5e-413eaec546fe}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="netadapter_test.cpp">
       <Filter>Source Files\test</Filter>
-    </ClCompile>
-    <ClCompile Include="..\windows\netadapter.cpp">
-      <Filter>Source Files\communication\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\windows\netadapterlist.cpp">
-      <Filter>Source Files\communication\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\string\split.cpp">
-      <Filter>Source Files\string</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

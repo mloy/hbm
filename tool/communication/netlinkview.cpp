@@ -22,6 +22,7 @@ static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int a
 				try {
 					adapterName = adapters.getAdapterByInterfaceIndex(adapterIndex).getName();
 				} catch(const std::runtime_error& e) {
+					std::cerr << e.what() << std::endl;
 				}
 			
 				std::cout << "new interface address appeared (adapter='" << adapterName << "', ipv4 address=" << ipv4Address << ")" << std::endl;
@@ -34,6 +35,7 @@ static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int a
 				try {
 					adapterName = adapters.getAdapterByInterfaceIndex(adapterIndex).getName();
 				} catch(const std::runtime_error& e) {
+					std::cerr << e.what() << std::endl;
 				}
 			
 				std::cout << "interface address disappeared (adapter'=" << adapterName << "', ipv4 address=" << ipv4Address << ")" << std::endl;

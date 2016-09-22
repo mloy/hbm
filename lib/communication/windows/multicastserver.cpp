@@ -513,7 +513,7 @@ namespace hbm {
 			m_dataHandler = dataHandler;
 			if (dataHandler) {
 				orderNextMessage();
-				return m_eventLoop.addEvent(m_receiveEvent, std::bind(&MulticastServer::process, this));
+				return m_eventLoop.addEvent(m_receiveEvent, std::bind(&MulticastServer::process, std::ref(*this)));
 			}
 			return 0;
 		}

@@ -43,7 +43,7 @@ namespace hbm {
 			}
 
 			orderNextEvent();
-			m_eventloop.addEvent(m_event, std::bind(&Netlink::process, this));
+			//m_eventloop.addEvent(m_event, std::bind(&Netlink::process, std::ref(*this)));
 
 			return 0;
 		}
