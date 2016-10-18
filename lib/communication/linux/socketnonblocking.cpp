@@ -63,6 +63,13 @@ hbm::communication::SocketNonblocking::~SocketNonblocking()
 void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 {
 	m_dataHandler = dataCb;
+	if (m_dataHandler) {
+		// there might have been work to do before fd was added to epoll. This won't be signaled by edge triggered epoll. Try until there is nothing left.
+		ssize_t result;
+		do {
+			result = m_dataHandler(*this);
+		} while (result>0);
+	}
 }
 
 int hbm::communication::SocketNonblocking::setSocketOptions()
