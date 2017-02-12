@@ -16,6 +16,8 @@
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 
+#include <net/if.h>
+
 #include <syslog.h>
 #include <stdint.h>
 
@@ -87,6 +89,15 @@ namespace hbm {
 
 		void Netlink::processNetlinkTelegram(void *pReadBuffer, size_t bufferSize) const
 		{
+			
+			
+			/// You can get link up/down events via netlink. You would create a PF_NETLINK socket, bind to the RTMGRP_LINK group, 
+			/// and wait for RTM_NEWLINK/RTM_DELLINK messages. Link up events have IFF_RUNNING and IFF_LOWER_UP set in ifinfomsg.
+			/// flags, while link down events have both flags cleared (funnily enough, I'm getting RTM_NEWLINK messages for both type of events).
+			
+			
+			
+			
 			for (struct nlmsghdr *nh = reinterpret_cast <struct nlmsghdr *> (pReadBuffer); NLMSG_OK (nh, bufferSize); nh = NLMSG_NEXT (nh, bufferSize)) {
 				if (nh->nlmsg_type == NLMSG_DONE) {
 					// The end of multipart message.
@@ -97,6 +108,19 @@ namespace hbm {
 				} else {
 					m_netadapterlist.update();
 					switch(nh->nlmsg_type) {
+						case RTM_NEWLINK:
+						case RTM_DELLINK:
+							// we get RTM_NEWLINK if cable gets plugged or unplugged!
+							{
+								struct ifinfomsg *pifinfomsg = reinterpret_cast <struct ifinfomsg*> (NLMSG_DATA(nh));
+								if ((IFF_RUNNING & pifinfomsg->ifi_flags)==0) {
+									if (m_interfaceAddressEventHandler) {
+										m_interfaceAddressEventHandler(INTERFACE_DISCONNECTED, pifinfomsg->ifi_index, "");
+									}
+								}
+							}
+						
+							break;
 						case RTM_NEWADDR:
 							{
 								struct ifaddrmsg* pIfaddrmsg = reinterpret_cast <struct ifaddrmsg*> (NLMSG_DATA(nh));
@@ -108,7 +132,7 @@ namespace hbm {
 											// this is to be ignored if there are more than one ipv4 addresses assigned to the interface!
 											if (m_interfaceAddressEventHandler) {
 												struct in_addr* pIn = reinterpret_cast < struct in_addr* > (RTA_DATA(rth));
-												m_interfaceAddressEventHandler(NEW, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
+												m_interfaceAddressEventHandler(ADDRESS_ADDED, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
 											}
 										}
 										rth = RTA_NEXT(rth, rtl);
@@ -126,7 +150,7 @@ namespace hbm {
 										if (rth->rta_type == IFA_LOCAL) {
 											if (m_interfaceAddressEventHandler) {
 												struct in_addr* pIn = reinterpret_cast < struct in_addr* > (RTA_DATA(rth));
-												m_interfaceAddressEventHandler(DEL, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
+												m_interfaceAddressEventHandler(ADDRESSE_REMOVED, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
 											}
 										}
 										rth = RTA_NEXT(rth, rtl);
