@@ -17,10 +17,12 @@ namespace hbm {
 		class Netlink {
 		public:
 			enum event_t {
+				/// address was added to interface
 				/// not supported under Windows
-				NEW,
+				ADDRESS_ADDED,
+				/// address was removed from interface
 				/// not supported under Windows
-				DEL,
+				ADDRESSE_REMOVED,
 				/// happens on initial start.
 				/// windows version does not tell what happened it always sends COMPLETE to tell that something has happened.
 				COMPLETE
