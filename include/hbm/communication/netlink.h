@@ -23,9 +23,6 @@ namespace hbm {
 				/// address was removed from interface
 				/// not supported under Windows
 				ADDRESSE_REMOVED,
-				/// cable unplugged fom interface or lost wireless connection
-				/// not supported under Windows
-				INTERFACE_DISCONNECTED,
 				/// happens on initial start.
 				/// windows version does not tell what happened it always sends COMPLETE to tell that something has happened.
 				COMPLETE

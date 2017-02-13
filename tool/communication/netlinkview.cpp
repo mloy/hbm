@@ -34,9 +34,6 @@ static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int a
 				std::cout << "interface address disappeared (adapter'=" << adapterName << "', ipv4 address=" << ipv4Address << ")" << std::endl;
 			}
 			break;
-		case hbm::communication::Netlink::INTERFACE_DISCONNECTED:
-			std::cout << "interface " << adapterName << " got disconnected" << std::endl;
-			break;
 		case hbm::communication::Netlink::COMPLETE:
 			std::cout << "complete reconfiguration" << std::endl;
 			break;
