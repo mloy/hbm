@@ -15,7 +15,7 @@
 //	++eventCount;
 //	std::cout << eventCount << ": ";
 //	switch (event) {
-//		case hbm::communication::Netlink::NEW:
+//		case hbm::communication::Netlink::ADDRESS_ADDED:
 //			{
 //				// not supported under Windows
 //				std::string adapterName;
@@ -27,7 +27,7 @@
 //				std::cout << "new interface address appeared (adapter='" << adapterName << "', ipv4 address=" << ipv4Address << ")" << std::endl;
 //			}
 //			break;
-//		case hbm::communication::Netlink::DEL:
+//		case hbm::communication::Netlink::ADDRESSE_REMOVED:
 //			{
 //				// not supported under Windows
 //				std::string adapterName;
