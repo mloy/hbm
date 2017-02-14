@@ -115,3 +115,23 @@ BOOST_AUTO_TEST_CASE(check_mac_address)
 	BOOST_CHECK_EQUAL(tokens.size(), 6);
 	
 }
+
+BOOST_AUTO_TEST_CASE(check_subnet)
+{
+	hbm::communication::ipv4Address_t address;
+	std::string subnet;
+	address.address = "172.19.1.2";
+	address.netmask = "255.255.0.0";
+	subnet = address.getSubnet();
+	BOOST_CHECK_EQUAL(subnet, "172.19.0.0");
+
+	address.address = "172.130.1.2";
+	address.netmask = "255.128.0.0";
+	subnet = address.getSubnet();
+	BOOST_CHECK_EQUAL(subnet, "172.128.0.0");
+
+	address.address = "172.130.1.2";
+	address.netmask = "255.128.0.2";
+	subnet = address.getSubnet();
+	BOOST_CHECK_EQUAL(subnet, "172.128.0.2");
+}

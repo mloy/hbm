@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -140,6 +140,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="communication\ipv4address_t.cpp" />
+    <ClCompile Include="communication\ipv6address_t.cpp" />    
     <ClCompile Include="communication\windows\bufferedreader.cpp" />
     <ClCompile Include="communication\windows\multicastserver.cpp" />
     <ClCompile Include="communication\windows\netadapter.cpp" />
@@ -158,6 +160,8 @@
     <ClCompile Include="sys\windows\timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\hbm\communication\ipv4address.h" />
+    <ClInclude Include="..\include\hbm\communication\ipv6address.h" />    
     <ClInclude Include="..\include\hbm\communication\bufferedreader.h" />
     <ClInclude Include="..\include\hbm\communication\multicastserver.h" />
     <ClInclude Include="..\include\hbm\communication\netadapter.h" />
