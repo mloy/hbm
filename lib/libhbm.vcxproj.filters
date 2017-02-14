@@ -82,6 +82,12 @@
     <ClCompile Include="exception\jsonrpc_exception.cpp">
       <Filter>lib\exception</Filter>
     </ClCompile>
+    <ClCompile Include="communication\ipv4address_t.cpp">
+      <Filter>lib\communication</Filter>
+    </ClCompile>
+    <ClCompile Include="communication\ipv6address_t.cpp">
+      <Filter>lib\communication</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\hbm\communication\bufferedreader.h">
@@ -104,6 +110,12 @@
     </ClInclude>
     <ClInclude Include="..\include\hbm\communication\tcpserver.h">
       <Filter>include\communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\communication\ipv4address.h">
+      <Filter>lib\communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\communication\ipv6address.h">
+      <Filter>lib\communication</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
