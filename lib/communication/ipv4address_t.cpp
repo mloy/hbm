@@ -2,7 +2,7 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
-#include <hbm/split.h>
+#include <hbm/string/split.h>
 
 #include "hbm/communication/ipv4Address_t.h"
 
