@@ -9,6 +9,7 @@ SET(EXTRA_FLAGS "-std=c++11 -fno-common -Wall -Werror -Wshadow -Wextra -Winit-se
 
 SET( HBMLIB_INTERFACE_HEADERS
     ${INTERFACE_INCLUDE_DIR}/communication/ipv4Address_t.h
+    ${INTERFACE_INCLUDE_DIR}/communication/ipv6Address_t.h
     ${INTERFACE_INCLUDE_DIR}/communication/bufferedreader.h
     ${INTERFACE_INCLUDE_DIR}/communication/multicastserver.h
     ${INTERFACE_INCLUDE_DIR}/communication/netadapter.h
@@ -34,8 +35,8 @@ SET( HBMLIB_INTERFACE_HEADERS
 
 set(HBMLIB_SOURCES
   ${HBMLIB_INTERFACE_HEADERS}
-  communication/ipv4address_t.cpp
-  communication/ipv6address_t.cpp
+  communication/ipv4Address_t.cpp
+  communication/ipv6Address_t.cpp
   communication/linux/bufferedreader.cpp
   communication/linux/multicastserver.cpp
   communication/linux/netadapter.cpp
