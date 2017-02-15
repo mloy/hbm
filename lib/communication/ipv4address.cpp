@@ -4,7 +4,7 @@
 
 #include <hbm/string/split.h>
 
-#include "hbm/communication/ipv4Address_t.h"
+#include "hbm/communication/ipv4address.h"
 
 namespace hbm {
 	namespace communication {
