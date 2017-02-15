@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(check_mac_address)
 
 BOOST_AUTO_TEST_CASE(check_subnet)
 {
-	hbm::communication::ipv4Address_t address;
+	hbm::communication::Ipv4Address address;
 	std::string subnet;
 	address.address = "172.19.1.2";
 	address.netmask = "255.255.0.0";

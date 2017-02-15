@@ -11,8 +11,8 @@
 
 namespace hbm {
 	namespace communication {
-		struct ipv4Address_t {
-			bool equal(const struct ipv4Address_t& op) const;
+		struct Ipv4Address {
+			bool equal(const struct Ipv4Address& op) const;
 
 			std::string getSubnet() const;
 

@@ -156,7 +156,7 @@ namespace hbm {
 									struct sockaddr_in ipv4_address;
 									std::memcpy(&ipv4_address, interface->ifa_addr, sizeof(ipv4_address));
 
-									ipv4Address_t addressWithNetmask;
+									Ipv4Address addressWithNetmask;
 									if (inet_ntop(family, &ipv4_address.sin_addr, buf, sizeof(buf))) {
 										addressWithNetmask.address = buf;
 									}
@@ -176,7 +176,7 @@ namespace hbm {
 									struct sockaddr_in6 ipv6_address;
 									std::memcpy(&ipv6_address, interface->ifa_addr, sizeof(ipv6_address));
 
-									ipv6Address_t address;
+									Ipv6Address address;
 									if (inet_ntop(family, &ipv6_address.sin6_addr, buf, sizeof(buf))) {
 										address.address = buf;
 									}

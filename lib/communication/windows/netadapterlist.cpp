@@ -72,7 +72,7 @@ namespace hbm {
 
 					Adapt.m_macAddress = macStream.str();
 
-					ipv4Address_t addressWithNetmask;
+					Ipv4Address addressWithNetmask;
 
 					if (pNextAd->CurrentIpAddress) {
 						addressWithNetmask.address = pNextAd->CurrentIpAddress->IpAddress.String;

@@ -56,13 +56,13 @@ int main()
 		std::cout << adapter.getName() << std::endl;
 		hbm::communication::addressesWithNetmask_t ipv4addresses = adapter.getIpv4Addresses();
 		for (hbm::communication::addressesWithNetmask_t::const_iterator addressIter = ipv4addresses.begin(); addressIter!=ipv4addresses.end(); ++addressIter) {
-			const hbm::communication::ipv4Address_t& ipV4Address = *addressIter;
+			const hbm::communication::Ipv4Address& ipV4Address = *addressIter;
 			std::cout << "\t" << ipV4Address.address << " " << ipV4Address.netmask << std::endl;
 		}
 
 		hbm::communication::addressesWithPrefix_t ipv6addresses = adapter.getIpv6Addresses();
 		for (hbm::communication::addressesWithPrefix_t::const_iterator addressIter = ipv6addresses.begin(); addressIter!=ipv6addresses.end(); ++addressIter) {
-			const hbm::communication::ipv6Address_t& ipV6Address = *addressIter;
+			const hbm::communication::Ipv6Address& ipV6Address = *addressIter;
 			std::cout << "\t" << ipV6Address.address << "/" << ipV6Address.prefix << std::endl;
 		}
 

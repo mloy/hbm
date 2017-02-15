@@ -27,9 +27,9 @@ namespace hbm {
 			WARN_INVALIDCONFIGMETHOD = 5
 		};
 
-		typedef std::vector < ipv6Address_t > addressesWithPrefix_t;
+		typedef std::vector < Ipv6Address > addressesWithPrefix_t;
 		// we use a double ended queue here because we might insert to the front or to the back.
-		typedef std::deque < ipv4Address_t > addressesWithNetmask_t;
+		typedef std::deque < Ipv4Address > addressesWithNetmask_t;
 
 
 		class Netadapter
