@@ -36,6 +36,10 @@ namespace hbm {
 			/// \throws hbm::exception
 			Netadapter getAdapterByInterfaceIndex(unsigned int interfaceIndex) const;
 
+			/// check wheter subnet of requested address is already occupied by an address of an interface
+			/// \return name of the occupying interface or an empty string
+			std::string checkSubnet(communication::Ipv4Address& requestedAddress) const;
+
 			void update();
 
 		private:

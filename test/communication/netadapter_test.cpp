@@ -135,3 +135,29 @@ BOOST_AUTO_TEST_CASE(check_subnet)
 	subnet = address.getSubnet();
 	BOOST_CHECK_EQUAL(subnet, "172.128.0.2");
 }
+
+BOOST_AUTO_TEST_CASE(check_occupied_subnet)
+{
+	// get first ipv4 address of first interface to provoke conflict.
+	std::string occupyingInterfaceName;
+	std::string FirstInterfaceName;
+	hbm::communication::NetadapterList netadapterList;
+	hbm::communication::NetadapterList::tAdapters adapters = netadapterList.get();
+	hbm::communication::Netadapter firstAdapter = adapters.begin()->second;
+	hbm::communication::addressesWithNetmask_t addresses = firstAdapter.getIpv4Addresses();
+
+	hbm::communication::Ipv4Address firstAddress = *addresses.begin();
+	FirstInterfaceName = firstAdapter.getName();
+	
+	occupyingInterfaceName = netadapterList.checkSubnet(firstAddress);
+	BOOST_CHECK_EQUAL(occupyingInterfaceName, FirstInterfaceName);
+	
+	// localhost is not contained in netadapterlist, hence nobody does occupy "127.0.0.1"
+	hbm::communication::Ipv4Address localHostAddress;
+	localHostAddress.address = "127.0.0.1";
+	localHostAddress.netmask = "255.0.0.0";
+	
+	occupyingInterfaceName = netadapterList.checkSubnet(localHostAddress);
+	BOOST_CHECK_EQUAL(occupyingInterfaceName, "");
+
+}
