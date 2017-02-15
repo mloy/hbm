@@ -8,7 +8,7 @@
 
 namespace hbm {
 	namespace communication {
-		bool ipv4Address_t::equal(const struct ipv4Address_t& op) const
+		bool Ipv4Address::equal(const struct Ipv4Address& op) const
 		{
 			if( (address==op.address) && (netmask==op.netmask) ) {
 				return true;
@@ -16,7 +16,7 @@ namespace hbm {
 			return false;
 		}
 
-		std::string ipv4Address_t::getSubnet() const
+		std::string Ipv4Address::getSubnet() const
 		{
 			std::string subnet;
 			unsigned int addressByte;

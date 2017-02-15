@@ -17,21 +17,6 @@
 
 #include "hbm/string/split.h"
 
-
-// this test does not work reliably. The first interface might have no ipv6 address
-//BOOST_AUTO_TEST_CASE(check_ipv6)
-//{
-//	hbm::communication::NetadapterList adapterlist;
-//	hbm::communication::NetadapterList::tAdapters adapters = adapterlist.get();
-//	if (adapters.empty()) {
-//		return;
-//	}
-	
-//	hbm::communication::Netadapter adapter = adapters.begin()->second;
-//	hbm::communication::addressesWithPrefix_t addresses = adapter.getIpv6Addresses();
-//	BOOST_CHECK_GT(addresses.size(), 0);
-//}
-
 BOOST_AUTO_TEST_CASE(check_valid_ipaddresses_test)
 {
 	bool result;
@@ -104,7 +89,7 @@ BOOST_AUTO_TEST_CASE(check_forbidden_ipaddresses_test)
 
 BOOST_AUTO_TEST_CASE(check_mac_address)
 {
-	hbm::communication::NetadapterList::tAdapters adapters = hbm::communication::NetadapterList().get();
+	hbm::communication::NetadapterList::Adapters adapters = hbm::communication::NetadapterList().get();
 	if (adapters.empty()) {
 		return;
 	}
@@ -118,7 +103,7 @@ BOOST_AUTO_TEST_CASE(check_mac_address)
 
 BOOST_AUTO_TEST_CASE(check_subnet)
 {
-	hbm::communication::ipv4Address_t address;
+	hbm::communication::Ipv4Address address;
 	std::string subnet;
 	address.address = "172.19.1.2";
 	address.netmask = "255.255.0.0";
@@ -134,4 +119,30 @@ BOOST_AUTO_TEST_CASE(check_subnet)
 	address.netmask = "255.128.0.2";
 	subnet = address.getSubnet();
 	BOOST_CHECK_EQUAL(subnet, "172.128.0.2");
+}
+
+BOOST_AUTO_TEST_CASE(check_occupied_subnet)
+{
+	// get first ipv4 address of first interface to provoke conflict.
+	std::string occupyingInterfaceName;
+	std::string FirstInterfaceName;
+	hbm::communication::NetadapterList netadapterList;
+	hbm::communication::NetadapterList::Adapters adapters = netadapterList.get();
+	hbm::communication::Netadapter firstAdapter = adapters.begin()->second;
+	hbm::communication::AddressesWithNetmask addresses = firstAdapter.getIpv4Addresses();
+
+	hbm::communication::Ipv4Address firstAddress = *addresses.begin();
+	FirstInterfaceName = firstAdapter.getName();
+	
+	occupyingInterfaceName = netadapterList.checkSubnet(firstAddress);
+	BOOST_CHECK_EQUAL(occupyingInterfaceName, FirstInterfaceName);
+	
+	// localhost is not contained in netadapterlist, hence nobody does occupy "127.0.0.1"
+	hbm::communication::Ipv4Address localHostAddress;
+	localHostAddress.address = "127.0.0.1";
+	localHostAddress.netmask = "255.0.0.0";
+	
+	occupyingInterfaceName = netadapterList.checkSubnet(localHostAddress);
+	BOOST_CHECK_EQUAL(occupyingInterfaceName, "");
+
 }

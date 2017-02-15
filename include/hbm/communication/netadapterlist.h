@@ -19,15 +19,15 @@ namespace hbm {
 		{
 		public:
 			/// interface index is the key
-			typedef std::map < unsigned int, Netadapter > tAdapters;
-			typedef std::vector < Netadapter > tAdapterArray;
+			typedef std::map < unsigned int, Netadapter > Adapters;
+			typedef std::vector < Netadapter > AdapterArray;
 
 			NetadapterList();
 
-			tAdapters get() const;
+			Adapters get() const;
 
 			/// the same order as returned by get()
-			tAdapterArray getArray() const;
+			AdapterArray getArray() const;
 
 			/// \throws hbm::exception
 			Netadapter getAdapterByName(const std::string& adapterName) const;
@@ -36,13 +36,17 @@ namespace hbm {
 			/// \throws hbm::exception
 			Netadapter getAdapterByInterfaceIndex(unsigned int interfaceIndex) const;
 
+			/// check wheter subnet of requested address is already occupied by an address of an interface
+			/// \return name of the occupying interface or an empty string
+			std::string checkSubnet(communication::Ipv4Address& requestedAddress) const;
+
 			void update();
 
 		private:
 
 			void enumAdapters();
 
-			tAdapters m_adapters;
+			Adapters m_adapters;
 			mutable std::mutex m_adaptersMtx;
 		};
 	}
