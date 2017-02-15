@@ -17,21 +17,6 @@
 
 #include "hbm/string/split.h"
 
-
-// this test does not work reliably. The first interface might have no ipv6 address
-//BOOST_AUTO_TEST_CASE(check_ipv6)
-//{
-//	hbm::communication::NetadapterList adapterlist;
-//	hbm::communication::NetadapterList::tAdapters adapters = adapterlist.get();
-//	if (adapters.empty()) {
-//		return;
-//	}
-	
-//	hbm::communication::Netadapter adapter = adapters.begin()->second;
-//	hbm::communication::addressesWithPrefix_t addresses = adapter.getIpv6Addresses();
-//	BOOST_CHECK_GT(addresses.size(), 0);
-//}
-
 BOOST_AUTO_TEST_CASE(check_valid_ipaddresses_test)
 {
 	bool result;
@@ -104,7 +89,7 @@ BOOST_AUTO_TEST_CASE(check_forbidden_ipaddresses_test)
 
 BOOST_AUTO_TEST_CASE(check_mac_address)
 {
-	hbm::communication::NetadapterList::tAdapters adapters = hbm::communication::NetadapterList().get();
+	hbm::communication::NetadapterList::Adapters adapters = hbm::communication::NetadapterList().get();
 	if (adapters.empty()) {
 		return;
 	}
@@ -142,9 +127,9 @@ BOOST_AUTO_TEST_CASE(check_occupied_subnet)
 	std::string occupyingInterfaceName;
 	std::string FirstInterfaceName;
 	hbm::communication::NetadapterList netadapterList;
-	hbm::communication::NetadapterList::tAdapters adapters = netadapterList.get();
+	hbm::communication::NetadapterList::Adapters adapters = netadapterList.get();
 	hbm::communication::Netadapter firstAdapter = adapters.begin()->second;
-	hbm::communication::addressesWithNetmask_t addresses = firstAdapter.getIpv4Addresses();
+	hbm::communication::AddressesWithNetmask addresses = firstAdapter.getIpv4Addresses();
 
 	hbm::communication::Ipv4Address firstAddress = *addresses.begin();
 	FirstInterfaceName = firstAdapter.getName();

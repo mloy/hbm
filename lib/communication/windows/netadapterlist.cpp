@@ -113,19 +113,19 @@ namespace hbm {
 		}
 
 
-		NetadapterList::tAdapters NetadapterList::get() const
+		NetadapterList::Adapters NetadapterList::get() const
 		{
 			std::lock_guard < std::mutex > lock(m_adaptersMtx);
 			return m_adapters;
 		}
 
-		NetadapterList::tAdapterArray NetadapterList::getArray() const
+		NetadapterList::AdapterArray NetadapterList::getArray() const
 		{
 			std::lock_guard < std::mutex > lock(m_adaptersMtx);
-			tAdapterArray result;
+			AdapterArray result;
 			result.reserve(m_adapters.size());
 
-			for(tAdapters::const_iterator iter = m_adapters.begin(); iter!=m_adapters.end(); ++iter) {
+			for(Adapters::const_iterator iter = m_adapters.begin(); iter!=m_adapters.end(); ++iter) {
 				result.push_back(iter->second);
 			}
 
@@ -136,7 +136,7 @@ namespace hbm {
 		{
 			std::lock_guard < std::mutex > lock(m_adaptersMtx);
 
-			for (tAdapters::const_iterator iter = m_adapters.begin(); iter != m_adapters.end(); ++iter) {
+			for (Adapters::const_iterator iter = m_adapters.begin(); iter != m_adapters.end(); ++iter) {
 				if (iter->second.getName().compare(adapterName) == 0) {
 					return iter->second;
 				}
@@ -150,7 +150,7 @@ namespace hbm {
 		{
 			std::lock_guard < std::mutex > lock(m_adaptersMtx);
 
-			tAdapters::const_iterator iter = m_adapters.find(interfaceIndex);
+			Adapters::const_iterator iter = m_adapters.find(interfaceIndex);
 			if(iter==m_adapters.end()) {
 				throw hbm::exception::exception("invalid interface");
 			}
@@ -162,11 +162,11 @@ namespace hbm {
 		{
 			std::string requestedSubnet = requestedAddress.getSubnet();
 
-			for (communication::NetadapterList::tAdapters::const_iterator adapterIter=m_adapters.begin(); adapterIter!=m_adapters.end(); ++adapterIter ) {
+			for (communication::NetadapterList::Adapters::const_iterator adapterIter=m_adapters.begin(); adapterIter!=m_adapters.end(); ++adapterIter ) {
 				const communication::Netadapter& adapter = adapterIter->second;
-				communication::addressesWithNetmask_t addresses = adapter.getIpv4Addresses();
+				communication::AddressesWithNetmask addresses = adapter.getIpv4Addresses();
 				
-				for (communication::addressesWithNetmask_t::const_iterator addressIter = addresses.begin(); addressIter!=addresses.end(); ++addressIter) {
+				for (communication::AddressesWithNetmask::const_iterator addressIter = addresses.begin(); addressIter!=addresses.end(); ++addressIter) {
 					const communication::Ipv4Address& address = *addressIter;
 					if (requestedSubnet==address.getSubnet()) {
 						return adapter.getName();
