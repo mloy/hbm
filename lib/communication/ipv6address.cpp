@@ -5,7 +5,7 @@
 #include <hbm/string/split.h>
 
 
-#include "hbm/communication/ipv6Address_t.h"
+#include "hbm/communication/ipv6address.h"
 
 
 

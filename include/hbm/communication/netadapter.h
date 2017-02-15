@@ -11,8 +11,8 @@
 #include <string>
 #include <stdint.h>
 
-#include <hbm/communication/ipv4Address_t.h>
-#include <hbm/communication/ipv6Address_t.h>
+#include <hbm/communication/ipv4address.h>
+#include <hbm/communication/ipv6address.h>
 
 namespace hbm {
 	namespace communication {
