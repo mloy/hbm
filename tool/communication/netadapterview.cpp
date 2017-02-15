@@ -49,20 +49,20 @@ int main()
 {
 	std::cout << "netadapterview" << std::endl;
 	hbm::communication::NetadapterList adapterList;
-	hbm::communication::NetadapterList::tAdapters adapters = adapterList.get();
+	hbm::communication::NetadapterList::Adapters adapters = adapterList.get();
 
-	for (hbm::communication::NetadapterList::tAdapters::const_iterator iter=adapters.begin(); iter!=adapters.end(); ++iter) {
+	for (hbm::communication::NetadapterList::Adapters::const_iterator iter=adapters.begin(); iter!=adapters.end(); ++iter) {
 		const hbm::communication::Netadapter& adapter = iter->second;
 		std::cout << adapter.getName() << std::endl;
-		hbm::communication::addressesWithNetmask_t ipv4addresses = adapter.getIpv4Addresses();
-		for (hbm::communication::addressesWithNetmask_t::const_iterator addressIter = ipv4addresses.begin(); addressIter!=ipv4addresses.end(); ++addressIter) {
-			const hbm::communication::ipv4Address_t& ipV4Address = *addressIter;
+		hbm::communication::AddressesWithNetmask ipv4addresses = adapter.getIpv4Addresses();
+		for (hbm::communication::AddressesWithNetmask::const_iterator addressIter = ipv4addresses.begin(); addressIter!=ipv4addresses.end(); ++addressIter) {
+			const hbm::communication::Ipv4Address& ipV4Address = *addressIter;
 			std::cout << "\t" << ipV4Address.address << " " << ipV4Address.netmask << std::endl;
 		}
 
-		hbm::communication::addressesWithPrefix_t ipv6addresses = adapter.getIpv6Addresses();
-		for (hbm::communication::addressesWithPrefix_t::const_iterator addressIter = ipv6addresses.begin(); addressIter!=ipv6addresses.end(); ++addressIter) {
-			const hbm::communication::ipv6Address_t& ipV6Address = *addressIter;
+		hbm::communication::AddressesWithPrefix ipv6addresses = adapter.getIpv6Addresses();
+		for (hbm::communication::AddressesWithPrefix::const_iterator addressIter = ipv6addresses.begin(); addressIter!=ipv6addresses.end(); ++addressIter) {
+			const hbm::communication::Ipv6Address& ipV6Address = *addressIter;
 			std::cout << "\t" << ipV6Address.address << "/" << ipV6Address.prefix << std::endl;
 		}
 

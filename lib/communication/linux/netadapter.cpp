@@ -197,6 +197,6 @@ namespace hbm {
 			struct in_addr ip_addr;
 			ip_addr.s_addr = htonl(subnet);
 			return inet_ntoa(ip_addr);
-		}
+		}		
 	}
 }

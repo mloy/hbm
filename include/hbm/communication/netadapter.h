@@ -6,10 +6,12 @@
 #ifndef _NETADAPTER_H
 #define _NETADAPTER_H
 
-#include <vector>
 #include <deque>
 #include <string>
 #include <stdint.h>
+
+#include <hbm/communication/ipv4address.h>
+#include <hbm/communication/ipv6address.h>
 
 namespace hbm {
 	namespace communication {
@@ -24,41 +26,9 @@ namespace hbm {
 			WARN_INVALIDCONFIGMETHOD = 5
 		};
 
-		struct ipv6Address_t {
-			ipv6Address_t()
-				: address()
-				, prefix(0)
-			{
-			}
-
-			bool equal(const struct ipv6Address_t& op) const
-			{
-				if( (address==op.address) && prefix==op.prefix) {
-					return true;
-				}
-				return false;
-			}
-
-			std::string address;
-			unsigned int prefix;
-		};
-
-		struct ipv4Address_t {
-			bool equal(const struct ipv4Address_t& op) const
-			{
-				if( (address==op.address) && (netmask==op.netmask) ) {
-					return true;
-				}
-				return false;
-			}
-			std::string address;
-			std::string netmask;
-		};
-
-		typedef std::vector < ipv6Address_t > addressesWithPrefix_t;
 		// we use a double ended queue here because we might insert to the front or to the back.
-		typedef std::deque < ipv4Address_t > addressesWithNetmask_t;
-
+		typedef std::deque < Ipv6Address > AddressesWithPrefix;
+		typedef std::deque < Ipv4Address > AddressesWithNetmask;
 
 
 		class Netadapter
@@ -70,12 +40,12 @@ namespace hbm {
 
 			std::string getName() const { return m_name; }
 
-			const addressesWithNetmask_t& getIpv4Addresses() const
+			const AddressesWithNetmask& getIpv4Addresses() const
 			{
 				return m_ipv4Addresses;
 			}
 
-			const addressesWithPrefix_t& getIpv6Addresses() const
+			const AddressesWithPrefix& getIpv6Addresses() const
 			{
 				return m_ipv6Addresses;
 			}
@@ -115,8 +85,8 @@ namespace hbm {
 
 			std::string m_name;
 
-			addressesWithNetmask_t m_ipv4Addresses;
-			addressesWithPrefix_t m_ipv6Addresses;
+			AddressesWithNetmask m_ipv4Addresses;
+			AddressesWithPrefix m_ipv6Addresses;
 
 			std::string m_macAddress;
 
