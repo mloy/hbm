@@ -179,11 +179,11 @@ namespace hbm {
 
 		void MulticastServer::addAllInterfaces()
 		{
-			NetadapterList::tAdapters adapters = m_netadapterList.get();
-			for (NetadapterList::tAdapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
+			NetadapterList::Adapters adapters = m_netadapterList.get();
+			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
 
-				const communication::addressesWithNetmask_t& addresses = adapter.getIpv4Addresses();
+				const communication::AddressesWithNetmask& addresses = adapter.getIpv4Addresses();
 				if(addresses.empty()==false) {
 					addInterface(addresses.front().address);
 				}
@@ -192,11 +192,11 @@ namespace hbm {
 
 		void MulticastServer::dropAllInterfaces()
 		{
-			NetadapterList::tAdapters adapters = m_netadapterList.get();
-			for (NetadapterList::tAdapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
+			NetadapterList::Adapters adapters = m_netadapterList.get();
+			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
 
-				const communication::addressesWithNetmask_t& addresses = adapter.getIpv4Addresses();
+				const communication::AddressesWithNetmask& addresses = adapter.getIpv4Addresses();
 				if(addresses.empty()==false) {
 					dropInterface(addresses.front().address);
 				}
@@ -343,9 +343,9 @@ namespace hbm {
 			int retVal = 0;
 			int retValIntern;
 
-			NetadapterList::tAdapters adapters = m_netadapterList.get();
+			NetadapterList::Adapters adapters = m_netadapterList.get();
 
-			for (NetadapterList::tAdapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
+			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const Netadapter& adapter = iter->second;
 
 				retValIntern = sendOverInterface(adapter, pData, length, ttl);
@@ -370,7 +370,7 @@ namespace hbm {
 
 			int retVal = 0;
 
-			const communication::addressesWithNetmask_t addressesWithNetmask = adapter.getIpv4Addresses();
+			const communication::AddressesWithNetmask addressesWithNetmask = adapter.getIpv4Addresses();
 			if(addressesWithNetmask.empty()) {
 				return communication::ERR_ADAPTERISDOWN;
 			} else {
@@ -422,7 +422,7 @@ namespace hbm {
 				if (pData==NULL) {
 					retVal = ERR_NO_SUCCESS;
 				} else {
-					const communication::addressesWithNetmask_t addressesWithNetmask = adapter.getIpv4Addresses();
+					const communication::AddressesWithNetmask addressesWithNetmask = adapter.getIpv4Addresses();
 					if(addressesWithNetmask.empty()==false) {
 						retVal = sendOverInterfaceByAddress(addressesWithNetmask.front().address, pData, length, ttl);
 					} else {
