@@ -13,5 +13,6 @@
  - Rename header communication/ipv4Address_t.h to communication/ipv4Address.h
  - Rename header communication/ipv6Address_t.h to communication/ipv6Address.h
 
-
+## v1.0.3
+ - const correctness for checkSubnet()
  

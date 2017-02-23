@@ -158,7 +158,7 @@ namespace hbm {
 			return iter->second;
 		}
 		
-		std::string NetadapterList::checkSubnet(communication::Ipv4Address& requestedAddress) const
+                std::string NetadapterList::checkSubnet(const communication::Ipv4Address& requestedAddress) const
 		{
 			std::string requestedSubnet = requestedAddress.getSubnet();
 
