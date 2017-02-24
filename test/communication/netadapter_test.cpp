@@ -125,24 +125,44 @@ BOOST_AUTO_TEST_CASE(check_occupied_subnet)
 {
 	// get first ipv4 address of first interface to provoke conflict.
 	std::string occupyingInterfaceName;
-	std::string FirstInterfaceName;
+	std::string interfaceName;
 	hbm::communication::NetadapterList netadapterList;
+	hbm::communication::AddressesWithNetmask addresses;
+
+	// get the first active adapter.
+	hbm::communication::Netadapter adapter;
 	hbm::communication::NetadapterList::Adapters adapters = netadapterList.get();
-	hbm::communication::Netadapter firstAdapter = adapters.begin()->second;
-	hbm::communication::AddressesWithNetmask addresses = firstAdapter.getIpv4Addresses();
+	for( hbm::communication::NetadapterList::Adapters::const_iterator iter=adapters.begin(); iter!=adapters.end(); ++iter) {
+		adapter = iter->second;
+		addresses = adapter.getIpv4Addresses();
+		if (addresses.empty()==false) {
+			break;
+		}
+	}
+
+	if (addresses.empty()) {
+		BOOST_TEST_MESSAGE("No interface with ipv4 address available. Test can not be performed!");
+		return;
+	}
 
 	hbm::communication::Ipv4Address firstAddress = *addresses.begin();
-	FirstInterfaceName = firstAdapter.getName();
+	interfaceName = adapter.getName();
 	
-	occupyingInterfaceName = netadapterList.checkSubnet(firstAddress);
-	BOOST_CHECK_EQUAL(occupyingInterfaceName, FirstInterfaceName);
+	occupyingInterfaceName = netadapterList.checkSubnet("", firstAddress);
+	BOOST_CHECK_EQUAL(occupyingInterfaceName, interfaceName);
+
+
+	// check with exclusion of this interface
+	occupyingInterfaceName = netadapterList.checkSubnet(interfaceName, firstAddress);
+	BOOST_CHECK_EQUAL(occupyingInterfaceName, "");
+
 	
 	// localhost is not contained in netadapterlist, hence nobody does occupy "127.0.0.1"
 	hbm::communication::Ipv4Address localHostAddress;
 	localHostAddress.address = "127.0.0.1";
 	localHostAddress.netmask = "255.0.0.0";
 	
-	occupyingInterfaceName = netadapterList.checkSubnet(localHostAddress);
+	occupyingInterfaceName = netadapterList.checkSubnet(interfaceName, localHostAddress);
 	BOOST_CHECK_EQUAL(occupyingInterfaceName, "");
 
 }

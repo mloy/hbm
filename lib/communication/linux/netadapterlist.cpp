@@ -262,18 +262,20 @@ namespace hbm {
 			return iter->second;
 		}
 
-                std::string NetadapterList::checkSubnet(const communication::Ipv4Address& requestedAddress) const
+		std::string NetadapterList::checkSubnet(const std::string& excludeAdapterName, const communication::Ipv4Address& requestedAddress) const
 		{
 			std::string requestedSubnet = requestedAddress.getSubnet();
 
 			for (communication::NetadapterList::Adapters::const_iterator adapterIter=m_adapters.begin(); adapterIter!=m_adapters.end(); ++adapterIter ) {
 				const communication::Netadapter& adapter = adapterIter->second;
-				communication::AddressesWithNetmask addresses = adapter.getIpv4Addresses();
-				
-				for (communication::AddressesWithNetmask::const_iterator addressIter = addresses.begin(); addressIter!=addresses.end(); ++addressIter) {
-					const communication::Ipv4Address& address = *addressIter;
-					if (requestedSubnet==address.getSubnet()) {
-						return adapter.getName();
+				if (excludeAdapterName != adapter.getName()) {
+					communication::AddressesWithNetmask addresses = adapter.getIpv4Addresses();
+
+					for (communication::AddressesWithNetmask::const_iterator addressIter = addresses.begin(); addressIter!=addresses.end(); ++addressIter) {
+						const communication::Ipv4Address& address = *addressIter;
+						if (requestedSubnet==address.getSubnet()) {
+							return adapter.getName();
+						}
 					}
 				}
 			}
