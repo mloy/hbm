@@ -11,6 +11,11 @@
 
 namespace hbm {
 	namespace communication {
+		Ipv6Address::Ipv6Address()
+			: prefix(0)
+		{
+		}
+
 		bool Ipv6Address::equal(const struct Ipv6Address& op) const
 		{
 			if( (address==op.address) && prefix==op.prefix) {
