@@ -12,6 +12,7 @@
 namespace hbm {
 	namespace communication {
 		struct Ipv6Address {
+			Ipv6Address();
 			bool equal(const Ipv6Address &op) const;
 
 			std::string address;
