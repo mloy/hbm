@@ -18,3 +18,4 @@
 
 ## v1.0.4
  - initialize ipv6 prefix on construction
+ - checksubnet() might exclude a device from tests. This is usefull if the configuration of this interface is to be changed.
