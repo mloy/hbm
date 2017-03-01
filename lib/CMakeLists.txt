@@ -64,7 +64,7 @@ set_target_properties(
   hbm
   PROPERTIES
   SOVERSION 0
-  VERSION 0.0.5
+  VERSION 1.0.4
   )
 
 install(TARGETS hbm LIBRARY DESTINATION lib)
