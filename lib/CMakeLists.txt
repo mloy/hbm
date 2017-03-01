@@ -5,6 +5,15 @@ cmake_minimum_required(VERSION 2.8)
 set( INTERFACE_INCLUDE_DIR ../include/hbm)
 include_directories(../include)
 
+if(ROOT_SEARCH_PATH)
+  list(APPEND CMAKE_PREFIX_PATH ${ROOT_SEARCH_PATH}/usr)
+endif()
+
+find_package(JsonCpp 1.6.0)
+if(JSONCPP_FOUND)
+  include_directories(${JSONCPP_INCLUDE_DIRS})
+endif()
+
 SET(EXTRA_FLAGS "-std=c++11 -fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
 
 SET( HBMLIB_INTERFACE_HEADERS
