@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 2.8)
 set( INTERFACE_INCLUDE_DIR ../include/hbm)
 include_directories(../include)
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../cmake)
+
 if(ROOT_SEARCH_PATH)
   list(APPEND CMAKE_PREFIX_PATH ${ROOT_SEARCH_PATH}/usr)
 endif()
