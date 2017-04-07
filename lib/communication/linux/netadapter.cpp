@@ -72,6 +72,15 @@ namespace hbm {
 			return gatewayString;
 		}
 
+		bool Netadapter::isFirewireAdapter() const
+		{
+			if (m_fwGuid) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
 		bool Netadapter::isApipaAddress(const std::string& address)
 		{
 			static const std::string apipaNet("169.254");
