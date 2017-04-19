@@ -20,6 +20,9 @@ namespace hbm {
 			virtual ~PidFile();
 
 		private:
+			PidFile(PidFile& el);
+			PidFile operator=(PidFile& el);
+
 			std::string m_pidFileName;
 		};
 	}

@@ -53,6 +53,8 @@ namespace hbm {
 #endif
 
 		private:
+			EventLoop(EventLoop& el);
+			EventLoop operator=(EventLoop& el);
 #ifdef _WIN32
 			typedef std::unordered_map <HANDLE, EventHandler_t > eventInfos_t;
 			HANDLE m_completionPort;
