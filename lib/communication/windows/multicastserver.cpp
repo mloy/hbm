@@ -306,6 +306,7 @@ namespace hbm {
 
 		ssize_t MulticastServer::receiveTelegram(void* msgBuf, size_t msgBufSize, unsigned int& adapterIndex, int& ttl)
 		{
+		        ttl = 1;
 			if (m_receiveEvent.overlapped.InternalHigh == 0) {
 				return -1;
 			}
