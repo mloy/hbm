@@ -26,12 +26,22 @@ BOOST_AUTO_TEST_CASE(check_valid_ipaddresses_test)
 	BOOST_CHECK_EQUAL(result, true);
 }
 
+BOOST_AUTO_TEST_CASE(check_invalid_ipaddresses_test)
+{
+	bool result;
+	result = hbm::communication::Netadapter::isValidManualIpv4Address("172.19.2");
+	BOOST_CHECK_EQUAL(result, false);
+}
+
+
 
 BOOST_AUTO_TEST_CASE(check_address_type)
 {
 	bool result;
 	result = hbm::communication::Netadapter::isApipaAddress("169.254.2.6");
 	BOOST_CHECK_EQUAL(result, true);
+	result = hbm::communication::Netadapter::isApipaAddress("169.254.2");
+	BOOST_CHECK_EQUAL(result, false);
 	result = hbm::communication::Netadapter::isApipaAddress("10.169.254.6");
 	BOOST_CHECK_EQUAL(result, false);
 	result = hbm::communication::Netadapter::isIpv6LinkLocalAddress("fe80::40ab:a528:ada6:3da5");
@@ -67,8 +77,6 @@ BOOST_AUTO_TEST_CASE(check_netmask_from_prefix)
 	netmask = hbm::communication::Netadapter::getIpv4NetmaskFromPrefix(33);
 	BOOST_CHECK_EQUAL(netmask, "");
 }
-
-
 
 BOOST_AUTO_TEST_CASE(check_forbidden_ipaddresses_test)
 {
