@@ -15,6 +15,7 @@
 #include <syslog.h>
 
 #include "hbm/communication/netadapter.h"
+#include "hbm/string/split.h"
 
 namespace hbm {
 	namespace communication {
@@ -86,6 +87,10 @@ namespace hbm {
 			static const std::string apipaNet("169.254");
 			
 			in_addr addr;
+			hbm::string::tokens tokens = hbm::string::split(address, '.');
+			if (tokens.size()!=4) {
+				return false;
+			}
 			if (inet_aton(address.c_str(), &addr) == 0) {
 				return false;
 			}
@@ -117,6 +122,11 @@ namespace hbm {
 		bool Netadapter::isValidManualIpv4Address(const std::string& ip)
 		{
 			in_addr address;
+			hbm::string::tokens tokens = hbm::string::split(ip, '.');
+			if (tokens.size()!=4) {
+				return false;
+			}
+
 			if (inet_aton(ip.c_str(), &address) == 0) {
 				return false;
 			}
@@ -149,6 +159,11 @@ namespace hbm {
 		bool Netadapter::isValidIpv4Netmask(const std::string& ip)
 		{
 			in_addr address;
+			hbm::string::tokens tokens = hbm::string::split(ip, '.');
+			if (tokens.size()!=4) {
+				return false;
+			}
+
 			if (inet_aton(ip.c_str(), &address) == 0) {
 				return false;
 			}
