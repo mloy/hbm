@@ -102,6 +102,8 @@ namespace hbm {
 						if(events[n].events & EPOLLIN) {
 							int fd = events[n].data.fd;
 
+							// we do not iterate through the map of events.
+							// Hence callback functions or other threads might remove events from container without causing problems.
 							eventInfos_t::iterator iter = m_eventInfos.find(fd);
 							if (iter!=m_eventInfos.end()) {
 								ssize_t result;
