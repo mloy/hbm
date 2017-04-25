@@ -10,14 +10,15 @@
 #include <cstring>
 #include <map>
 
-#include <winsock2.h>
+#ifndef _WINSOCK2API_
 #include <ws2tcpip.h>
-#include <windows.h>
+#endif
 
 #define syslog fprintf
 #define LOG_ERR stderr
 
 #include "hbm/communication/netadapter.h"
+#include "hbm/communication/wmi.h"
 
 
 static int inet_pton_forWindowsxp(int af, const char *src, void *dst)
@@ -62,13 +63,9 @@ namespace hbm {
 			return "";
 		}
 
-		Netadapter::isFirewireAdapter() const
+		bool Netadapter::isFirewireAdapter() const
 		{
-		        if (m_fwGuid) {
-			        return true;
-			} else {
-			        return false;
-			}
+			return hbm::communication::WMI::isFirewireAdapter(*this);
 		}
 
 		bool Netadapter::isApipaAddress(const std::string& address)

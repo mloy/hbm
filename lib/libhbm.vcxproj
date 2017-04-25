@@ -149,6 +149,7 @@
     <ClCompile Include="communication\windows\netlink.cpp" />
     <ClCompile Include="communication\windows\socketnonblocking.cpp" />
     <ClCompile Include="communication\windows\tcpserver.cpp" />
+    <ClCompile Include="communication\windows\wmi.cpp" />
     <ClCompile Include="exception\jsonrpc_exception.cpp" />
     <ClCompile Include="string\replace.cpp" />
     <ClCompile Include="string\split.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="..\include\hbm\communication\netlink.h" />
     <ClInclude Include="..\include\hbm\communication\socketnonblocking.h" />
     <ClInclude Include="..\include\hbm\communication\tcpserver.h" />
+    <ClInclude Include="..\include\hbm\communication\wmi.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

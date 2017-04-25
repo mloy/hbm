@@ -88,6 +88,9 @@
     <ClCompile Include="communication\ipv6address.cpp">
       <Filter>lib\communication</Filter>
     </ClCompile>
+    <ClCompile Include="communication\windows\wmi.cpp">
+      <Filter>lib\communication\windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\hbm\communication\bufferedreader.h">
@@ -109,6 +112,9 @@
       <Filter>include\communication</Filter>
     </ClInclude>
     <ClInclude Include="..\include\hbm\communication\tcpserver.h">
+      <Filter>include\communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\communication\wmi.h">
       <Filter>include\communication</Filter>
     </ClInclude>
   </ItemGroup>
