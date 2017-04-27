@@ -82,6 +82,9 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>wbemuuid.lib;iphlpapi.lib;</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -98,6 +101,9 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>wbemuuid.lib;iphlpapi.lib;</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -118,6 +124,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>wbemuuid.lib;iphlpapi.lib;</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -138,6 +147,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>wbemuuid.lib;iphlpapi.lib;</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="communication\ipv4address.cpp" />
@@ -149,6 +161,7 @@
     <ClCompile Include="communication\windows\netlink.cpp" />
     <ClCompile Include="communication\windows\socketnonblocking.cpp" />
     <ClCompile Include="communication\windows\tcpserver.cpp" />
+    <ClCompile Include="communication\windows\wmi.cpp" />
     <ClCompile Include="exception\jsonrpc_exception.cpp" />
     <ClCompile Include="string\replace.cpp" />
     <ClCompile Include="string\split.cpp" />
@@ -167,6 +180,7 @@
     <ClInclude Include="..\include\hbm\communication\netlink.h" />
     <ClInclude Include="..\include\hbm\communication\socketnonblocking.h" />
     <ClInclude Include="..\include\hbm\communication\tcpserver.h" />
+    <ClInclude Include="..\include\hbm\communication\wmi.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

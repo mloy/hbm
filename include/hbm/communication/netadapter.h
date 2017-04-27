@@ -64,7 +64,6 @@ namespace hbm {
 				return m_index;
 			}
 
-			/// \warning not supported under windows (returns false always)
 			bool isFirewireAdapter() const;
 
 			static std::string getIpv4DefaultGateway();
