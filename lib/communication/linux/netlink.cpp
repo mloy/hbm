@@ -151,7 +151,7 @@ namespace hbm {
 										if (rth->rta_type == IFA_LOCAL) {
 											if (m_interfaceAddressEventHandler) {
 												struct in_addr* pIn = reinterpret_cast < struct in_addr* > (RTA_DATA(rth));
-												m_interfaceAddressEventHandler(ADDRESSE_REMOVED, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
+												m_interfaceAddressEventHandler(ADDRESS_REMOVED, pIfaddrmsg->ifa_index, inet_ntoa(*pIn));
 											}
 										}
 										rth = RTA_NEXT(rth, rtl);

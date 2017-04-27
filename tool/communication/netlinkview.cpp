@@ -28,7 +28,7 @@ static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int a
 				std::cout << "new interface address appeared (adapter='" << adapterName << "', ipv4 address=" << ipv4Address << ")" << std::endl;
 			}
 			break;
-		case hbm::communication::Netlink::ADDRESSE_REMOVED:
+		case hbm::communication::Netlink::ADDRESS_REMOVED:
 			{
 				// not supported under Windows
 				std::cout << "interface address disappeared (adapter'=" << adapterName << "', ipv4 address=" << ipv4Address << ")" << std::endl;

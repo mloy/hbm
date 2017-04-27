@@ -22,7 +22,7 @@ namespace hbm {
 				ADDRESS_ADDED,
 				/// address was removed from interface
 				/// not supported under Windows
-				ADDRESSE_REMOVED,
+				ADDRESS_REMOVED,
 				/// happens on initial start.
 				/// windows version does not tell what happened it always sends COMPLETE to tell that something has happened.
 				COMPLETE
