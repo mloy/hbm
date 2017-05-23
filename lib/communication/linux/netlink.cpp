@@ -108,20 +108,27 @@ namespace hbm {
 				} else {
 					m_netadapterlist.update();
 					switch(nh->nlmsg_type) {
-// this works but we do not need it in the moment!
-//						case RTM_NEWLINK:
-//						case RTM_DELLINK:
-//							// we get RTM_NEWLINK if cable gets plugged or unplugged!
-//							{
-//								struct ifinfomsg *pifinfomsg = reinterpret_cast <struct ifinfomsg*> (NLMSG_DATA(nh));
-//								if ((IFF_RUNNING & pifinfomsg->ifi_flags)==0) {
-//									if (m_interfaceAddressEventHandler) {
-//										m_interfaceAddressEventHandler(INTERFACE_DISCONNECTED, pifinfomsg->ifi_index, "");
-//									}
-//								}
-//							}
-						
-//							break;
+						case RTM_NEWLINK:
+							{
+								struct ifinfomsg *pifinfomsg = reinterpret_cast <struct ifinfomsg*> (NLMSG_DATA(nh));
+								if ((pifinfomsg->ifi_change) && ((IFF_UP & pifinfomsg->ifi_flags)==1)) {
+									if (m_interfaceAddressEventHandler) {
+										m_interfaceAddressEventHandler(LINK_ADDED, pifinfomsg->ifi_index, "");
+									}
+								}
+							}
+						break;
+
+						case RTM_DELLINK:
+							{
+								struct ifinfomsg *pifinfomsg = reinterpret_cast <struct ifinfomsg*> (NLMSG_DATA(nh));
+								if ((IFF_UP & pifinfomsg->ifi_flags)==0) {
+									if (m_interfaceAddressEventHandler) {
+										m_interfaceAddressEventHandler(LINK_REMOVED, pifinfomsg->ifi_index, "");
+									}
+								}
+							}
+						break;
 						case RTM_NEWADDR:
 							{
 								struct ifaddrmsg* pIfaddrmsg = reinterpret_cast <struct ifaddrmsg*> (NLMSG_DATA(nh));
