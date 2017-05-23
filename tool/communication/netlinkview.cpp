@@ -15,7 +15,8 @@ static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int a
 	try {
 		adapterName = adapters.getAdapterByInterfaceIndex(adapterIndex).getName();
 	} catch(const std::runtime_error& e) {
-		std::cerr << e.what() << std::endl;
+		std::cout << "interface " << adapterIndex << " went down!";
+//		std::cerr << e.what() << std::endl;
 	}
 
 
@@ -36,6 +37,14 @@ static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int a
 			break;
 		case hbm::communication::Netlink::COMPLETE:
 			std::cout << "complete reconfiguration" << std::endl;
+			break;
+
+		case hbm::communication::Netlink::LINK_ADDED:
+			std::cout << "interface " << adapterName << " connected" << std::endl;
+			break;
+
+		case hbm::communication::Netlink::LINK_REMOVED:
+			std::cout << "interface " << adapterName << " disconnected" << std::endl;
 			break;
 	}
 }
