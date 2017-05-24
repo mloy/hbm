@@ -89,15 +89,6 @@ namespace hbm {
 
 		void Netlink::processNetlinkTelegram(void *pReadBuffer, size_t bufferSize) const
 		{
-			
-			
-			/// You can get link up/down events via netlink. You would create a PF_NETLINK socket, bind to the RTMGRP_LINK group, 
-			/// and wait for RTM_NEWLINK/RTM_DELLINK messages. Link up events have IFF_RUNNING and IFF_LOWER_UP set in ifinfomsg.
-			/// flags, while link down events have both flags cleared (funnily enough, I'm getting RTM_NEWLINK messages for both type of events).
-			
-			
-			
-			
 			for (struct nlmsghdr *nh = reinterpret_cast <struct nlmsghdr *> (pReadBuffer); NLMSG_OK (nh, bufferSize); nh = NLMSG_NEXT (nh, bufferSize)) {
 				if (nh->nlmsg_type == NLMSG_DONE) {
 					// The end of multipart message.
