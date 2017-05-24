@@ -17,9 +17,9 @@ namespace hbm {
 		class Netlink {
 		public:
 			enum event_t {
-				/// interface got started (cable plugged)
+				/// interface got started
 				LINK_ADDED,
-				/// interface went down (cable unplugged)
+				/// interface went down
 				LINK_REMOVED,
 				/// address was added to interface
 				/// not supported under Windows

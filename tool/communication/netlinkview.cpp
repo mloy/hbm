@@ -14,9 +14,8 @@ static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int a
 	std::string adapterName;
 	try {
 		adapterName = adapters.getAdapterByInterfaceIndex(adapterIndex).getName();
-	} catch(const std::runtime_error& e) {
-		std::cout << "interface " << adapterIndex << " went down!";
-//		std::cerr << e.what() << std::endl;
+	} catch(const std::runtime_error&) {
+		// to be ignored because adapter does not exist anymore
 	}
 
 
@@ -24,27 +23,25 @@ static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int a
 	std::cout << eventCount << ": ";
 	switch (event) {
 		case hbm::communication::Netlink::ADDRESS_ADDED:
-			{
-				// not supported under Windows
-				std::cout << "new interface address appeared (adapter='" << adapterName << "', ipv4 address=" << ipv4Address << ")" << std::endl;
-			}
+			// not supported under Windows
+			std::cout << "new interface address appeared (adapter " << adapterIndex << " (" << adapterName << "), ipv4 address=" << ipv4Address << ")" << std::endl;
 			break;
 		case hbm::communication::Netlink::ADDRESS_REMOVED:
-			{
-				// not supported under Windows
-				std::cout << "interface address disappeared (adapter'=" << adapterName << "', ipv4 address=" << ipv4Address << ")" << std::endl;
-			}
+			// not supported under Windows
+			std::cout << "interface address disappeared (adapter " << adapterIndex << " (" << adapterName << "), ipv4 address=" << ipv4Address << ")" << std::endl;
 			break;
 		case hbm::communication::Netlink::COMPLETE:
 			std::cout << "complete reconfiguration" << std::endl;
 			break;
 
 		case hbm::communication::Netlink::LINK_ADDED:
-			std::cout << "interface " << adapterName << " connected" << std::endl;
+			// not supported under Windows
+			std::cout << "interface " << adapterIndex << " (" << adapterName << ") got up" << std::endl;
 			break;
 
 		case hbm::communication::Netlink::LINK_REMOVED:
-			std::cout << "interface " << adapterName << " disconnected" << std::endl;
+			// not supported under Windows
+			std::cout << "interface " << adapterIndex << " went down" << std::endl;
 			break;
 	}
 }
