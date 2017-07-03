@@ -53,6 +53,10 @@ BOOST_AUTO_TEST_CASE(check_address_type)
 BOOST_AUTO_TEST_CASE(check_prefix_from_netmask)
 {
 	int prefix;
+
+
+	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("128.0.0.0");
+	BOOST_CHECK_EQUAL(prefix, 1);
 	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.0.0.0");
 	BOOST_CHECK_EQUAL(prefix, 8);
 	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.255.0.0");
@@ -62,6 +66,11 @@ BOOST_AUTO_TEST_CASE(check_prefix_from_netmask)
 	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.255.255.255");
 	BOOST_CHECK_EQUAL(prefix, 32);
 	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("bla");
+	BOOST_CHECK_EQUAL(prefix, -1);
+	// we do not allow gaps!
+	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("127.0.0.0");
+	BOOST_CHECK_EQUAL(prefix, -1);
+	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("64.0.0.0");
 	BOOST_CHECK_EQUAL(prefix, -1);
 }
 

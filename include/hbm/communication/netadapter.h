@@ -72,6 +72,8 @@ namespace hbm {
 			static bool isIpv6LinkLocalAddress(const std::string& address);
 			static bool isValidManualIpv4Address(const std::string& ip);
 			static bool isValidIpv4Netmask(const std::string& ip);
+
+			/// gaps are not allowed!
 			static int getPrefixFromIpv4Netmask(const std::string& netmask);
 			static std::string getIpv4NetmaskFromPrefix(unsigned int prefix);
 
