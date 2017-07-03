@@ -200,6 +200,14 @@ namespace hbm {
 					break;
 				}
 			} while(mask!=0);
+
+			// check for following gaps which are not allowed!
+			for(unsigned int pos=prefix+1; pos<32; ++pos) {
+				mask >>= 1;
+				if (ipv4Subnetmask & mask) {
+					return -1;
+				}
+			}
 			return prefix;
 		}
 		
