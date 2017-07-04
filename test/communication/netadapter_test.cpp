@@ -78,6 +78,29 @@ BOOST_AUTO_TEST_CASE(check_netmask_from_prefix)
 	BOOST_CHECK_EQUAL(netmask, "");
 }
 
+BOOST_AUTO_TEST_CASE(getIpv4MappedIpv6Address)
+{
+	std::string ipv6Address;
+	std::string ipv4Address;
+
+	ipv6Address = "::ffff:192.0.2.128";
+	ipv4Address = hbm::communication::Netadapter::getIpv4MappedIpv6Address(ipv6Address);
+	BOOST_CHECK(ipv4Address.length()>0);
+
+	// wrong prefix
+	ipv6Address = "::fff:192.0.2.128";
+	ipv4Address = hbm::communication::Netadapter::getIpv4MappedIpv6Address(ipv6Address);
+	BOOST_CHECK(ipv4Address.length()==0);
+
+	// invalid ipv4 addresses
+	ipv6Address = "::ffff:192.0.128";
+	ipv4Address = hbm::communication::Netadapter::getIpv4MappedIpv6Address(ipv6Address);
+	BOOST_CHECK(ipv4Address.length()==0);
+	ipv6Address = "::ffff:300.1.0.128";
+	ipv4Address = hbm::communication::Netadapter::getIpv4MappedIpv6Address(ipv6Address);
+	BOOST_CHECK(ipv4Address.length()==0);
+}
+
 BOOST_AUTO_TEST_CASE(check_forbidden_ipaddresses_test)
 {
 	bool result;
