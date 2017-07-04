@@ -77,6 +77,9 @@ namespace hbm {
 			static int getPrefixFromIpv4Netmask(const std::string& netmask);
 			static std::string getIpv4NetmaskFromPrefix(unsigned int prefix);
 
+			/// returns an empty string if address is not a valid ipv4 mapped ipv6 address
+			static std::string getIpv4MappedIpv6Address(const std::string& address);
+
 			std::string m_name;
 
 			AddressesWithNetmask m_ipv4Addresses;

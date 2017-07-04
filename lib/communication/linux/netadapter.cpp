@@ -229,6 +229,29 @@ namespace hbm {
 			struct in_addr ip_addr;
 			ip_addr.s_addr = htonl(subnet);
 			return inet_ntoa(ip_addr);
-		}		
+		}
+
+		std::string Netadapter::getIpv4MappedIpv6Address(const std::string& address)
+		{
+			static const std::string hybridIpv4AddressPrefix = "::ffff:";
+			std::string addressPrefix = address.substr(0, hybridIpv4AddressPrefix.length());
+
+			if (addressPrefix!=hybridIpv4AddressPrefix) {
+				return "";
+			}
+
+			struct in_addr inSubnet;
+			std::string ipv4Address = address.substr(hybridIpv4AddressPrefix.length());
+			hbm::string::tokens tokens = hbm::string::split(ipv4Address, '.');
+			if (tokens.size()!=4) {
+				return "";
+			}
+
+			if (inet_aton(ipv4Address.c_str(), &inSubnet)!=1) {
+				return "";
+			}
+			return ipv4Address;
+		}
+
 	}
 }
