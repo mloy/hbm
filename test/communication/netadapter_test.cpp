@@ -115,8 +115,6 @@ BOOST_AUTO_TEST_CASE(check_forbidden_ipaddresses_test)
 	bool result;
 	result = hbm::communication::Netadapter::isValidManualIpv4Address("not an address");
 	BOOST_CHECK_EQUAL(result, false);
-	result = hbm::communication::Netadapter::isValidManualIpv4Address("0.0.0.0");
-	BOOST_CHECK_EQUAL(result, false);
 	result = hbm::communication::Netadapter::isValidManualIpv4Address("127.0.0.1"); // loopback
 	BOOST_CHECK_EQUAL(result, false);
 	result = hbm::communication::Netadapter::isValidManualIpv4Address("169.254.0.1"); // APIPA

@@ -131,11 +131,14 @@ namespace hbm {
 				return false;
 			}
 			uint32_t bigAddress = htonl(address.s_addr);
+			if (bigAddress==0) {
+				// "0.0.0.0" is allowed and means "non-routable meta-address"
+				return true;
+			}
 
 			// check for some reserved ranges
 			uint8_t upperMost = bigAddress >> 24;
 			if (upperMost==0){
-				// includes 0.0.0.0
 				return false;
 			} else if ((upperMost==24)||(upperMost==25)||(upperMost==26)) {
 				// reserved for quantumx internal firewire communcation
