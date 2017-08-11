@@ -13,7 +13,6 @@
 #include <arpa/inet.h>
 #endif
 
-#include <hbm/string/split.h>
 
 #include "hbm/communication/ipv6address.h"
 
@@ -71,11 +70,10 @@ namespace hbm {
 
 			struct in_addr inSubnet;
 			std::string ipv4Address = address.substr(hybridIpv4AddressPrefix.length());
-			hbm::string::tokens tokens = hbm::string::split(ipv4Address, '.');
-			if (tokens.size()!=4) {
+			size_t count = std::count(ipv4Address.begin(), ipv4Address.end(), '.');
+			if (count!=3) {
 				return "";
 			}
-
 #ifdef _WIN32
 			unsigned long addr = inet_addr(ipv4Address.c_str());
 			if (addr == INADDR_NONE) {

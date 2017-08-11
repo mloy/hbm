@@ -115,6 +115,10 @@ BOOST_AUTO_TEST_CASE(getIpv4MappedIpv6Address)
 	ipv6Address = "::ffff:300.1.0.128";
 	ipv4Address = hbm::communication::Ipv6Address::getIpv4MappedAddress(ipv6Address);
 	BOOST_CHECK(ipv4Address.length()==0);
+	ipv6Address = "::ffff:192.0.2.";
+	ipv4Address = hbm::communication::Ipv6Address::getIpv4MappedAddress(ipv6Address);
+	BOOST_CHECK(ipv4Address.length()==0);
+
 }
 
 BOOST_AUTO_TEST_CASE(check_forbidden_ipaddresses_test)
