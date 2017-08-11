@@ -2,6 +2,7 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
+#include <algorithm>
 
 #ifdef _WIN32
 #ifndef _WINSOCK2API_
@@ -103,11 +104,12 @@ namespace hbm {
 			}
 #endif
 
-			if(address.find(ipv6LinkLocalNet)==0) {
-				return true;
-			} else {
+			std::string prefix = address.substr(0, ipv6LinkLocalNet.length());
+			std::transform(prefix.begin(), prefix.end(), prefix.begin(), ::tolower);
+			if (prefix!=ipv6LinkLocalNet) {
 				return false;
 			}
+			return true;
 		}
 	}
 }

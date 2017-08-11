@@ -46,6 +46,8 @@ BOOST_AUTO_TEST_CASE(check_address_type)
 	BOOST_CHECK_EQUAL(result, false);
 	result = hbm::communication::Ipv6Address::isLinkLocalAddress("fe80::40ab:a528:ada6:3da5");
 	BOOST_CHECK_EQUAL(result, true);
+	result = hbm::communication::Ipv6Address::isLinkLocalAddress("FE80::40ab:a528:ada6:3da5");
+	BOOST_CHECK_EQUAL(result, true);
 	result = hbm::communication::Ipv6Address::isLinkLocalAddress("fe0::40ab:a528:ada6:3da5");
 	BOOST_CHECK_EQUAL(result, false);
 }
