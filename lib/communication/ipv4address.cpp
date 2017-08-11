@@ -2,8 +2,16 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
+#include <stdint.h>
+
+#ifdef _WIN32
+#ifndef _WINSOCK2API_
+#include <ws2tcpip.h>
+#endif
+#else
 #include <sys/types.h>
 #include <arpa/inet.h>
+#endif
 
 #include <hbm/string/split.h>
 
@@ -23,7 +31,6 @@ namespace hbm {
 		{
 			static const std::string apipaNet("169.254");
 
-			in_addr addr;
 			hbm::string::tokens tokens = hbm::string::split(address, '.');
 			if (tokens.size()!=4) {
 				return false;
@@ -34,6 +41,7 @@ namespace hbm {
 				return false;
 			}
 #else
+			in_addr addr;
 			if (inet_aton(address.c_str(), &addr) == 0) {
 				return false;
 			}
@@ -48,7 +56,6 @@ namespace hbm {
 
 		bool Ipv4Address::isValidManualAddress(const std::string& ip)
 		{
-			in_addr address;
 			hbm::string::tokens tokens = hbm::string::split(ip, '.');
 			if (tokens.size()!=4) {
 				return false;
@@ -59,12 +66,14 @@ namespace hbm {
 			if (addr == INADDR_NONE) {
 				return false;
 			}
+			uint32_t bigAddress = htonl(addr);
 #else
+			in_addr address;
 			if (inet_aton(ip.c_str(), &address) == 0) {
 				return false;
 			}
-#endif
 			uint32_t bigAddress = htonl(address.s_addr);
+#endif
 			if (bigAddress==0) {
 				// "0.0.0.0" is allowed and means "non-routable meta-address"
 				return true;
@@ -95,7 +104,6 @@ namespace hbm {
 
 		bool Ipv4Address::isValidNetmask(const std::string& ip)
 		{
-			in_addr address;
 			hbm::string::tokens tokens = hbm::string::split(ip, '.');
 			if (tokens.size()!=4) {
 				return false;
@@ -106,12 +114,14 @@ namespace hbm {
 			if (addr == INADDR_NONE) {
 				return false;
 			}
+			uint32_t bigAddress = htonl(addr);
 #else
+			in_addr address;
 			if (inet_aton(ip.c_str(), &address) == 0) {
 				return false;
 			}
-#endif
 			uint32_t bigAddress = htonl(address.s_addr);
+#endif
 
 			if (bigAddress==0){
 				// 0.0.0.0
@@ -174,7 +184,11 @@ namespace hbm {
 		{
 			unsigned int prefix = 0;
 			unsigned int mask = 0x80000000;
+#ifdef _WIN32
+			unsigned int addr = inet_addr(netmask.c_str());
+#else
 			in_addr_t addr = inet_addr(netmask.c_str());
+#endif
 			//255.255.255.255 is valid!
 			if ((addr==INADDR_NONE) && (netmask!="255.255.255.255")) {
 				return -1;
