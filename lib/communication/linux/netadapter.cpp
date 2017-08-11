@@ -2,20 +2,12 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
-#include <fstream>
-#include <sstream>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <map>
-
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <syslog.h>
 
 #include "hbm/communication/netadapter.h"
-#include "hbm/string/split.h"
 
 namespace hbm {
 	namespace communication {
@@ -81,8 +73,5 @@ namespace hbm {
 				return false;
 			}
 		}
-
-		
-
 	}
 }
