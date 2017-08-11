@@ -20,16 +20,16 @@
 BOOST_AUTO_TEST_CASE(check_valid_ipaddresses_test)
 {
 	bool result;
-	result = hbm::communication::Netadapter::isValidManualIpv4Address("172.19.2.4");
+	result = hbm::communication::Ipv4Address::isValidManualAddress("172.19.2.4");
 	BOOST_CHECK_EQUAL(result, true);
-	result = hbm::communication::Netadapter::isValidManualIpv4Address("172.169.254.0");
+	result = hbm::communication::Ipv4Address::isValidManualAddress("172.169.254.0");
 	BOOST_CHECK_EQUAL(result, true);
 }
 
 BOOST_AUTO_TEST_CASE(check_invalid_ipaddresses_test)
 {
 	bool result;
-	result = hbm::communication::Netadapter::isValidManualIpv4Address("172.19.2");
+	result = hbm::communication::Ipv4Address::isValidManualAddress("172.19.2");
 	BOOST_CHECK_EQUAL(result, false);
 }
 
@@ -38,15 +38,15 @@ BOOST_AUTO_TEST_CASE(check_invalid_ipaddresses_test)
 BOOST_AUTO_TEST_CASE(check_address_type)
 {
 	bool result;
-	result = hbm::communication::Netadapter::isApipaAddress("169.254.2.6");
+	result = hbm::communication::Ipv4Address::isApipaAddress("169.254.2.6");
 	BOOST_CHECK_EQUAL(result, true);
-	result = hbm::communication::Netadapter::isApipaAddress("169.254.2");
+	result = hbm::communication::Ipv4Address::isApipaAddress("169.254.2");
 	BOOST_CHECK_EQUAL(result, false);
-	result = hbm::communication::Netadapter::isApipaAddress("10.169.254.6");
+	result = hbm::communication::Ipv4Address::isApipaAddress("10.169.254.6");
 	BOOST_CHECK_EQUAL(result, false);
-	result = hbm::communication::Netadapter::isIpv6LinkLocalAddress("fe80::40ab:a528:ada6:3da5");
+	result = hbm::communication::Ipv6Address::isLinkLocalAddress("fe80::40ab:a528:ada6:3da5");
 	BOOST_CHECK_EQUAL(result, true);
-	result = hbm::communication::Netadapter::isIpv6LinkLocalAddress("fe0::40ab:a528:ada6:3da5");
+	result = hbm::communication::Ipv6Address::isLinkLocalAddress("fe0::40ab:a528:ada6:3da5");
 	BOOST_CHECK_EQUAL(result, false);
 }
 
@@ -55,35 +55,35 @@ BOOST_AUTO_TEST_CASE(check_prefix_from_netmask)
 	int prefix;
 
 
-	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("128.0.0.0");
+	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("128.0.0.0");
 	BOOST_CHECK_EQUAL(prefix, 1);
-	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.0.0.0");
+	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("255.0.0.0");
 	BOOST_CHECK_EQUAL(prefix, 8);
-	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.255.0.0");
+	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("255.255.0.0");
 	BOOST_CHECK_EQUAL(prefix, 16);
-	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.255.255.0");
+	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("255.255.255.0");
 	BOOST_CHECK_EQUAL(prefix, 24);
-	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("255.255.255.255");
+	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("255.255.255.255");
 	BOOST_CHECK_EQUAL(prefix, 32);
-	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("bla");
+	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("bla");
 	BOOST_CHECK_EQUAL(prefix, -1);
 	// we do not allow gaps!
-	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("127.0.0.0");
+	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("127.0.0.0");
 	BOOST_CHECK_EQUAL(prefix, -1);
-	prefix = hbm::communication::Netadapter::getPrefixFromIpv4Netmask("64.0.0.0");
+	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("64.0.0.0");
 	BOOST_CHECK_EQUAL(prefix, -1);
 }
 
 BOOST_AUTO_TEST_CASE(check_netmask_from_prefix)
 {
 	std::string netmask;
-	netmask = hbm::communication::Netadapter::getIpv4NetmaskFromPrefix(8);
+	netmask = hbm::communication::Ipv4Address::getNetmaskFromPrefix(8);
 	BOOST_CHECK_EQUAL(netmask, "255.0.0.0");
-	netmask = hbm::communication::Netadapter::getIpv4NetmaskFromPrefix(16);
+	netmask = hbm::communication::Ipv4Address::getNetmaskFromPrefix(16);
 	BOOST_CHECK_EQUAL(netmask, "255.255.0.0");
-	netmask = hbm::communication::Netadapter::getIpv4NetmaskFromPrefix(32);
+	netmask = hbm::communication::Ipv4Address::getNetmaskFromPrefix(32);
 	BOOST_CHECK_EQUAL(netmask, "255.255.255.255");
-	netmask = hbm::communication::Netadapter::getIpv4NetmaskFromPrefix(33);
+	netmask = hbm::communication::Ipv4Address::getNetmaskFromPrefix(33);
 	BOOST_CHECK_EQUAL(netmask, "");
 }
 
@@ -93,35 +93,35 @@ BOOST_AUTO_TEST_CASE(getIpv4MappedIpv6Address)
 	std::string ipv4Address;
 
 	ipv6Address = "::ffff:192.0.2.128";
-	ipv4Address = hbm::communication::Netadapter::getIpv4MappedIpv6Address(ipv6Address);
+	ipv4Address = hbm::communication::Ipv6Address::getIpv4MappedAddress(ipv6Address);
 	BOOST_CHECK(ipv4Address.length()>0);
 
 	// wrong prefix
 	ipv6Address = "::fff:192.0.2.128";
-	ipv4Address = hbm::communication::Netadapter::getIpv4MappedIpv6Address(ipv6Address);
+	ipv4Address = hbm::communication::Ipv6Address::getIpv4MappedAddress(ipv6Address);
 	BOOST_CHECK(ipv4Address.length()==0);
 
 	// invalid ipv4 addresses
 	ipv6Address = "::ffff:192.0.128";
-	ipv4Address = hbm::communication::Netadapter::getIpv4MappedIpv6Address(ipv6Address);
+	ipv4Address = hbm::communication::Ipv6Address::getIpv4MappedAddress(ipv6Address);
 	BOOST_CHECK(ipv4Address.length()==0);
 	ipv6Address = "::ffff:300.1.0.128";
-	ipv4Address = hbm::communication::Netadapter::getIpv4MappedIpv6Address(ipv6Address);
+	ipv4Address = hbm::communication::Ipv6Address::getIpv4MappedAddress(ipv6Address);
 	BOOST_CHECK(ipv4Address.length()==0);
 }
 
 BOOST_AUTO_TEST_CASE(check_forbidden_ipaddresses_test)
 {
 	bool result;
-	result = hbm::communication::Netadapter::isValidManualIpv4Address("not an address");
+	result = hbm::communication::Ipv4Address::isValidManualAddress("not an address");
 	BOOST_CHECK_EQUAL(result, false);
-	result = hbm::communication::Netadapter::isValidManualIpv4Address("127.0.0.1"); // loopback
+	result = hbm::communication::Ipv4Address::isValidManualAddress("127.0.0.1"); // loopback
 	BOOST_CHECK_EQUAL(result, false);
-	result = hbm::communication::Netadapter::isValidManualIpv4Address("169.254.0.1"); // APIPA
+	result = hbm::communication::Ipv4Address::isValidManualAddress("169.254.0.1"); // APIPA
 	BOOST_CHECK_EQUAL(result, false);
-	result = hbm::communication::Netadapter::isValidManualIpv4Address("224.4.7.1"); // multicast
+	result = hbm::communication::Ipv4Address::isValidManualAddress("224.4.7.1"); // multicast
 	BOOST_CHECK_EQUAL(result, false);
-	result = hbm::communication::Netadapter::isValidManualIpv4Address("254.4.7.1"); // experimental
+	result = hbm::communication::Ipv4Address::isValidManualAddress("254.4.7.1"); // experimental
 	BOOST_CHECK_EQUAL(result, false);
 }
 

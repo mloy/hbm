@@ -167,7 +167,7 @@ namespace hbm {
 									}
 
 									// apipa address at the end!
-									if (Netadapter::isApipaAddress(addressWithNetmask.address)) {
+									if (Ipv4Address::isApipaAddress(addressWithNetmask.address)) {
 										Adapt.m_ipv4Addresses.push_back(addressWithNetmask);
 									} else {
 										Adapt.m_ipv4Addresses.push_front(addressWithNetmask);
