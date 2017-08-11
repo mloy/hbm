@@ -68,18 +68,6 @@ namespace hbm {
 
 			static std::string getIpv4DefaultGateway();
 
-			static bool isApipaAddress(const std::string& address);
-			static bool isIpv6LinkLocalAddress(const std::string& address);
-			static bool isValidManualIpv4Address(const std::string& ip);
-			static bool isValidIpv4Netmask(const std::string& ip);
-
-			/// gaps are not allowed!
-			static int getPrefixFromIpv4Netmask(const std::string& netmask);
-			static std::string getIpv4NetmaskFromPrefix(unsigned int prefix);
-
-			/// returns an empty string if address is not a valid ipv4 mapped ipv6 address
-			static std::string getIpv4MappedIpv6Address(const std::string& address);
-
 			std::string m_name;
 
 			AddressesWithNetmask m_ipv4Addresses;
