@@ -17,6 +17,7 @@
 #include "hbm/communication/ipv6address.h"
 
 
+#ifdef _WIN32
 static int inet_pton_forWindowsxp(int af, const char *src, void *dst)
 {
 	struct sockaddr_storage ss;
@@ -40,6 +41,7 @@ static int inet_pton_forWindowsxp(int af, const char *src, void *dst)
 	}
 	return 0;
 }
+#endif
 
 
 namespace hbm {
@@ -76,11 +78,11 @@ namespace hbm {
 #ifdef _WIN32
 			unsigned long addr = inet_addr(ipv4Address.c_str());
 			if (addr == INADDR_NONE) {
-				return false;
+				return "";
 			}
 #else
 			if (inet_aton(ipv4Address.c_str(), &inSubnet) == 0) {
-				return false;
+				return "";
 			}
 #endif
 			return ipv4Address;
