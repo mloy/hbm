@@ -2,6 +2,7 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
+#include <algorithm>
 #include <stdint.h>
 
 #ifdef _WIN32
@@ -31,8 +32,8 @@ namespace hbm {
 		{
 			static const std::string apipaNet("169.254");
 
-			hbm::string::tokens tokens = hbm::string::split(address, '.');
-			if (tokens.size()!=4) {
+			size_t count = std::count(address.begin(), address.end(), '.');
+			if (count!=3) {
 				return false;
 			}
 #ifdef _WIN32
@@ -56,8 +57,8 @@ namespace hbm {
 
 		bool Ipv4Address::isValidManualAddress(const std::string& ip)
 		{
-			hbm::string::tokens tokens = hbm::string::split(ip, '.');
-			if (tokens.size()!=4) {
+			size_t count = std::count(ip.begin(), ip.end(), '.');
+			if (count!=3) {
 				return false;
 			}
 
@@ -104,8 +105,8 @@ namespace hbm {
 
 		bool Ipv4Address::isValidNetmask(const std::string& ip)
 		{
-			hbm::string::tokens tokens = hbm::string::split(ip, '.');
-			if (tokens.size()!=4) {
+			size_t count = std::count(ip.begin(), ip.end(), '.');
+			if (count!=3) {
 				return false;
 			}
 

@@ -31,6 +31,8 @@ BOOST_AUTO_TEST_CASE(check_invalid_ipaddresses_test)
 	bool result;
 	result = hbm::communication::Ipv4Address::isValidManualAddress("172.19.2");
 	BOOST_CHECK_EQUAL(result, false);
+	result = hbm::communication::Ipv4Address::isValidManualAddress("172.19.2.");
+	BOOST_CHECK_EQUAL(result, false);
 }
 
 
@@ -41,6 +43,8 @@ BOOST_AUTO_TEST_CASE(check_address_type)
 	result = hbm::communication::Ipv4Address::isApipaAddress("169.254.2.6");
 	BOOST_CHECK_EQUAL(result, true);
 	result = hbm::communication::Ipv4Address::isApipaAddress("169.254.2");
+	BOOST_CHECK_EQUAL(result, false);
+	result = hbm::communication::Ipv4Address::isApipaAddress("169.254.2.");
 	BOOST_CHECK_EQUAL(result, false);
 	result = hbm::communication::Ipv4Address::isApipaAddress("10.169.254.6");
 	BOOST_CHECK_EQUAL(result, false);
@@ -56,7 +60,6 @@ BOOST_AUTO_TEST_CASE(check_prefix_from_netmask)
 {
 	int prefix;
 
-
 	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("128.0.0.0");
 	BOOST_CHECK_EQUAL(prefix, 1);
 	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("255.0.0.0");
@@ -68,6 +71,8 @@ BOOST_AUTO_TEST_CASE(check_prefix_from_netmask)
 	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("255.255.255.255");
 	BOOST_CHECK_EQUAL(prefix, 32);
 	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("bla");
+	BOOST_CHECK_EQUAL(prefix, -1);
+	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("255.255.255.");
 	BOOST_CHECK_EQUAL(prefix, -1);
 	// we do not allow gaps!
 	prefix = hbm::communication::Ipv4Address::getPrefixFromNetmask("127.0.0.0");
