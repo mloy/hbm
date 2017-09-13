@@ -22,10 +22,10 @@
 namespace hbm {
 	namespace sys {
 		PidFile::PidFile(char* name)
-	#ifdef _HBM_HARDWARE
-			: m_pidFileName("/var/run/")
-	#else
+	#ifdef _STANDARD_HARDWARE
 			: m_pidFileName()
+	#else
+			: m_pidFileName("/var/run/")
 	#endif
 		{
 			m_pidFileName += basename(name);
