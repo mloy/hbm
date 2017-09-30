@@ -56,12 +56,14 @@ namespace hbm {
 
 			/// \return 1 if interface was added succesfully, 0 interface already member of multicast group, -1 error
 			int addInterface(const std::string& interfaceAddress);
+			int addInterface(int interfaceIndex);
 
 			/// all interfaces known to the internal netadapter list are added as receiving interfaces.
 			void addAllInterfaces();
 
 			/// \return 1 if interface was dropped succesfully, 0 interface not member of multicast group, -1 error
 			int dropInterface(const std::string& interfaceAddress);
+			int dropInterface(int interfaceIndex);
 
 			/// all interfaces known to the internal netadapter list are dropped as receiving interfaces.
 			void dropAllInterfaces();
@@ -94,6 +96,9 @@ namespace hbm {
 			int sendOverInterfaceByAddress(const std::string& interfaceIp, const std::string& data, unsigned int ttl=1) const;
 			int sendOverInterfaceByAddress(const std::string& interfaceIp, const void* pData, size_t length, unsigned int ttl=1) const;
 
+			int sendOverInterfaceByIndex(int interfaceIndex, const std::string& data, unsigned int ttl=1) const;
+			int sendOverInterfaceByIndex(int interfaceIndex, const void* pData, size_t length, unsigned int ttl=1) const;
+
 			ssize_t receiveTelegram(void* msgbuf, size_t len, Netadapter& adapter, int &ttl);
 			ssize_t receiveTelegram(void* msgbuf, size_t len, std::string& adapterName, int& ttl);
 
@@ -110,6 +115,7 @@ namespace hbm {
 			int setupReceiveSocket();
 
 			int dropOrAddInterface(const std::string& interfaceAddress, bool add);
+			int dropOrAddInterface(int interfaceIndex, bool add);
 
 			/// called by eventloop
 			int process();

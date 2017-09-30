@@ -182,11 +182,7 @@ namespace hbm {
 			NetadapterList::Adapters adapters = m_netadapterList.get();
 			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
-
-				const communication::AddressesWithNetmask& addresses = adapter.getIpv4Addresses();
-				if(addresses.empty()==false) {
-					addInterface(addresses.front().address);
-				}
+				dropOrAddInterface(adapter.getIndex(), true);
 			}
 		}
 
@@ -195,11 +191,7 @@ namespace hbm {
 			NetadapterList::Adapters adapters = m_netadapterList.get();
 			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
-
-				const communication::AddressesWithNetmask& addresses = adapter.getIpv4Addresses();
-				if(addresses.empty()==false) {
-					dropInterface(addresses.front().address);
-				}
+				dropOrAddInterface(adapter.getIndex(), false);
 			}
 		}
 

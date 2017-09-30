@@ -167,21 +167,27 @@ namespace hbm {
 			return dropOrAddInterface(interfaceAddress, false);
 		}
 
+		int MulticastServer::dropInterface(int interfaceIndex)
+		{
+			return dropOrAddInterface(interfaceIndex, false);
+		}
+		
 		int MulticastServer::addInterface(const std::string& interfaceAddress)
 		{
 			return dropOrAddInterface(interfaceAddress, true);
 		}
 
+		int MulticastServer::addInterface(int interfaceIndex)
+		{
+			return dropOrAddInterface(interfaceIndex, true);
+		}
+		
 		void MulticastServer::addAllInterfaces()
 		{
 			NetadapterList::Adapters adapters = m_netadapterList.get();
 			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
-
-				const communication::AddressesWithNetmask& addresses = adapter.getIpv4Addresses();
-				if(addresses.empty()==false) {
-					addInterface(addresses.front().address);
-				}
+				addInterface(adapter.getIndex());
 			}
 		}
 
@@ -190,11 +196,7 @@ namespace hbm {
 			NetadapterList::Adapters adapters = m_netadapterList.get();
 			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
-
-				const communication::AddressesWithNetmask& addresses = adapter.getIpv4Addresses();
-				if(addresses.empty()==false) {
-					dropInterface(addresses.front().address);
-				}
+				dropInterface(adapter.getIndex());
 			}
 		}
 
@@ -253,6 +255,70 @@ namespace hbm {
 						return 0;
 					}
 					syslog(LOG_ERR, "interface address %s could not be added to multicastgroup %s '%s'", interfaceAddress.c_str(), m_mutlicastgroup.c_str(), strerror(errno));
+					return -1;
+				}
+				return 1;
+			} else {
+				if(retVal!=0) {
+					if (errno == EADDRNOTAVAIL) {
+						// ignore already dropped
+						return 0;
+					}
+					return -1;
+				}
+				return 1;
+			}
+		}
+
+		int MulticastServer::dropOrAddInterface(int interfaceIndex, bool add)
+		{
+			int retVal = 0;
+			struct addrinfo hints;
+			struct addrinfo* pResult = NULL;
+			char portString[8];
+	
+			struct ip_mreqn im;
+	
+			memset(&hints, 0, sizeof(hints));
+	
+			sprintf(portString, "%u", m_port);
+			hints.ai_family   = AF_INET;
+			hints.ai_socktype = SOCK_DGRAM;
+	
+			if ( getaddrinfo(m_mutlicastgroup.c_str(), portString, &hints, &pResult) != 0 ) {
+				::syslog(LOG_ERR, "Not a valid multicast IP address (%s)!", m_mutlicastgroup.c_str());
+				return -1;
+			}
+	
+			if (pResult->ai_addr->sa_family != AF_INET) {
+				::syslog(LOG_ERR, "Only IPv4 multicast IP address currently supported (%s)!", m_mutlicastgroup.c_str());
+				return -1;
+			}
+	
+			struct sockaddr_in address;
+			std::memcpy(&address, pResult->ai_addr, sizeof(address));
+	
+			memset(&im, 0, sizeof(im));
+			im.imr_multiaddr = address.sin_addr;
+			im.imr_ifindex = interfaceIndex;
+
+			freeaddrinfo(pResult);
+
+			int optionName;
+			if(add) {
+				optionName = IP_ADD_MEMBERSHIP;
+			} else {
+				optionName = IP_DROP_MEMBERSHIP;
+			}
+
+			retVal = setsockopt(m_receiveEvent, IPPROTO_IP, optionName, &im, sizeof(im));
+			if (add) {
+				if (retVal!=0) {
+					if(errno==EADDRINUSE) {
+						// ignore already added
+						return 0;
+					}
+					syslog(LOG_ERR, "interface address %d could not be added to multicastgroup %s '%s'", interfaceIndex, m_mutlicastgroup.c_str(), strerror(errno));
 					return -1;
 				}
 				return 1;
@@ -502,6 +568,59 @@ namespace hbm {
 
 			return ERR_SUCCESS;
 		}
+	
+		int MulticastServer::sendOverInterfaceByIndex(int interfaceIndex, const std::string& data, unsigned int ttl) const
+		{
+			if(data.empty()) {
+				return ERR_SUCCESS;
+			}
+
+			return sendOverInterfaceByIndex(interfaceIndex, data.c_str(), data.length(), ttl);
+		}
+
+		int MulticastServer::sendOverInterfaceByIndex(int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
+		{
+			if (pData==NULL) {
+				if(length>0) {
+					return ERR_NO_SUCCESS;
+				} else {
+					return ERR_SUCCESS;
+				}
+			}
+
+			struct ip_mreqn req;
+			memset(&req, 0, sizeof(req));
+			req.imr_ifindex = interfaceIndex;
+			if (setsockopt(m_sendEvent, IPPROTO_IP, IP_MULTICAST_IF, &req, sizeof(req))) {
+				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_IF for interface %d!", interfaceIndex);
+				return ERR_INVALIDADAPTER;
+			}
+
+			if (setsockopt(m_sendEvent, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl))) {
+				::syslog(LOG_ERR, "Error setsockopt IPV6_MULTICAST_HOPS for interface %d to %u!", interfaceIndex, ttl);
+				return ERR_NO_SUCCESS;
+			}
+
+			struct sockaddr_in sendAddr;
+			memset(&sendAddr, 0, sizeof(sendAddr));
+			sendAddr.sin_family = AF_INET;
+			sendAddr.sin_port = htons(m_port);
+
+			if (inet_aton(m_mutlicastgroup.c_str(), &sendAddr.sin_addr) == 0) {
+				::syslog(LOG_ERR, "Not a valid multicast IP address!");
+				return ERR_NO_SUCCESS;
+			}
+
+			ssize_t nbytes = sendto(m_sendEvent, pData, length, 0, reinterpret_cast < struct sockaddr* >(&sendAddr), sizeof(sendAddr));
+
+			if (static_cast < size_t >(nbytes) != length) {
+				::syslog(LOG_ERR, "error sending message over interface %d!", interfaceIndex);
+				return ERR_NO_SUCCESS;
+			}
+
+			return ERR_SUCCESS;
+		}
+		
 
 
 		int MulticastServer::start(const std::string& multicastGroup, unsigned int port, const DataHandler_t dataHandler)
