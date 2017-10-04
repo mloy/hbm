@@ -68,7 +68,6 @@ namespace hbm {
 				return "";
 			}
 
-			struct in_addr inSubnet;
 			std::string ipv4Address = address.substr(hybridIpv4AddressPrefix.length());
 			size_t count = std::count(ipv4Address.begin(), ipv4Address.end(), '.');
 			if (count!=3) {
@@ -80,6 +79,7 @@ namespace hbm {
 				return "";
 			}
 #else
+			struct in_addr inSubnet;
 			if (inet_aton(ipv4Address.c_str(), &inSubnet) == 0) {
 				return "";
 			}

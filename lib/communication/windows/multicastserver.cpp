@@ -182,11 +182,7 @@ namespace hbm {
 			NetadapterList::Adapters adapters = m_netadapterList.get();
 			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
-
-				const communication::AddressesWithNetmask& addresses = adapter.getIpv4Addresses();
-				if(addresses.empty()==false) {
-					addInterface(addresses.front().address);
-				}
+				dropOrAddInterface(adapter.getIndex(), true);
 			}
 		}
 
@@ -195,11 +191,7 @@ namespace hbm {
 			NetadapterList::Adapters adapters = m_netadapterList.get();
 			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
-
-				const communication::AddressesWithNetmask& addresses = adapter.getIpv4Addresses();
-				if(addresses.empty()==false) {
-					dropInterface(addresses.front().address);
-				}
+				dropOrAddInterface(adapter.getIndex(), false);
 			}
 		}
 
@@ -256,6 +248,72 @@ namespace hbm {
 			} else {
 				if(retVal!=0) {
 					if (errno == WSAEADDRNOTAVAIL) {
+						// ignore already dropped
+						return 0;
+					}
+					return -1;
+				}
+				return 1;
+			}
+		}
+
+		int MulticastServer::dropOrAddInterface(int interfaceIndex, bool add)
+		{
+			int retVal = 0;
+			struct addrinfo hints;
+			struct addrinfo* pResult = NULL;
+			char portString[8];
+
+			struct ip_mreq im;
+
+			memset(&hints, 0, sizeof(hints));
+
+			sprintf(portString, "%u", m_port);
+			hints.ai_family = AF_INET;
+			hints.ai_socktype = SOCK_DGRAM;
+
+			if (getaddrinfo(m_mutlicastgroup.c_str(), portString, &hints, &pResult) != 0) {
+				::syslog(LOG_ERR, "Not a valid multicast IP address (%s)!", m_mutlicastgroup.c_str());
+				return -1;
+			}
+
+			if (pResult->ai_addr->sa_family != AF_INET) {
+				::syslog(LOG_ERR, "Only IPv4 multicast IP address currently supported (%s)!", m_mutlicastgroup.c_str());
+				return -1;
+			}
+
+			struct sockaddr_in address;
+			std::memcpy(&address, pResult->ai_addr, sizeof(address));
+
+			memset(&im, 0, sizeof(im));
+			im.imr_multiaddr = address.sin_addr;
+			im.imr_interface.S_un.S_addr = htonl(interfaceIndex);
+
+			freeaddrinfo(pResult);
+
+			int optionName;
+			if (add) {
+				optionName = IP_ADD_MEMBERSHIP;
+			}
+			else {
+				optionName = IP_DROP_MEMBERSHIP;
+			}
+
+			retVal = setsockopt(reinterpret_cast < SOCKET > (m_receiveEvent.fileHandle), IPPROTO_IP, optionName, reinterpret_cast < char* >(&im), sizeof(im));
+			if (add) {
+				if (retVal != 0) {
+					if (errno == EADDRINUSE) {
+						// ignore already added
+						return 0;
+					}
+					syslog(LOG_ERR, "interface address %d could not be added to multicastgroup %s '%s'", interfaceIndex, m_mutlicastgroup.c_str(), strerror(errno));
+					return -1;
+				}
+				return 1;
+			}
+			else {
+				if (retVal != 0) {
+					if (errno == EADDRNOTAVAIL) {
 						// ignore already dropped
 						return 0;
 					}

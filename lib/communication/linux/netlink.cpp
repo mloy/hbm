@@ -102,14 +102,21 @@ namespace hbm {
 						case RTM_NEWLINK:
 							{
 								struct ifinfomsg *pifinfomsg = reinterpret_cast <struct ifinfomsg*> (NLMSG_DATA(nh));
-								if ((pifinfomsg->ifi_change) && ((IFF_UP & pifinfomsg->ifi_flags)==1)) {
-									if (m_interfaceAddressEventHandler) {
-										m_interfaceAddressEventHandler(LINK_ADDED, pifinfomsg->ifi_index, "");
+								if (pifinfomsg->ifi_change) {
+									if (IFF_UP & pifinfomsg->ifi_flags) {
+										if (m_interfaceAddressEventHandler) {
+											m_interfaceAddressEventHandler(LINK_ADDED, pifinfomsg->ifi_index, "");
+										}
+									} else {
+										// strange, but this might happen if device went down!
+										syslog(LOG_INFO, "LINK_REMOVED by RTM_NEWLINK with IFF_UP = 0");
+										if (m_interfaceAddressEventHandler) {
+											m_interfaceAddressEventHandler(LINK_REMOVED, pifinfomsg->ifi_index, "");
+										}
 									}
 								}
 							}
-						break;
-
+							break;
 						case RTM_DELLINK:
 							{
 								struct ifinfomsg *pifinfomsg = reinterpret_cast <struct ifinfomsg*> (NLMSG_DATA(nh));
@@ -119,7 +126,7 @@ namespace hbm {
 									}
 								}
 							}
-						break;
+							break;
 						case RTM_NEWADDR:
 							{
 								struct ifaddrmsg* pIfaddrmsg = reinterpret_cast <struct ifaddrmsg*> (NLMSG_DATA(nh));
@@ -136,13 +143,27 @@ namespace hbm {
 										}
 										rth = RTA_NEXT(rth, rtl);
 									}
+								// todo: we get this event twice!
+//								} else if(pIfaddrmsg->ifa_family==AF_INET6) {
+//									struct rtattr *rth = IFA_RTA(pIfaddrmsg);
+//									int rtl = IFA_PAYLOAD(nh);
+//									while (rtl && RTA_OK(rth, rtl)) {
+//										if (rth->rta_type == IFA_ADDRESS) {
+//											if (m_interfaceAddressEventHandler) {
+//												char buffer[INET6_ADDRSTRLEN];
+//												struct in_addr6* pIn = reinterpret_cast < struct in_addr6* > (RTA_DATA(rth));
+//												m_interfaceAddressEventHandler(ADDRESS_ADDED, pIfaddrmsg->ifa_index, inet_ntop(AF_INET6, pIn, buffer, sizeof(buffer)));
+//											}
+//										}
+//										rth = RTA_NEXT(rth, rtl);
+//									}
 								}
 							}
 							break;
 						case RTM_DELADDR:
 							{
 								struct ifaddrmsg* pIfaddrmsg = reinterpret_cast <struct ifaddrmsg*> (NLMSG_DATA(nh));
-								if(pIfaddrmsg->ifa_family==AF_INET) {
+								if (pIfaddrmsg->ifa_family==AF_INET) {
 									struct rtattr *rth = IFA_RTA(pIfaddrmsg);
 									int rtl = IFA_PAYLOAD(nh);
 									while (rtl && RTA_OK(rth, rtl)) {
@@ -154,10 +175,28 @@ namespace hbm {
 										}
 										rth = RTA_NEXT(rth, rtl);
 									}
+//								} else if (pIfaddrmsg->ifa_family==AF_INET6) {
+//									struct rtattr *rth = IFA_RTA(pIfaddrmsg);
+//									int rtl = IFA_PAYLOAD(nh);
+//									while (rtl && RTA_OK(rth, rtl)) {
+//										if (rth->rta_type == IFA_ADDRESS) {
+//											if (m_interfaceAddressEventHandler) {
+//												char buffer[INET6_ADDRSTRLEN];
+//												struct in_addr6* pIn = reinterpret_cast < struct in_addr6* > (RTA_DATA(rth));
+//												m_interfaceAddressEventHandler(ADDRESS_REMOVED, pIfaddrmsg->ifa_index, inet_ntop(AF_INET6, pIn, buffer, sizeof(buffer)));
+//											}
+//										}
+//										rth = RTA_NEXT(rth, rtl);
+//									}
 								}
 							}
 							break;
+						case RTM_NEWROUTE:
+						case RTM_DELROUTE:
+							// ignore!
+							break;
 						default:
+							syslog(LOG_INFO, "Unhandeled netlink event %d", nh->nlmsg_type);
 							break;
 					}
 				}

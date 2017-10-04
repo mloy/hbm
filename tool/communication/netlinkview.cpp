@@ -18,7 +18,6 @@ static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int a
 		// to be ignored because adapter does not exist anymore
 	}
 
-
 	++eventCount;
 	std::cout << eventCount << ": ";
 	switch (event) {
@@ -41,7 +40,7 @@ static void netlinkCb(hbm::communication::Netlink::event_t event, unsigned int a
 
 		case hbm::communication::Netlink::LINK_REMOVED:
 			// not supported under Windows
-			std::cout << "interface " << adapterIndex << " went down" << std::endl;
+			std::cout << "interface " << adapterIndex << " (" << adapterName << ") went down" << std::endl;
 			break;
 	}
 }
