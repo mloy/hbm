@@ -109,6 +109,7 @@ namespace hbm {
 										}
 									} else {
 										// strange, but this might happen if device went down!
+										syslog(LOG_INFO, "LINK_REMOVED by RTM_NEWLINK with IFF_UP = 0");
 										if (m_interfaceAddressEventHandler) {
 											m_interfaceAddressEventHandler(LINK_REMOVED, pifinfomsg->ifi_index, "");
 										}
@@ -191,6 +192,7 @@ namespace hbm {
 							}
 							break;
 						default:
+							syslog(LOG_INFO, "Unhandeled netlink event %d", nh->nlmsg_type);
 							break;
 					}
 				}
