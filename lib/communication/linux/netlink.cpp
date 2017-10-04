@@ -191,6 +191,10 @@ namespace hbm {
 								}
 							}
 							break;
+						case RTM_NEWROUTE:
+						case RTM_DELROUTE:
+							// ignore!
+							break;
 						default:
 							syslog(LOG_INFO, "Unhandeled netlink event %d", nh->nlmsg_type);
 							break;
