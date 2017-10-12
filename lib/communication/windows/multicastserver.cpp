@@ -172,10 +172,21 @@ namespace hbm {
 			return dropOrAddInterface(interfaceAddress, false);
 		}
 
+		int MulticastServer::dropInterface(int interfaceIndex)
+		{
+			return dropOrAddInterface(interfaceIndex, false);
+		}
+
 		int MulticastServer::addInterface(const std::string& interfaceAddress)
 		{
 			return dropOrAddInterface(interfaceAddress, true);
 		}
+
+		int MulticastServer::addInterface(int interfaceIndex)
+		{
+			return dropOrAddInterface(interfaceIndex, true);
+		}
+
 
 		void MulticastServer::addAllInterfaces()
 		{
@@ -554,6 +565,59 @@ namespace hbm {
 			return ERR_SUCCESS;
 		}
 
+		int MulticastServer::sendOverInterfaceByIndex(int interfaceIndex, const std::string& data, unsigned int ttl) const
+		{
+			if (data.empty()) {
+				return ERR_SUCCESS;
+			}
+
+			return sendOverInterfaceByIndex(interfaceIndex, data.c_str(), data.length(), ttl);
+		}
+
+		int MulticastServer::sendOverInterfaceByIndex(int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
+		{
+			if (pData == NULL) {
+				if (length>0) {
+					return ERR_NO_SUCCESS;
+				}
+				else {
+					return ERR_SUCCESS;
+				}
+			}
+
+			struct ip_mreq req;
+			memset(&req, 0, sizeof(req));
+			req.imr_interface.S_un.S_addr = interfaceIndex;
+			if (setsockopt(reinterpret_cast < SOCKET > (m_sendEvent.fileHandle), IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast < char* >(&req), sizeof(req))) {
+				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_IF for interface %d!", interfaceIndex);
+				return ERR_INVALIDADAPTER;
+			}
+
+			if (setsockopt(reinterpret_cast < SOCKET > (m_sendEvent.fileHandle), IPPROTO_IP, IP_MULTICAST_TTL, reinterpret_cast < char* >(&ttl), sizeof(ttl))) {
+				::syslog(LOG_ERR, "Error setsockopt IPV6_MULTICAST_HOPS for interface %d to %u!", interfaceIndex, ttl);
+				return ERR_NO_SUCCESS;
+			}
+
+			struct sockaddr_in sendAddr;
+			memset(&sendAddr, 0, sizeof(sendAddr));
+			sendAddr.sin_family = AF_INET;
+			sendAddr.sin_port = htons(m_port);
+			sendAddr.sin_addr.s_addr = inet_addr(m_mutlicastgroup.c_str());
+
+			if (sendAddr.sin_addr.s_addr == INADDR_NONE) {
+				::syslog(LOG_ERR, "Not a valid multicast IP address!");
+				return ERR_NO_SUCCESS;
+			}
+
+			ssize_t nbytes = sendto(reinterpret_cast < SOCKET > (m_sendEvent.fileHandle), reinterpret_cast < const char* > (pData), length, 0, reinterpret_cast < struct sockaddr* >(&sendAddr), sizeof(sendAddr));
+
+			if (static_cast < size_t >(nbytes) != length) {
+				::syslog(LOG_ERR, "error sending message over interface %d!", interfaceIndex);
+				return ERR_NO_SUCCESS;
+			}
+
+			return ERR_SUCCESS;
+		}
 
 		int MulticastServer::start(const std::string& address, unsigned int port, const DataHandler_t dataHandler)
 		{
