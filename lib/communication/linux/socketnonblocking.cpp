@@ -5,8 +5,9 @@
 #include <cstring>
 #include <stdint.h>
 #include <sys/ioctl.h>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/uio.h>
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <net/if_arp.h>

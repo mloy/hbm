@@ -1,8 +1,9 @@
 project("hbm_communication_tool")
 cmake_minimum_required(VERSION 2.8)
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake)
-find_package(JsonCpp)
+#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP REQUIRED jsoncpp>=1.6.0)
 if(JSONCPP_FOUND)
   include_directories( ${JSONCPP_INCLUDE_DIR} )
 endif()
@@ -23,7 +24,7 @@ add_executable(
 
 target_link_libraries( netadapterview.bin
     hbm
-    ${JSONCPP_LIBRARY}
+    ${JSONCPP_LIBRARIES}
 )
 
 SET(NETLINKVIEW_SOURCE
@@ -37,7 +38,7 @@ add_executable(
 
 target_link_libraries( netlinkview.bin
     hbm
-    ${JSONCPP_LIBRARY}
+    ${JSONCPP_LIBRARIES}
 )
 
 SET(TCPSERVER_SOURCE
@@ -51,7 +52,7 @@ add_executable(
 
 target_link_libraries( tcpserver.bin
     hbm
-    ${JSONCPP_LIBRARY}
+    ${JSONCPP_LIBRARIES}
 )
 
 SET(TCPCLIENT_SOURCE
@@ -65,5 +66,5 @@ add_executable(
 
 target_link_libraries( tcpclient.bin
     hbm
-    ${JSONCPP_LIBRARY}
+    ${JSONCPP_LIBRARIES}
 )
