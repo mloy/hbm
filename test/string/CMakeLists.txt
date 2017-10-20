@@ -2,9 +2,10 @@ project("hbm_string_test" CXX)
 
 cmake_minimum_required(VERSION 2.8)
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake)
+#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake)
 
-find_package(JsonCpp)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP REQUIRED jsoncpp>=1.6.0)
 if(JSONCPP_FOUND)
   include_directories( ${JSONCPP_INCLUDE_DIR} )
 endif()
@@ -54,7 +55,7 @@ add_executable( splittest ${SOURCES_SPLITTEST} )
 
 target_link_libraries( splittest
     hbm
-    ${JSONCPP_LIBRARY}
+    ${JSONCPP_LIBRARIES}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     gcov
 )
@@ -75,7 +76,7 @@ add_executable( replacetest ${SOURCES_REPLACETEST} )
 
 target_link_libraries( replacetest
     hbm
-    ${JSONCPP_LIBRARY}
+    ${JSONCPP_LIBRARIES}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     gcov
 )
@@ -96,7 +97,7 @@ add_executable( trimtest ${SOURCES_TRIMTEST} )
 
 target_link_libraries( trimtest
     hbm
-    ${JSONCPP_LIBRARY}
+    ${JSONCPP_LIBRARIES}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     gcov
 )

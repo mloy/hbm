@@ -5,13 +5,13 @@ cmake_minimum_required(VERSION 2.8)
 set( INTERFACE_INCLUDE_DIR ../include/hbm)
 include_directories(../include)
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../cmake)
 
 if(ROOT_SEARCH_PATH)
   list(APPEND CMAKE_PREFIX_PATH ${ROOT_SEARCH_PATH}/usr)
 endif()
 
-find_package(JsonCpp 1.6.0)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP REQUIRED jsoncpp>=1.6.0)
 if(JSONCPP_FOUND)
   include_directories(${JSONCPP_INCLUDE_DIRS})
 endif()
