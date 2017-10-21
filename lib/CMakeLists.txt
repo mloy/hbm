@@ -81,7 +81,10 @@ set_target_properties(
   )
 
 configure_file("pkg-config/hbm.pc.in" "pkg-config/hbm.pc" @ONLY)
-INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+
+
+
+INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" DESTINATION lib/pkgconfig)
 
 install(TARGETS hbm LIBRARY DESTINATION lib)
 install(TARGETS hbm-static ARCHIVE DESTINATION lib)
