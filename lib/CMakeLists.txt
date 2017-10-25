@@ -71,12 +71,20 @@ set_source_files_properties(${HBMLIB_SOURCES} PROPERTIES COMPILE_FLAGS "${EXTRA_
 add_library(hbm SHARED ${HBMLIB_SOURCES})
 add_library(hbm-static STATIC ${HBMLIB_SOURCES})
 
+SET( HBM_VERSION 1.0.4 )
+
 set_target_properties(
   hbm
   PROPERTIES
   SOVERSION 0
-  VERSION 1.0.4
+  VERSION ${HBM_VERSION}
   )
+
+configure_file("pkg-config/hbm.pc.in" "pkg-config/hbm.pc" @ONLY)
+
+
+
+INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" DESTINATION lib/pkgconfig)
 
 install(TARGETS hbm LIBRARY DESTINATION lib)
 install(TARGETS hbm-static ARCHIVE DESTINATION lib)
