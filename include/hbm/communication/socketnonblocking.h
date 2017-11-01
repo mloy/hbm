@@ -47,13 +47,13 @@ namespace hbm
 		public:
 			/// called on the arrival of data
 			typedef std::function < ssize_t (SocketNonblocking& socket) > DataCb_t;
+			/// @param eventLoop Event loop the object will be registered in 
 			SocketNonblocking(sys::EventLoop &eventLoop);
 
 			/// used when accepting connection via tcp server.
 			/// \throw std::runtime_error on error
 			SocketNonblocking(int fd, sys::EventLoop &eventLoop);
 			virtual ~SocketNonblocking();
-
 
 			/// this method does work blocking
 			/// \return 0: success; -1: error
@@ -62,6 +62,7 @@ namespace hbm
 			/// this method does work blocking
 			int connect(int domain, const struct sockaddr* pSockAddr, socklen_t len);
 
+			/// Remove event from event loop and close socket
 			void disconnect();
 
 			/// if setting a callback function, data receiption is done via event loop.
@@ -77,11 +78,17 @@ namespace hbm
 			ssize_t receive(void* pBlock, size_t len);
 
 			/// might return with less bytes then requested if connection is being closed before completion
-			/// @param @msTimeout -1 for infinite
+			/// @param pBlock Receive buffer
+			/// @param len Lenght of receive buffer
+			/// @param msTimeout -1 for infinite
 			ssize_t receiveComplete(void* pBlock, size_t len, int msTimeout = -1);
 
+			/// \return true if socket uses firewire connection
 			bool isFirewire() const;
 
+			/// @param pCheckSockAddr The structure to compare the socket of this object with
+			/// @param checkSockAddrLen Length of the structure depends on the type of socket (ipv4, ipv6)
+			/// \return true if the socket of this object corresponds to the given sockaddr structure
 			bool checkSockAddr(const struct sockaddr* pCheckSockAddr, socklen_t checkSockAddrLen) const;
 			
 private:			

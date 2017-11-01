@@ -30,20 +30,17 @@ namespace hbm {
 
 			/// existing event handler of an fd will be replaced
 			/// \param fd a non-blocking file descriptor to observe
-			/// \param EventHandler_t callback function to be called if file descriptor gets signaled.
+			/// \param eventHandler callback function to be called if file descriptor gets signaled.
 			int addEvent(event fd, EventHandler_t eventHandler);
 
+			/// remove an event from the event loop
 			int eraseEvent(event fd);
 
 			/// \return 0 stopped; -1 error
 			int execute();
 
+			/// Execution of the event loop is stopped. Events won't be handled afterwards!
 			void stop();
-
-			std::thread::id getThreadId()
-			{
-				return std::this_thread::get_id();
-			}
 
 #ifdef _WIN32
 			HANDLE getCompletionPort() const

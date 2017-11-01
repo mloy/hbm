@@ -25,10 +25,10 @@ namespace hbm {
 	namespace communication {
 		NetadapterList::NetadapterList()
 		{
-			enumAdapters();
+			update();
 		}
 
-		void NetadapterList::enumAdapters()
+		void NetadapterList::update()
 		{
 			IP_ADAPTER_INFO* pAdptInfo = NULL;
 			IP_ADAPTER_INFO* pNextAd = NULL;
@@ -177,10 +177,6 @@ namespace hbm {
                         }
                         return "";
                 }
-		void NetadapterList::update()
-		{
-			enumAdapters();
-		}
 	}
 }
 

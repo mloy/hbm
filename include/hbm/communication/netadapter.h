@@ -77,7 +77,8 @@ namespace hbm {
 
 			uint64_t m_fwGuid;
 
-			unsigned int m_index; // interface index retrieved by ::GetAdaptersInfo
+			/// interface index
+			unsigned int m_index;
 		};
 	}
 }

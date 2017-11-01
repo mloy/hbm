@@ -24,7 +24,7 @@ namespace hbm {
 		public:
 			BufferedReader();
 
-			/// behaves like ::recv
+			/// behaves like standard recv
 			ssize_t recv(hbm::sys::event& ev, void *buf, size_t len);
 
 		private:

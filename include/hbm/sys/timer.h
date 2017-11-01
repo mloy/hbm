@@ -28,7 +28,13 @@ namespace hbm {
 			~Timer();
 
 			/// @param period_ms timer interval in ms
+			/// @param repeated set true to trigger timer periodically
+			/// @param eventHandler callback function to be called if timer is triggered or canceld
 			int set(unsigned int period_ms, bool repeated, Cb_t eventHandler);
+			
+			/// @param period timer interval in ms
+			/// @param repeated set true to trigger timer periodically
+			/// @param eventHandler callback function to be called if timer is triggered or canceld
 			int set(std::chrono::milliseconds period, bool repeated, Cb_t eventHandler);
 
 			/// if timer is running, callback routine will be called with fired=false

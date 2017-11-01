@@ -38,7 +38,7 @@ namespace hbm {
 	namespace communication {
 		NetadapterList::NetadapterList()
 		{
-			enumAdapters();
+			update();
 		}
 
 
@@ -117,7 +117,7 @@ namespace hbm {
 			return result;
 		}
 
-		void NetadapterList::enumAdapters()
+		void NetadapterList::update()
 		{
 			struct ifaddrs* interfaces;
 			struct ifaddrs* interface;
@@ -280,11 +280,6 @@ namespace hbm {
 				}
 			}
 			return "";
-		}
-
-		void NetadapterList::update()
-		{
-			enumAdapters();
 		}
 	}
 }

@@ -21,8 +21,11 @@ namespace hbm {
 
 			virtual ~Notifier();
 
+			/// register a callback function for notifications
+			/// @param eventHandler Callback function to be executed upon notification
 			int set(Cb_t eventHandler);
 
+			/// Eventhandler gets called in event loop context
 			int notify();
 		private:
 			/// must not be copied

@@ -16,6 +16,7 @@ namespace hbm {
 	namespace communication {
 		class Netlink {
 		public:
+			/// types of netlink event
 			enum event_t {
 				/// interface got started
 				LINK_ADDED,
@@ -32,6 +33,7 @@ namespace hbm {
 				COMPLETE
 			};
 
+			/// type of callback function to execute to notify netlink event
 			typedef std::function < void(event_t event, unsigned int adapterIndex, const std::string& ipv4Address) > interfaceAddressCb_t;
 
 			/// \throws hbm::exception
@@ -41,6 +43,7 @@ namespace hbm {
 			/// on execution of start, the callback function is being called with event = COMPLETE.
 			int start(interfaceAddressCb_t interfaceAddressEventHandler);
 
+			/// Remove this object from the event loop and close the netlink socket
 			int stop();
 
 		private:

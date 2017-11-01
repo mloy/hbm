@@ -28,13 +28,16 @@ namespace hbm {
 			/// deliveres the worker socket for an accepted client
 			typedef std::function < void (clientSocket_t) > Cb_t;
 
+			/// @param eventLoop Event loop the object will be registered in 
 			TcpServer(sys::EventLoop &eventLoop);
 			virtual ~TcpServer();
 
-			/// @param numPorts Maximum length of the queue of pending connections
-			/// \param acceptCb called when accepting a new tcp client
+			/// @param port TCP port to listen to
+			/// @param backlog Maximum length of the queue of pending connections
+			/// @param acceptCb called when accepting a new tcp client
 			int start(uint16_t port, int backlog, Cb_t acceptCb);
 
+			/// Remove this object from the event loop and close the server socket
 			void stop();
 
 		private:
