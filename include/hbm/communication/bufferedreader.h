@@ -16,8 +16,9 @@
 
 namespace hbm {
 	namespace communication {
-		/// try to receive a big chunk even if only a small amount of data is requested.
-		/// return the requested data and keep the remaining data.
+		/// Try to receive a big chunk even if only a small amount of data is requested.
+		/// This reduces the number of system calls being made.
+		/// Return the requested amount of data and keep the remaining data.
 		/// \warning not reentrant
 		class BufferedReader
 		{
