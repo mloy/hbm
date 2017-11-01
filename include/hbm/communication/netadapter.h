@@ -50,10 +50,10 @@ namespace hbm {
 				return m_ipv6Addresses;
 			}
 
-			/// returns formatted MAC address in HEX punctuated with ":" and upper case letters
+			/// \return formatted MAC address in HEX punctuated with ":" and upper case letters
 			std::string getMacAddressString() const { return m_macAddress; }
 
-			/// returns 0 for non FireWire adapters
+			/// \return 0 for non FireWire adapters
 			uint64_t getFwGuid() const
 			{
 				return m_fwGuid;

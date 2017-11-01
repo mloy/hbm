@@ -108,6 +108,8 @@ namespace hbm {
 			ssize_t receiveTelegram(void* msgbuf, size_t len, Netadapter& adapter, int &ttl);
 			ssize_t receiveTelegram(void* msgbuf, size_t len, std::string& adapterName, int& ttl);
 
+			/// @param msgbuf Buffer for received data
+			/// @param len Size of the buffer
 			/// @param[out] ttl ttl in the ip header (the value set by the last sender(router))
 			ssize_t receiveTelegram(void* msgbuf, size_t len, unsigned int& adapterIndex, int &ttl);
 		private:
