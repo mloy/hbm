@@ -28,20 +28,25 @@ typedef int ssize_t;
 namespace hbm
 {
 	namespace communication {
+		/// used for scatter gather operations
 		struct dataBlock_t {
+			/// All members are initialized on construction
 			dataBlock_t(const void* pD, size_t s)
 				: pData(pD)
 				, size(s)
 			{
 			}
 
+			/// Data buffer
 			const void* pData;
+			/// Size of the data buffer
 			size_t size;
 		};
 
 		typedef std::list < dataBlock_t > dataBlocks_t;
 
-		/// the socke uses keep-alive in order to detect broken connection.
+		/// A tcp client connection to a server.
+		/// the socket uses keep-alive in order to detect broken connection.
 		class SocketNonblocking
 		{
 		public:

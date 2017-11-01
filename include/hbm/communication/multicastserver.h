@@ -47,6 +47,7 @@ namespace hbm {
 		class MulticastServer
 		{
 		public:
+			/// callback method type executed by event loop on arrival of data
 			typedef std::function < ssize_t (MulticastServer& mcs) > DataHandler_t;
 
 			/// @param address the multicast group
@@ -68,9 +69,12 @@ namespace hbm {
 			/// all interfaces known to the internal netadapter list are dropped as receiving interfaces.
 			void dropAllInterfaces();
 
+			/// @param multicastGroup multicast group to register to
+			/// @param port udp/ip port to use
 			/// @param dataHandler set to empty(DataHandler_t()) if object is used as sender only.
 			int start(const std::string& multicastGroup, unsigned int port, DataHandler_t dataHandler);
 
+			/// unregister from eventloop, close sender and receiver
 			void stop();
 
 			/// tells whether send messages are to be received by multicast receiver on the same machine.
@@ -93,6 +97,8 @@ namespace hbm {
 
 			/// send over specific interface.
 			/// @param interfaceIp IP address of the interface to use
+			/// @param data Data to send
+			/// @param ttl number of maximum hops. n Means crossing n-1 router. Of course the routers are to be configured to allow multicast messages to be routed!
 			int sendOverInterfaceByAddress(const std::string& interfaceIp, const std::string& data, unsigned int ttl=1) const;
 			int sendOverInterfaceByAddress(const std::string& interfaceIp, const void* pData, size_t length, unsigned int ttl=1) const;
 
