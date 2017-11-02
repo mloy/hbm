@@ -15,8 +15,6 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <MSWSock.h>
-//#undef max
-//#undef min
 #else
 #include <arpa/inet.h>
 #endif
