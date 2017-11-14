@@ -75,7 +75,7 @@ namespace hbm {
 			m_eventHandler = Cb_t();
 
 			if (timerfd_gettime(m_fd, &timespec)==-1) {
-				syslog(LOG_ERR, "error getting remaining time of timer '%s'", strerror(errno));
+				syslog(LOG_ERR, "error getting remaining time of timer %d '%s'", m_fd, strerror(errno));
 				return -1;
 			}
 			if ( (timespec.it_value.tv_sec != 0) || (timespec.it_value.tv_nsec != 0) ) {
@@ -99,7 +99,7 @@ namespace hbm {
 			if (readStatus>0) {
 				if (timerEventCount>1) {
 					// this is possible for cyclic timers only!
-					syslog(LOG_WARNING, "cyclic timer elapsed %" PRIu64 " times before callback was executed.", timerEventCount);
+					syslog(LOG_WARNING, "cyclic timer %d elapsed %" PRIu64 " times before callback was executed.", m_fd, timerEventCount);
 				}
 				if (m_eventHandler) {
 					m_eventHandler(true);
