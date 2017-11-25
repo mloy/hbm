@@ -11,7 +11,7 @@ if(ROOT_SEARCH_PATH)
 endif()
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(JSONCPP REQUIRED jsoncpp>=1.8.0)
+pkg_check_modules(JSONCPP REQUIRED jsoncpp>=1.6.0)
 if(JSONCPP_FOUND)
   include_directories(${JSONCPP_INCLUDE_DIRS})
 endif()
