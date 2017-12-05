@@ -244,6 +244,16 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
   return static_cast < ssize_t > (len);
 }
 
+ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blocks, size_t blockCount)
+{
+        hbm::communication::dataBlocks_t dataBlocks;
+	for(unsigned int i=0; i<blockCount; ++i) {
+	        hbm::communication::dataBlock_t dataBlock(blocks[i].pData, blocks[i].size);
+		dataBlocks.push_back(dataBlock);
+	}
+	return sendBlocks(dataBlocks);
+}
+
 ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &blocks)
 {
 	std::vector < WSABUF > buffers;

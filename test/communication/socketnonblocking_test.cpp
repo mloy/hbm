@@ -393,7 +393,7 @@ namespace hbm {
 			}
 
 
-			BOOST_AUTO_TEST_CASE(writev_test)
+			BOOST_AUTO_TEST_CASE(writev_test_list)
 			{
 				int result;
 				static const size_t bufferSize = 100000;
@@ -426,6 +426,44 @@ namespace hbm {
 
 				stop();
 			}
+
+
+#define BLOCKCOUNT 10
+
+			BOOST_AUTO_TEST_CASE(writev_test_array)
+			{
+				int result;
+				static const size_t bufferSize = 100000;
+				static const size_t blockSize = bufferSize/BLOCKCOUNT;
+				char buffer[bufferSize] = "a";
+
+				hbm::communication::dataBlock_t dataBlockArray[BLOCKCOUNT];
+				hbm::communication::dataBlocks_t dataBlocks;
+
+				for(unsigned int i=0; i<BLOCKCOUNT; ++i) {
+					dataBlockArray[i].pData = &buffer[i*blockSize];
+					dataBlockArray[i].size = blockSize;
+				}
+
+				start();
+
+				hbm::communication::SocketNonblocking client(m_eventloop);
+				result = client.connect("127.0.0.1", std::to_string(PORT));
+				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
+
+				client.setDataCb(std::bind(&serverFixture::clientReceive, this, std::placeholders::_1));
+
+				clearAnswer();
+				result = client.sendBlocks(dataBlockArray, 10);
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				client.disconnect();
+
+				BOOST_CHECK_MESSAGE(result == bufferSize, strerror(errno));
+
+
+				stop();
+			}
+
 
 
 			BOOST_AUTO_TEST_SUITE_END()

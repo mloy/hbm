@@ -30,6 +30,12 @@ namespace hbm
 	namespace communication {
 		/// used for scatter gather operations
 		struct dataBlock_t {
+			dataBlock_t()
+				: pData(NULL)
+				, size(0)
+			{
+			}
+
 			/// All members are initialized on construction
 			dataBlock_t(const void* pD, size_t s)
 				: pData(pD)
@@ -75,7 +81,13 @@ namespace hbm
 			void setDataCb(DataCb_t dataCb);
 
 			/// send everything or until connection closes
+			/// uses gather mechanism to send several memory areas
 			ssize_t sendBlocks(const dataBlocks_t& blocks);
+
+			/// send everything or until connection closes
+			/// uses gather mechanism to send several memory areas
+			ssize_t sendBlocks(const dataBlock_t *blocks, size_t blockCount);
+
 			/// send everything or until connection closes
 			ssize_t sendBlock(const void* pBlock, size_t len, bool more);
 
