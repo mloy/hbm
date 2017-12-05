@@ -95,6 +95,11 @@ namespace hbm
 			/// @param checkSockAddrLen Length of the structure depends on the type of socket (ipv4, ipv6)
 			/// \return true if the socket of this object corresponds to the given sockaddr structure
 			bool checkSockAddr(const struct sockaddr* pCheckSockAddr, socklen_t checkSockAddrLen) const;
+
+			sys::event getEvent() const
+			{
+				return m_event;
+			}
 			
 private:			
 			/// should not be copied
