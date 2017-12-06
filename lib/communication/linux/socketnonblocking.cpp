@@ -273,54 +273,19 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 
 ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &blocks)
 {
-	std::vector < iovec > iovs;
-	iovs.reserve(6); // reserve a reasonable number of entries!
+	std::vector < dataBlock_t > dataBlockVector;
+	dataBlockVector.reserve(6); // reserve a reasonable number of entries!
 
-	size_t completeLength = 0;
-	iovec newIovec;
+	dataBlock_t newIovec;
 
 	for(dataBlocks_t::const_iterator iter=blocks.begin(); iter!=blocks.end(); ++iter) {
 		const dataBlock_t& item = *iter;
-		newIovec.iov_base = const_cast < void* > (item.pData);
-		newIovec.iov_len = item.size;
-		iovs.push_back(newIovec);
-		completeLength += item.size;
+		newIovec.pData = item.pData;
+		newIovec.size = item.size;
+		dataBlockVector.push_back(newIovec);
 	}
 
-
-	ssize_t retVal = writev(m_event, &iovs[0], iovs.size());
-	if (retVal==0) {
-		return retVal;
-	} else if (retVal==-1) {
-		if((errno!=EWOULDBLOCK) && (errno!=EAGAIN) && (errno!=EINTR) ) {
-			return retVal;
-		}
-	}
-
-	size_t bytesWritten = retVal;
-	if(bytesWritten==completeLength) {
-		// we are done!
-		return bytesWritten;
-	} else {
-		size_t blockSum = 0;
-
-		for(size_t index=0; index<iovs.size(); ++index) {
-			blockSum += iovs[index].iov_len;
-			if(bytesWritten<blockSum) {
-				// this block was not send completely
-				size_t bytesRemaining = blockSum - bytesWritten;
-				size_t start = iovs[index].iov_len-bytesRemaining;
-				retVal = sendBlock(static_cast < unsigned char* > (iovs[index].iov_base)+start, bytesRemaining, false);
-				if(retVal>0) {
-					bytesWritten += retVal;
-				} else {
-					return -1;
-				}
-			}
-		}
-	}
-
-	return bytesWritten;
+	return sendBlocks(&dataBlockVector[0], dataBlockVector.size());
 }
 
 ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool more)
