@@ -48,13 +48,13 @@ namespace hbm {
 			/// callback method type executed by event loop on arrival of data
 			typedef std::function < ssize_t (MulticastServer& mcs) > DataHandler_t;
 
-			/// @param address the multicast group
 			MulticastServer(NetadapterList& netadapterList, sys::EventLoop &eventLoop);
 
 			virtual ~MulticastServer();
 
 			/// \return 1 if interface was added succesfully, 0 interface already member of multicast group, -1 error
 			int addInterface(const std::string& interfaceAddress);
+			/// \return 1 if interface was added succesfully, 0 interface already member of multicast group, -1 error
 			int addInterface(int interfaceIndex);
 
 			/// all interfaces known to the internal netadapter list are added as receiving interfaces.
@@ -62,6 +62,7 @@ namespace hbm {
 
 			/// \return 1 if interface was dropped succesfully, 0 interface not member of multicast group, -1 error
 			int dropInterface(const std::string& interfaceAddress);
+			/// \return 1 if interface was dropped succesfully, 0 interface not member of multicast group, -1 error
 			int dropInterface(int interfaceIndex);
 
 			/// all interfaces known to the internal netadapter list are dropped as receiving interfaces.
@@ -108,6 +109,7 @@ namespace hbm {
 
 			/// @param msgbuf Buffer for received data
 			/// @param len Size of the buffer
+			/// @param adapterIndex Network adapter to receive from
 			/// @param[out] ttl ttl in the ip header (the value set by the last sender(router))
 			ssize_t receiveTelegram(void* msgbuf, size_t len, unsigned int& adapterIndex, int &ttl);
 		private:

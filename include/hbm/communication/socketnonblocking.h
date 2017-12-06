@@ -108,6 +108,7 @@ namespace hbm
 			/// \return true if the socket of this object corresponds to the given sockaddr structure
 			bool checkSockAddr(const struct sockaddr* pCheckSockAddr, socklen_t checkSockAddrLen) const;
 
+			/// \return the file descriptor (Linux) or handle (Microsoft Windows)
 			sys::event getEvent() const
 			{
 				return m_event;

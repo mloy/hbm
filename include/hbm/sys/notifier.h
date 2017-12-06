@@ -13,6 +13,7 @@ namespace hbm {
 	namespace sys {
 		class EventLoop;
 
+		/// Notify someone else waiting for a specific event
 		class Notifier {
 			typedef std::function < void () > Cb_t;
 		public:

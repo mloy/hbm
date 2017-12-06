@@ -14,6 +14,7 @@
 
 namespace hbm {
 	namespace communication {
+		/// Notifies about changes of network interfaces. This includes appearance/disappearance of interfaces and addresses
 		class Netlink {
 		public:
 			/// types of netlink event

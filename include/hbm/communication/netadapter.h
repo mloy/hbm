@@ -31,6 +31,7 @@ namespace hbm {
 		typedef std::deque < Ipv4Address > AddressesWithNetmask;
 
 
+		/// Everything about a network adapter
 		class Netadapter
 		{
 		public:
@@ -64,6 +65,7 @@ namespace hbm {
 				return m_index;
 			}
 
+			/// \return true if this is a firewire adapter
 			bool isFirewireAdapter() const;
 
 			static std::string getIpv4DefaultGateway();
