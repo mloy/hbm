@@ -51,7 +51,7 @@ namespace hbm
 
 		typedef std::list < dataBlock_t > dataBlocks_t;
 
-		/// A tcp client connection to a server.
+		/// A tcp client connection to a tcpserver. Ipv4 and ipv6 are supported.
 		/// the socket uses keep-alive in order to detect broken connection.
 		class SocketNonblocking
 		{
