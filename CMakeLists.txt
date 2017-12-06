@@ -19,4 +19,3 @@ if(FEATURE_POST_BUILD_UNITTEST)
   add_subdirectory("test")
 endif()
 
-ADD_CUSTOM_TARGET(doxygen ALL ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/generated/Doxyfile ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR} COMMENT "Generating API documentation with Doxygen" VERBATIM)
