@@ -8,9 +8,3 @@ ci_build_and_test:
   tags:
     - linux
 
-doxygen:
-  stage: build
-  script:
-    - doxygen Doxyfile
-  tags:
-    - linux
