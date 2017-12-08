@@ -11,13 +11,17 @@
 
 namespace hbm {
 	namespace communication {
+		/// Tools concerning ipv4 addresses
 		struct Ipv4Address {
 			bool equal(const struct Ipv4Address& op) const;
 
 			/// \return subnet resulting of address and netmask
 			std::string getSubnet() const;
 
+			/// \return if address is in 169.254.0.0/16
 			static bool isApipaAddress(const std::string& address);
+			/// some address ranges are reserved and may not be used
+			/// (see https://en.wikipedia.org/wiki/Reserved_IP_addresses)
 			static bool isValidManualAddress(const std::string& ip);
 			static bool isValidNetmask(const std::string& ip);
 

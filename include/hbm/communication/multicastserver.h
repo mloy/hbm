@@ -48,6 +48,8 @@ namespace hbm {
 			/// callback method type executed by event loop on arrival of data
 			typedef std::function < ssize_t (MulticastServer& mcs) > DataHandler_t;
 
+			/// \param netadapterList Need to know about the interfaces available
+			/// \param eventLoop Callback methods are executed in this context
 			MulticastServer(NetadapterList& netadapterList, sys::EventLoop &eventLoop);
 
 			virtual ~MulticastServer();
@@ -82,15 +84,22 @@ namespace hbm {
 			int setMulticastLoop(bool value);
 
 			/// Send over all interfaces
+			/// @param ttl number of hops which means number of routers to pass
 			int send(const std::string& data, unsigned int ttl=1) const;
 
+			/// Send over all interfaces
+			/// @param ttl number of hops which means number of routers to pass
 			int send(const void *pData, size_t length, unsigned int ttl=1) const;
 
 			/// send over specific interface
+			/// @param ttl number of hops which means number of routers to pass
 			int sendOverInterface(const Netadapter& adapter, const std::string& data, unsigned int ttl=1) const;
+			/// @param ttl number of hops which means number of routers to pass
 			int sendOverInterface(const Netadapter &adapter, const void* pData, size_t length, unsigned int ttl=1) const;
 
+			/// @param ttl number of hops which means number of routers to pass
 			int sendOverInterface(int interfaceIndex, const std::string& data, unsigned int ttl=1) const;
+			/// @param ttl number of hops which means number of routers to pass
 			int sendOverInterface(int interfaceIndex, const void* pData, size_t length, unsigned int ttl=1) const;
 
 

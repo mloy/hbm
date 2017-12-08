@@ -11,6 +11,7 @@
 
 namespace hbm {
 	namespace communication {
+		/// Tools concerning ipv4 addresses
 		struct Ipv6Address {
 			Ipv6Address();
 			bool equal(const Ipv6Address &op) const;
