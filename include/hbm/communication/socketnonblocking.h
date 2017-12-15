@@ -89,12 +89,14 @@ namespace hbm
 			ssize_t sendBlocks(const dataBlock_t *blocks, size_t blockCount);
 
 			/// send everything or until connection closes
+			/// \warning waits until requested amount of data is processed or an error happened, hence it might block the eventloop if called from within a callback function
 			ssize_t sendBlock(const void* pBlock, size_t len, bool more);
 
 			/// might return with less bytes the requested
 			ssize_t receive(void* pBlock, size_t len);
 
 			/// might return with less bytes then requested if connection is being closed before completion
+			/// \warning waits until requested amount of data is processed or an error happened, hence it might block the eventloop if called from within a callback function
 			/// @param pBlock Receive buffer
 			/// @param len Lenght of receive buffer
 			/// @param msTimeout -1 for infinite

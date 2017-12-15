@@ -84,10 +84,13 @@ namespace hbm {
 			int setMulticastLoop(bool value);
 
 			/// Send over all interfaces
+			/// @param data Data to send
 			/// @param ttl number of hops which means number of routers to pass
 			int send(const std::string& data, unsigned int ttl=1) const;
 
 			/// Send over all interfaces
+			/// @param pData Data to send
+			/// @param length Amount of data to send
 			/// @param ttl number of hops which means number of routers to pass
 			int send(const void *pData, size_t length, unsigned int ttl=1) const;
 
@@ -108,12 +111,28 @@ namespace hbm {
 			/// @param data Data to send
 			/// @param ttl number of maximum hops. n Means crossing n-1 router. Of course the routers are to be configured to allow multicast messages to be routed!
 			int sendOverInterfaceByAddress(const std::string& interfaceIp, const std::string& data, unsigned int ttl=1) const;
+
+			/// send over specific interface.
+			/// @param interfaceIp IP address of the interface to use
+			/// @param pData Data to send
+			/// @param length Amount of data to send
+			/// @param ttl number of maximum hops. n Means crossing n-1 router. Of course the routers are to be configured to allow multicast messages to be routed!
 			int sendOverInterfaceByAddress(const std::string& interfaceIp, const void* pData, size_t length, unsigned int ttl=1) const;
 
+			/// send over specific interface.
 			int sendOverInterfaceByIndex(int interfaceIndex, const std::string& data, unsigned int ttl=1) const;
+
+			/// send over specific interface.
 			int sendOverInterfaceByIndex(int interfaceIndex, const void* pData, size_t length, unsigned int ttl=1) const;
 
+			/// \param msgbuf Buffer for data to receive
+			/// \param len Size of buffer for data to receive
+			/// \param adapter The interface received from
 			ssize_t receiveTelegram(void* msgbuf, size_t len, Netadapter& adapter, int &ttl);
+
+			/// \param msgbuf Buffer for data to receive
+			/// \param len Size of buffer for data to receive
+			/// \param adapterName The interface received from
 			ssize_t receiveTelegram(void* msgbuf, size_t len, std::string& adapterName, int& ttl);
 
 			/// @param msgbuf Buffer for received data

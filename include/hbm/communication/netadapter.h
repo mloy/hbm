@@ -68,6 +68,8 @@ namespace hbm {
 			/// \return true if this is a firewire adapter
 			bool isFirewireAdapter() const;
 
+			/// If interfaces are configured using DHCP, another default gateway might be used.
+			/// \return Address of the manual ipv4 default gateway
 			static std::string getIpv4DefaultGateway();
 
 			std::string m_name;
