@@ -20,7 +20,6 @@
 #define LOG_ERR stderr
 #else
 
-#include <poll.h>
 #include <syslog.h>
 #include <sys/socket.h>
 #include <sys/types.h>

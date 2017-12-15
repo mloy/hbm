@@ -6,7 +6,6 @@
 #include <cstring>
 
 #include <sys/eventfd.h>
-#include <sys/poll.h>
 #include <unistd.h>
 
 #include "hbm/exception/exception.hpp"
