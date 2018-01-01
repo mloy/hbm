@@ -30,11 +30,18 @@ namespace hbm {
 
 			/// existing event handler of an fd will be replaced
 			/// \param fd a non-blocking file descriptor to observe
-			/// \param eventHandler callback function to be called if file descriptor gets signaled.
+			/// \param eventHandler callback function to be called if file descriptor gets readable.
 			int addEvent(event fd, EventHandler_t eventHandler);
+
+			/// existing event handler of an fd will be replaced
+			/// \param fd a non-blocking file descriptor to observe
+			/// \param eventHandler callback function to be called if file descriptor gets writable.
+			int addOutEvent(event fd, EventHandler_t eventHandler);
 
 			/// remove an event from the event loop
 			int eraseEvent(event fd);
+			/// remove an event from the event loop
+			int eraseOutEvent(event fd);
 
 			/// \return 0 stopped; -1 error
 			int execute();
@@ -62,8 +69,11 @@ namespace hbm {
 			event m_stopFd;
 #endif
 			/// events handled by event loop
-			eventInfos_t m_eventInfos;
 			std::recursive_mutex m_eventInfosMtx;
+			/// callback functions for events for reading
+			eventInfos_t m_inEventInfos;
+			/// callback functions for events for writing
+			eventInfos_t m_outEventInfos;
 		};
 	}
 }
