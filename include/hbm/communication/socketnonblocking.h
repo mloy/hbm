@@ -79,6 +79,7 @@ namespace hbm
 			/// if setting a callback function, data receiption is done via event loop.
 			/// if setting an empty callback function DataCb_t(), the event is taken out of the eventloop.
 			void setDataCb(DataCb_t dataCb);
+			void setOutDataCb(DataCb_t dataCb);
 
 			/// send everything or until connection closes
 			/// uses gather mechanism to send several memory areas
@@ -129,13 +130,15 @@ private:
 
 			/// called by eventloop
 			int process();
+			int processOutput();
 
 			sys::event m_event;
 
 			BufferedReader m_bufferedReader;
 
 			sys::EventLoop& m_eventLoop;
-			DataCb_t m_dataHandler;
+			DataCb_t m_inDataHandler;
+			DataCb_t m_outDataHandler;
 		};
 		
 #ifdef _MSC_VER
