@@ -306,7 +306,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 	int err;
 
 	while (BytesLeft > 0) {
-		numBytes = send(m_event, pDat, BytesLeft, flags);
+		numBytes = ::send(m_event, pDat, BytesLeft, flags);
 		if(numBytes>0) {
 			pDat += numBytes;
 			BytesLeft -= numBytes;
@@ -333,6 +333,16 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 		}
 	}
 	return retVal;
+}
+
+
+ssize_t hbm::communication::SocketNonblocking::send(const void* pBlock, size_t len, bool more)
+{
+	int flags = 0;
+	if(more) {
+		flags |= MSG_MORE;
+	}
+	return ::send(m_event, pBlock, len, flags);
 }
 
 

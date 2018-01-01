@@ -92,6 +92,8 @@ namespace hbm
 			/// \warning waits until requested amount of data is processed or an error happened, hence it might block the eventloop if called from within a callback function
 			ssize_t sendBlock(const void* pBlock, size_t len, bool more);
 
+			ssize_t send(const void* pBlock, size_t len, bool more);
+
 			/// might return with less bytes the requested
 			ssize_t receive(void* pBlock, size_t len);
 
