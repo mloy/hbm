@@ -115,6 +115,13 @@ namespace hbm {
 				return result;
 			}
 
+			int serverFixture::clientNotify(unsigned int &count)
+			{
+				++count;
+				return 0;
+			}
+			
+			
 			int serverFixture::clientReceiveTarget(hbm::communication::SocketNonblocking& socket, std::string& target)
 			{
 				char buffer[1024];
@@ -525,6 +532,59 @@ namespace hbm {
 				stop();
 			}
 
+			BOOST_AUTO_TEST_CASE(receive_wouldblock)
+			{
+				char buffer[1000];
+				hbm::communication::SocketNonblocking client(m_eventloop);
+				client.connect("127.0.0.1", std::to_string(PORT));
+				
+				ssize_t result = client.receive(buffer, sizeof(buffer));
+				BOOST_CHECK_EQUAL(result, -1);
+				BOOST_CHECK_EQUAL(errno, EWOULDBLOCK);
+			}
+			
+			
+			BOOST_AUTO_TEST_CASE(send_wouldblock)
+			{
+				size_t bytesSend = 0;
+				unsigned int sendBufferSize = 1000;
+				socklen_t len;
+				char data[1000000] = { 0 };
+				hbm::communication::SocketNonblocking client(m_eventloop);
+				client.connect("127.0.0.1", std::to_string(PORT));
+				
+				unsigned int notifiyCount = 0;
+				client.setOutDataCb(std::bind(&serverFixture::clientNotify, this, std::ref(notifiyCount)));
+				// callback function gets called once to check for pending work...
+				BOOST_CHECK_EQUAL(notifiyCount, 1);
+				
+				int result = setsockopt(client.getEvent(), SOL_SOCKET, SO_SNDBUF, &sendBufferSize, sizeof(sendBufferSize));
+				BOOST_CHECK_EQUAL(result, 0);
+				len = sizeof(sendBufferSize);
+				getsockopt(client.getEvent(), SOL_SOCKET, SO_SNDBUF, &sendBufferSize, &len);
+				
+				ssize_t sendResult;
+				// send until send buffer is full
+				do {
+					sendResult = client.send(data, sizeof(data), false);
+					bytesSend += sendResult;
+				} while (sendResult>0);
+				BOOST_CHECK_GE(bytesSend, sendBufferSize);
+				BOOST_CHECK_EQUAL(errno, EWOULDBLOCK);
+
+				// server is not receiving, hence socket won't become writable and callback function is not being called.
+				BOOST_CHECK_EQUAL(notifiyCount, 1);
+				start();
+				// server is receiving. As a result socket becomes wriable again. Callback function is called!
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				
+				BOOST_CHECK_EQUAL(notifiyCount, 2);
+				
+				// We should be able to send again
+				sendResult = client.send(data, sizeof(data), false);
+				BOOST_CHECK_GT(bytesSend, 0);
+				stop();
+			}
 
 
 			BOOST_AUTO_TEST_SUITE_END()
