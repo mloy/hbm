@@ -54,9 +54,15 @@ namespace hbm {
 			{
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 				eventInfos_t::iterator outputEvent = m_outEventInfos.find(fd);
-				std::pair < eventInfos_t::iterator, bool > emplaceResult = m_inEventInfos.emplace(std::make_pair(fd, eventHandler));
-				if (emplaceResult.second && (outputEvent==m_outEventInfos.end())) {
+				eventInfos_t::iterator inputEvent = m_inEventInfos.find(fd);
+				if ((inputEvent==m_inEventInfos.end())&&(outputEvent==m_outEventInfos.end())) {
 					mode = EPOLL_CTL_ADD;
+				}
+				
+				if (inputEvent==m_inEventInfos.end()) {
+					m_inEventInfos.emplace(std::make_pair(fd, eventHandler));
+				} else {
+					inputEvent->second = eventHandler;
 				}
 
 				struct epoll_event ev;
@@ -90,10 +96,17 @@ namespace hbm {
 
 			{
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
+				eventInfos_t::iterator outputEvent = m_outEventInfos.find(fd);
 				eventInfos_t::iterator inputEvent = m_inEventInfos.find(fd);
-				std::pair < eventInfos_t::iterator, bool > emplaceResult = m_outEventInfos.emplace(std::make_pair(fd, eventHandler));
-				if (emplaceResult.second && (inputEvent==m_inEventInfos.end())) {
+				
+				if ((inputEvent==m_inEventInfos.end())&&(outputEvent==m_outEventInfos.end())) {
 					mode = EPOLL_CTL_ADD;
+				}
+				
+				if (outputEvent==m_outEventInfos.end()) {
+					m_outEventInfos.emplace(std::make_pair(fd, eventHandler));
+				} else {
+					outputEvent->second = eventHandler;
 				}
 
 				struct epoll_event ev;
