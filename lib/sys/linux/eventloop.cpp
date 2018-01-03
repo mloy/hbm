@@ -45,7 +45,7 @@ namespace hbm {
 
 		int EventLoop::addEvent(event fd, EventHandler_t eventHandler)
 		{
-			if(!eventHandler) {
+			if((!eventHandler)||(fd==-1)) {
 				return -1;
 			}
 			
@@ -197,7 +197,11 @@ namespace hbm {
 								ssize_t result;
 								do {
 									// we are working edge triggered, hence we need to read everything that is available
-									result = iter->second();
+									try {
+										result = iter->second();
+									} catch (const std::bad_function_call&) {
+										result = 0;
+									}
 								} while (result>0);
 							} else {
 								if (fd==m_stopFd) {
@@ -217,7 +221,11 @@ namespace hbm {
 								ssize_t result;
 								do {
 									// we are working edge triggered, hence we need to read everything that is available
-									result = iter->second();
+									try {
+										result = iter->second();
+									} catch (const std::bad_function_call&) {
+										result = 0;
+									}
 								} while (result>0);
 							} else {
 								if (fd==m_stopFd) {
