@@ -34,8 +34,6 @@ hbm::communication::SocketNonblocking::SocketNonblocking(sys::EventLoop &eventLo
 	: m_event(-1)
 	, m_bufferedReader()
 	, m_eventLoop(eventLoop)
-	, m_inDataHandler()
-	, m_outDataHandler()
 {
 }
 
@@ -43,8 +41,6 @@ hbm::communication::SocketNonblocking::SocketNonblocking(int fd, sys::EventLoop 
 	: m_event(fd)
 	, m_bufferedReader()
 	, m_eventLoop(eventLoop)
-	, m_inDataHandler()
-	, m_outDataHandler()
 {
 	if (m_event==-1) {
 		throw std::runtime_error("not a valid socket");
@@ -55,8 +51,6 @@ hbm::communication::SocketNonblocking::SocketNonblocking(int fd, sys::EventLoop 
 	if (setSocketOptions()<0) {
 		throw std::runtime_error("error setting socket options");
 	}
-	m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
-	m_eventLoop.addOutEvent(m_event, std::bind(&SocketNonblocking::processOutput, this));
 }
 
 hbm::communication::SocketNonblocking::~SocketNonblocking()
@@ -67,25 +61,13 @@ hbm::communication::SocketNonblocking::~SocketNonblocking()
 void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 {
 	m_inDataHandler = dataCb;
-	if (m_inDataHandler) {
-		// there might have been work to do before fd was added to epoll. This won't be signaled by edge triggered epoll. Try until there is nothing left.
-		ssize_t result;
-		do {
-			result = m_inDataHandler(*this);
-		} while (result>0);
-	}
+	m_eventLoop.addEvent(m_event, std::bind(dataCb, std::ref(*this)));
 }
 
 void hbm::communication::SocketNonblocking::setOutDataCb(DataCb_t dataCb)
 {
 	m_outDataHandler = dataCb;
-	if (m_outDataHandler) {
-		// there might have been work to do before fd was added to epoll. This won't be signaled by edge triggered epoll. Try until there is nothing left.
-		ssize_t result;
-		do {
-			result = m_outDataHandler(*this);
-		} while (result>0);
-	}
+	m_eventLoop.addOutEvent(m_event, std::bind(dataCb, std::ref(*this)));
 }
 
 
@@ -159,9 +141,15 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 	if (m_event==-1) {
 		return -1;
 	}
-	
-	m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, this));
-	m_eventLoop.addOutEvent(m_event, std::bind(&SocketNonblocking::processOutput, this));
+
+	// callback functions might be set before fd was created.
+	if (m_inDataHandler) {
+		m_eventLoop.addEvent(m_event, std::bind(m_inDataHandler, std::ref(*this)));
+	}
+
+	if (m_outDataHandler) {
+		m_eventLoop.addOutEvent(m_event, std::bind(m_outDataHandler, std::ref(*this)));
+	}
 
 	if (setSocketOptions()<0) {
 		return -1;
@@ -192,24 +180,6 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 		}
 	}
 	return 0;
-}
-
-int hbm::communication::SocketNonblocking::process()
-{
-	if (m_inDataHandler) {
-		return m_inDataHandler(*this);
-	} else {
-		return -1;
-	}
-}
-
-int hbm::communication::SocketNonblocking::processOutput()
-{
-	if (m_outDataHandler) {
-		return m_outDataHandler(*this);
-	} else {
-		return -1;
-	}
 }
 
 ssize_t hbm::communication::SocketNonblocking::receive(void* pBlock, size_t size)

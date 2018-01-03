@@ -128,10 +128,6 @@ private:
 
 			int setSocketOptions();
 
-			/// called by eventloop
-			int process();
-			int processOutput();
-
 			sys::event m_event;
 
 			BufferedReader m_bufferedReader;
