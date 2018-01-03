@@ -95,13 +95,22 @@ namespace hbm {
 			int send(const void *pData, size_t length, unsigned int ttl=1) const;
 
 			/// send over specific interface
+			/// @param adapter interface to use
+			/// @param data to send
 			/// @param ttl number of hops which means number of routers to pass
 			int sendOverInterface(const Netadapter& adapter, const std::string& data, unsigned int ttl=1) const;
+			/// @param adapter interface to use
+			/// @param pData buffer to send
+			/// @param length size of buffer to send
 			/// @param ttl number of hops which means number of routers to pass
 			int sendOverInterface(const Netadapter &adapter, const void* pData, size_t length, unsigned int ttl=1) const;
-
+			/// @param interfaceIndex interface to use
+			/// @param data to send
 			/// @param ttl number of hops which means number of routers to pass
 			int sendOverInterface(int interfaceIndex, const std::string& data, unsigned int ttl=1) const;
+			/// @param interfaceIndex interface to use
+			/// @param pData buffer to send
+			/// @param length size of buffer to send
 			/// @param ttl number of hops which means number of routers to pass
 			int sendOverInterface(int interfaceIndex, const void* pData, size_t length, unsigned int ttl=1) const;
 
@@ -128,11 +137,13 @@ namespace hbm {
 			/// \param msgbuf Buffer for data to receive
 			/// \param len Size of buffer for data to receive
 			/// \param adapter The interface received from
+			/// @param ttl number of hops which means number of routers to pass
 			ssize_t receiveTelegram(void* msgbuf, size_t len, Netadapter& adapter, int &ttl);
 
 			/// \param msgbuf Buffer for data to receive
 			/// \param len Size of buffer for data to receive
 			/// \param adapterName The interface received from
+			/// @param ttl number of hops which means number of routers to pass
 			ssize_t receiveTelegram(void* msgbuf, size_t len, std::string& adapterName, int& ttl);
 
 			/// @param msgbuf Buffer for received data
