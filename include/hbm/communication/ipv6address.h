@@ -14,6 +14,7 @@ namespace hbm {
 		/// Tools concerning ipv4 addresses
 		struct Ipv6Address {
 			Ipv6Address();
+			/// \return if ipv6 address and prefix are equal
 			bool equal(const Ipv6Address &op) const;
 
 			/// \return if address is a valid ipv6 address with the prefix "fe80::"

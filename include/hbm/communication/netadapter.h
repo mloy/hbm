@@ -39,13 +39,16 @@ namespace hbm {
 
 			Netadapter();
 
+			/// \return interface name
 			std::string getName() const { return m_name; }
 
+			/// \return all ipv4 addresses of the interface
 			const AddressesWithNetmask& getIpv4Addresses() const
 			{
 				return m_ipv4Addresses;
 			}
 
+			/// \return all ipv6 addresses of the interface
 			const AddressesWithPrefix& getIpv6Addresses() const
 			{
 				return m_ipv6Addresses;
@@ -60,6 +63,7 @@ namespace hbm {
 				return m_fwGuid;
 			}
 
+			/// \return interface index
 			unsigned int getIndex() const
 			{
 				return m_index;
@@ -72,13 +76,18 @@ namespace hbm {
 			/// \return Address of the manual ipv4 default gateway
 			static std::string getIpv4DefaultGateway();
 
+			/// interface name
 			std::string m_name;
 
+			/// all ipv4 addresses of the interface
 			AddressesWithNetmask m_ipv4Addresses;
+			/// all ipv6 addresses of the interface
 			AddressesWithPrefix m_ipv6Addresses;
 
+			/// Unique identifier of the ethernet interface
 			std::string m_macAddress;
 
+			/// Unique identifier of the firewire interface
 			uint64_t m_fwGuid;
 
 			/// interface index
