@@ -111,7 +111,8 @@ BOOST_AUTO_TEST_CASE(check_leak)
 	// the numbe of file descriptors of this process
 	cmd = "ls -1 /proc/" + std::to_string(processId) + "/fd | wc -l";
 	pipe = popen(cmd.c_str(), "r");
-	fgets(readBuffer, sizeof(readBuffer), pipe);
+	char* pResultString = fgets(readBuffer, sizeof(readBuffer), pipe);
+	BOOST_CHECK(pResultString);
 	fdCountBefore = std::stoul(readBuffer);
 	fclose(pipe);
 #endif
@@ -131,7 +132,8 @@ BOOST_AUTO_TEST_CASE(check_leak)
 	GetProcessHandleCount(GetCurrentProcess(), &fdCountAfter);
 #else
 	pipe = popen(cmd.c_str(), "r");
-	fgets(readBuffer, sizeof(readBuffer), pipe);
+	pResultString = fgets(readBuffer, sizeof(readBuffer), pipe);
+	BOOST_CHECK(pResultString);
 	fdCountAfter = std::stoul(readBuffer);
 	fclose(pipe);
 #endif
