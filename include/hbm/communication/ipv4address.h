@@ -35,7 +35,9 @@ namespace hbm {
 			/// \return netmask corresponding to the given prefix
 			static std::string getNetmaskFromPrefix(unsigned int prefix);
 
+			/// the address as string xxx.xxx.xxx.xxx
 			std::string address;
+			/// the subnet mask as string xxx.xxx.xxx.xxx
 			std::string netmask;
 		};
 	}
