@@ -383,6 +383,7 @@ void hbm::communication::SocketNonblocking::disconnect()
 			syslog(LOG_ERR, "closing socket %d failed '%s'", m_event, strerror(errno));
 		}
 		m_eventLoop.eraseEvent(m_event);
+		m_eventLoop.eraseOutEvent(m_event);
 	}
 
 	m_event = -1;
