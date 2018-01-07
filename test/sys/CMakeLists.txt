@@ -67,5 +67,6 @@ target_link_libraries (
 add_test(eventloop_test eventloop.test
 --report_level=no
 --log_level=all
---output_format=xml
---log_sink=${CMAKE_BINARY_DIR}/eventloop_test.xml)
+#--output_format=xml
+#--log_sink=${CMAKE_BINARY_DIR}/eventloop_test.xml
+)
