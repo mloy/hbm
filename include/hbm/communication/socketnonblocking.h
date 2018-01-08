@@ -132,13 +132,19 @@ private:
 
 			int setSocketOptions();
 
+#ifdef _WIN32
+			int process();
+#endif
+
 			sys::event m_event;
 
 			BufferedReader m_bufferedReader;
 
 			sys::EventLoop& m_eventLoop;
 			DataCb_t m_inDataHandler;
+#ifndef _WIN32
 			DataCb_t m_outDataHandler;
+#endif
 		};
 		
 #ifdef _MSC_VER

@@ -543,7 +543,7 @@ namespace hbm {
 				BOOST_CHECK_EQUAL(errno, EWOULDBLOCK);
 			}
 			
-			
+#ifndef _WIN32			
 			BOOST_AUTO_TEST_CASE(send_wouldblock)
 			{
 				size_t bytesSend = 0;
@@ -585,6 +585,7 @@ namespace hbm {
 				BOOST_CHECK_GT(bytesSend, 0);
 				stop();
 			}
+#endif
 
 
 			BOOST_AUTO_TEST_SUITE_END()
