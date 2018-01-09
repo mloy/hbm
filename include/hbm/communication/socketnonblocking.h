@@ -78,7 +78,11 @@ namespace hbm
 
 			/// if setting a callback function, data receiption is done via event loop.
 			/// if setting an empty callback function DataCb_t(), the event is taken out of the eventloop.
+			/// \param dataCb callback to be called if fd gets readable (data is available)
 			void setDataCb(DataCb_t dataCb);
+			
+			/// \param dataCb callback to be called if fd gets writable
+			void setOutDataCb(DataCb_t dataCb);
 
 			/// send everything or until connection closes
 			/// uses gather mechanism to send several memory areas
@@ -91,6 +95,9 @@ namespace hbm
 			/// send everything or until connection closes
 			/// \warning waits until requested amount of data is processed or an error happened, hence it might block the eventloop if called from within a callback function
 			ssize_t sendBlock(const void* pBlock, size_t len, bool more);
+
+			/// works as posix send
+			ssize_t send(const void* pBlock, size_t len, bool more);
 
 			/// might return with less bytes the requested
 			ssize_t receive(void* pBlock, size_t len);
@@ -125,15 +132,19 @@ private:
 
 			int setSocketOptions();
 
-			/// called by eventloop
+#ifdef _WIN32
 			int process();
+#endif
 
 			sys::event m_event;
 
 			BufferedReader m_bufferedReader;
 
 			sys::EventLoop& m_eventLoop;
-			DataCb_t m_dataHandler;
+			DataCb_t m_inDataHandler;
+#ifndef _WIN32
+			DataCb_t m_outDataHandler;
+#endif
 		};
 		
 #ifdef _MSC_VER

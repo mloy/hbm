@@ -64,8 +64,8 @@ enable_testing()
 add_test(splittest splittest
     --report_level=no
     --log_level=all
-    --output_format=xml
-    --log_sink=${CMAKE_BINARY_DIR}/splittest.xml
+#    --output_format=xml
+#    --log_sink=${CMAKE_BINARY_DIR}/splittest.xml
 )
 
 set(SOURCES_REPLACETEST
@@ -85,8 +85,8 @@ enable_testing()
 add_test(replacetest replacetest
     --report_level=no
     --log_level=all
-    --output_format=xml
-    --log_sink=${CMAKE_BINARY_DIR}/replacetest.xml
+#    --output_format=xml
+#    --log_sink=${CMAKE_BINARY_DIR}/replacetest.xml
 )
 
 set(SOURCES_TRIMTEST
@@ -106,6 +106,6 @@ enable_testing()
 add_test(trimtest trimtest
     --report_level=no
     --log_level=all
-    --output_format=xml
-    --log_sink=${CMAKE_BINARY_DIR}/trimtest.xml
+#    --output_format=xml
+#    --log_sink=${CMAKE_BINARY_DIR}/trimtest.xml
 )

@@ -23,7 +23,9 @@ namespace hbm {
 				int clientReceive(SocketNonblocking &socket);
 				int clientReceiveTarget(SocketNonblocking& socket, std::string& target);
 				int clientReceiveSingleBytes(SocketNonblocking& socket);
-				
+
+				int clientNotify(unsigned int& count);
+
 				void start();
 				void stop();
 				size_t getClientCount() const;

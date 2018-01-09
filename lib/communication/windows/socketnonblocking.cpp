@@ -30,7 +30,7 @@ static WSABUF signalBuffer = { 0, NULL };
 hbm::communication::SocketNonblocking::SocketNonblocking(sys::EventLoop &eventLoop)
 	: m_bufferedReader()
 	, m_eventLoop(eventLoop)
-	, m_dataHandler()
+	, m_inDataHandler()
 {
 	WORD RequestedSockVersion = MAKEWORD(2, 2);
 	WSADATA wsaData;
@@ -42,7 +42,7 @@ hbm::communication::SocketNonblocking::SocketNonblocking(sys::EventLoop &eventLo
 hbm::communication::SocketNonblocking::SocketNonblocking(int fd, sys::EventLoop &eventLoop)
 	: m_bufferedReader()
 	, m_eventLoop(eventLoop)
-	, m_dataHandler()
+	, m_inDataHandler()
 {
 	WORD RequestedSockVersion = MAKEWORD(2, 2);
 	WSADATA wsaData;
@@ -67,8 +67,8 @@ void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 	DWORD size;
 	DWORD flags = 0;
 
-	m_dataHandler = dataCb;
-	//m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, std::ref(*this)));
+	m_inDataHandler = dataCb;
+	m_eventLoop.addEvent(m_event, std::bind(&SocketNonblocking::process, std::ref(*this)));
 
 	// important: Makes io completion to be signalled by the first arriving byte
 	WSARecv(reinterpret_cast < SOCKET > (m_event.fileHandle), &signalBuffer, 1, &size, &flags, &m_event.overlapped, NULL);
@@ -173,14 +173,14 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 		}
 	}
 
-	setDataCb(m_dataHandler);
+	setDataCb(m_inDataHandler);
 	return 0;
 }
 
 int hbm::communication::SocketNonblocking::process()
 {
-	if (m_dataHandler) {
-		return m_dataHandler(*this);
+	if (m_inDataHandler) {
+		return m_inDataHandler(*this);
 	} else {
 		return -1;
 	}
@@ -321,7 +321,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 	int err;
 
 	while (BytesLeft > 0) {
-		numBytes = send(reinterpret_cast < SOCKET > (m_event.fileHandle), reinterpret_cast < const char* >(pDat), static_cast < int >(BytesLeft), 0);
+		numBytes = ::send(reinterpret_cast < SOCKET > (m_event.fileHandle), reinterpret_cast < const char* >(pDat), static_cast < int >(BytesLeft), 0);
 		if (numBytes > 0) {
 			pDat += numBytes;
 			BytesLeft -= numBytes;
@@ -345,6 +345,11 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 		}
 	}
 	return retVal;
+}
+
+ssize_t hbm::communication::SocketNonblocking::send(const void* pBlock, size_t size, bool more)
+{
+	return ::send(reinterpret_cast < SOCKET > (m_event.fileHandle), reinterpret_cast < const char* >(pBlock), static_cast < int >(size), 0);
 }
 
 void hbm::communication::SocketNonblocking::disconnect()

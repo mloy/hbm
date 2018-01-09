@@ -43,8 +43,9 @@ target_link_libraries (
 add_test(multicastserver_test multicastserver.test
 --report_level=no
 --log_level=all
---output_format=xml
---log_sink=${CMAKE_BINARY_DIR}/multicastserver_test.xml)
+#--output_format=xml
+#--log_sink=${CMAKE_BINARY_DIR}/multicastserver_test.xml
+)
 
 SET(SOCKETNONBLOCKING_TEST
     socketnonblocking_test.cpp
@@ -69,8 +70,9 @@ target_link_libraries (
 add_test(socketnonblocking_test socketnonblocking.test
 --report_level=no
 --log_level=all
---output_format=xml
---log_sink=${CMAKE_BINARY_DIR}/socketnonblocking_test.xml)
+#--output_format=xml
+#--log_sink=${CMAKE_BINARY_DIR}/socketnonblocking_test.xml
+)
 
 
 
@@ -97,5 +99,6 @@ target_link_libraries (
 add_test(netadapter_test netadapter.test
 --report_level=no
 --log_level=all
---output_format=xml
---log_sink=${CMAKE_BINARY_DIR}/netadapter_test.xml)
+#--output_format=xml
+#--log_sink=${CMAKE_BINARY_DIR}/netadapter_test.xml
+)

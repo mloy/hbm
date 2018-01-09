@@ -115,6 +115,13 @@ namespace hbm {
 				return result;
 			}
 
+			int serverFixture::clientNotify(unsigned int &count)
+			{
+				++count;
+				return 0;
+			}
+			
+			
 			int serverFixture::clientReceiveTarget(hbm::communication::SocketNonblocking& socket, std::string& target)
 			{
 				char buffer[1024];
@@ -175,7 +182,9 @@ namespace hbm {
 			// the numbe of file descriptors of this process
 			cmd = "ls -1 /proc/" + std::to_string(processId) + "/fd | wc -l";
 			pipe = popen(cmd.c_str(), "r");
-			fgets(readBuffer, sizeof(readBuffer), pipe);
+			if(fgets(readBuffer, sizeof(readBuffer), pipe)==NULL) {
+				BOOST_ASSERT("Could not get number of fds of process");
+			}
 			fdCountBefore = std::stoul(readBuffer);
 			fclose(pipe);
 #endif
@@ -193,7 +202,9 @@ namespace hbm {
 			GetProcessHandleCount( GetCurrentProcess(), &fdCountAfter);
 #else
 			pipe = popen(cmd.c_str(), "r");
-			fgets(readBuffer, sizeof(readBuffer), pipe);
+			if(fgets(readBuffer, sizeof(readBuffer), pipe)==NULL) {
+				BOOST_ASSERT("Could not get number of fds of process");
+			}
 			fdCountAfter = std::stoul(readBuffer);
 			fclose(pipe);
 #endif
@@ -203,6 +214,102 @@ namespace hbm {
 		
 			BOOST_FIXTURE_TEST_SUITE( socket_test, serverFixture )
 
+			BOOST_AUTO_TEST_CASE(connect_test)
+			{
+				start();
+
+				hbm::communication::SocketNonblocking client(m_eventloop);
+				// wrong port! Should fail
+				int result = client.connect("::1", std::to_string(PORT+1));
+				BOOST_CHECK_MESSAGE(result == -1, strerror(errno));
+
+				result = client.connect("::1", std::to_string(PORT));
+				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
+			}
+
+
+			BOOST_AUTO_TEST_CASE(send_recv_test)
+			{
+				int result;
+				static const char msg[] = "hallo";
+				char response[1024];
+
+				start();
+
+				hbm::communication::SocketNonblocking client(m_eventloop);
+				result = client.connect("127.0.0.1", std::to_string(PORT));
+				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
+
+				result = client.send(msg, sizeof(msg), false);
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				BOOST_CHECK_MESSAGE(result == sizeof(msg), strerror(errno));
+				result = client.receive(response, sizeof(msg));
+				BOOST_CHECK_MESSAGE(result == sizeof(msg), strerror(errno));
+				BOOST_CHECK_EQUAL(response, msg);
+
+				result = client.send(msg, sizeof(msg), false);
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				BOOST_CHECK_MESSAGE(result == sizeof(msg), strerror(errno));
+				for( unsigned int cycleIndex=0; cycleIndex<sizeof(msg); ++cycleIndex) {
+					result = client.receive(response, 1);
+					BOOST_CHECK_MESSAGE(result == 1, strerror(errno));
+					BOOST_CHECK_EQUAL(response[0], msg[cycleIndex]);
+				}
+				result = client.receive(response, 1);
+				BOOST_CHECK_EQUAL(result, -1);
+
+				client.disconnect();
+
+
+				stop();
+			}
+
+			BOOST_AUTO_TEST_CASE(sendblock_recvblock_test)
+			{
+				int result;
+				static const char msg[] = "hallo";
+				char response[1024];
+
+				start();
+
+				hbm::communication::SocketNonblocking client(m_eventloop);
+				//client.setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::placeholders::_1));
+				result = client.connect("127.0.0.1", std::to_string(PORT));
+				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
+
+				for( unsigned int cycleIndex=0; cycleIndex<100; ++cycleIndex) {
+					result = client.sendBlock(msg, sizeof(msg), false);
+					BOOST_CHECK_MESSAGE(result == sizeof(msg), strerror(errno));
+					result = client.receiveComplete(response, sizeof(msg), 100);
+					BOOST_CHECK_MESSAGE(result == sizeof(msg), strerror(errno));
+					BOOST_CHECK_EQUAL(response, msg);
+				}
+
+				result = client.sendBlock(msg, sizeof(msg), false);
+				BOOST_CHECK_MESSAGE(result == sizeof(msg), strerror(errno));
+				for( unsigned int cycleIndex=0; cycleIndex<sizeof(msg); ++cycleIndex) {
+					result = client.receiveComplete(response, 1, 100);
+					BOOST_CHECK_MESSAGE(result == 1, strerror(errno));
+					BOOST_CHECK_EQUAL(response[0], msg[cycleIndex]);
+				}
+				result = client.receiveComplete(response, 1, 100);
+				BOOST_CHECK_EQUAL(result, -1);
+
+
+				// force timeout!
+				result = client.receiveComplete(response, sizeof(msg), 100);
+				BOOST_CHECK_EQUAL(result, -1);
+
+				// nothing to read and no time to wait
+				result = client.receiveComplete(response, sizeof(msg), 0);
+				BOOST_CHECK_EQUAL(result, -1);
+
+				client.disconnect();
+
+
+				stop();
+			}
+			
 
 			BOOST_AUTO_TEST_CASE(echo_test)
 			{
@@ -246,46 +353,7 @@ namespace hbm {
 
 				stop();
 			}
-			
-//			BOOST_AUTO_TEST_CASE(edge_trigger_test)
-//			{
-//				static const size_t clientCount = 10;
-//				int result;
-//				static const std::string msgPrefix = "hallo";
 
-
-//				std::vector < std::string > targets(clientCount);
-//				std::vector < std::unique_ptr < hbm::communication::SocketNonblocking > > clients;
-				
-//				for (size_t clientIndex=0; clientIndex<clientCount; ++clientIndex) {
-//					clients.push_back( std::unique_ptr < hbm::communication::SocketNonblocking >(new hbm::communication::SocketNonblocking(m_eventloop)));
-//				}
-				
-//				unsigned int index = 0;
-//				for (auto iter = clients.begin(); iter!=clients.end(); ++iter) {
-//					(*iter)->setDataCb(std::bind(&serverFixture::clientReceiveTarget, this, std::placeholders::_1, std::ref(targets[index])));
-//					result = (*iter)->connect("127.0.0.1", std::to_string(PORT));
-//					BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
-//					index++;
-//				}
-				
-				
-//				start();
-				
-////				index = 0;
-////				for (auto iter = clients.begin(); iter!=clients.end(); ++iter) {
-////					std::string msg = msgPrefix + std::to_string(index);
-////					result = (*iter)->sendBlock(msg.c_str(), msg.length(), false);
-////					BOOST_CHECK_MESSAGE(static_cast < size_t > (result) == msg.length(), strerror(errno));
-////					index++;
-////				}
-
-//				std::this_thread::sleep_for(std::chrono::milliseconds(100));
-				
-//				size_t realClientCount = getClientCount();
-//				BOOST_CHECK_EQUAL(clientCount, realClientCount);
-//				stop();
-//			}
 
 			BOOST_AUTO_TEST_CASE(multiclient_echo_test)
 			{
@@ -464,6 +532,60 @@ namespace hbm {
 				stop();
 			}
 
+			BOOST_AUTO_TEST_CASE(receive_wouldblock)
+			{
+				char buffer[1000];
+				hbm::communication::SocketNonblocking client(m_eventloop);
+				client.connect("127.0.0.1", std::to_string(PORT));
+				
+				ssize_t result = client.receive(buffer, sizeof(buffer));
+				BOOST_CHECK_EQUAL(result, -1);
+				BOOST_CHECK_EQUAL(errno, EWOULDBLOCK);
+			}
+			
+#ifndef _WIN32			
+			BOOST_AUTO_TEST_CASE(send_wouldblock)
+			{
+				size_t bytesSend = 0;
+				unsigned int sendBufferSize = 1000;
+				socklen_t len;
+				char data[1000000] = { 0 };
+				hbm::communication::SocketNonblocking client(m_eventloop);
+				client.connect("127.0.0.1", std::to_string(PORT));
+				
+				unsigned int notifiyCount = 0;
+				client.setOutDataCb(std::bind(&serverFixture::clientNotify, this, std::ref(notifiyCount)));
+				// callback function gets called once to check for pending work...
+				BOOST_CHECK_EQUAL(notifiyCount, 1);
+				
+				int result = setsockopt(client.getEvent(), SOL_SOCKET, SO_SNDBUF, &sendBufferSize, sizeof(sendBufferSize));
+				BOOST_CHECK_EQUAL(result, 0);
+				len = sizeof(sendBufferSize);
+				getsockopt(client.getEvent(), SOL_SOCKET, SO_SNDBUF, &sendBufferSize, &len);
+				
+				ssize_t sendResult;
+				// send until send buffer is full
+				do {
+					sendResult = client.send(data, sizeof(data), false);
+					bytesSend += sendResult;
+				} while (sendResult>0);
+				BOOST_CHECK_GE(bytesSend, sendBufferSize);
+				BOOST_CHECK_EQUAL(errno, EWOULDBLOCK);
+
+				// server is not receiving, hence socket won't become writable and callback function is not being called.
+				BOOST_CHECK_EQUAL(notifiyCount, 1);
+				start();
+				// server is receiving. As a result socket becomes wriable again. Callback function is called!
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				
+				BOOST_CHECK_EQUAL(notifiyCount, 2);
+				
+				// We should be able to send again
+				sendResult = client.send(data, sizeof(data), false);
+				BOOST_CHECK_GT(bytesSend, 0);
+				stop();
+			}
+#endif
 
 
 			BOOST_AUTO_TEST_SUITE_END()

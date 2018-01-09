@@ -13,6 +13,7 @@ namespace hbm {
 	namespace communication {
 		/// Tools concerning ipv4 addresses
 		struct Ipv4Address {
+			/// \return if ipv4 address and subnet mask are equal
 			bool equal(const struct Ipv4Address& op) const;
 
 			/// \return subnet resulting of address and netmask
@@ -23,6 +24,8 @@ namespace hbm {
 			/// some address ranges are reserved and may not be used
 			/// (see https://en.wikipedia.org/wiki/Reserved_IP_addresses)
 			static bool isValidManualAddress(const std::string& ip);
+			
+			/// \return true if ip is a valid ipv4 subnet mask
 			static bool isValidNetmask(const std::string& ip);
 
 			/// \return prefix corresponding to the given netmaks
@@ -32,7 +35,9 @@ namespace hbm {
 			/// \return netmask corresponding to the given prefix
 			static std::string getNetmaskFromPrefix(unsigned int prefix);
 
+			/// the address as string xxx.xxx.xxx.xxx
 			std::string address;
+			/// the subnet mask as string xxx.xxx.xxx.xxx
 			std::string netmask;
 		};
 	}
