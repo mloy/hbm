@@ -80,9 +80,14 @@ namespace hbm
 			/// if setting an empty callback function DataCb_t(), the event is taken out of the eventloop.
 			/// \param dataCb callback to be called if fd gets readable (data is available)
 			void setDataCb(DataCb_t dataCb);
-			
+
 			/// \param dataCb callback to be called if fd gets writable
 			void setOutDataCb(DataCb_t dataCb);
+
+			/// remove input event from eventloop
+			void clearDataCb();
+			/// remove output event from eventloop
+			void clearOutDataCb();
 
 			/// send everything or until connection closes
 			/// uses gather mechanism to send several memory areas

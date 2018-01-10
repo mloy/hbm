@@ -74,6 +74,12 @@ void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 	WSARecv(reinterpret_cast < SOCKET > (m_event.fileHandle), &signalBuffer, 1, &size, &flags, &m_event.overlapped, NULL);
 }
 
+void hbm::communication::SocketNonblocking::clearDataCb()
+{
+        m_inDataHandler = DataCb_t();
+        m_eventLoop.eraseEvent(m_event);
+}
+
 int hbm::communication::SocketNonblocking::setSocketOptions()
 {
 	bool opt = true;

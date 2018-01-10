@@ -64,12 +64,23 @@ void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 	m_eventLoop.addEvent(m_event, std::bind(dataCb, std::ref(*this)));
 }
 
+void hbm::communication::SocketNonblocking::clearDataCb()
+{
+	m_inDataHandler = DataCb_t();
+	m_eventLoop.eraseEvent(m_event);
+}
+
 void hbm::communication::SocketNonblocking::setOutDataCb(DataCb_t dataCb)
 {
 	m_outDataHandler = dataCb;
 	m_eventLoop.addOutEvent(m_event, std::bind(dataCb, std::ref(*this)));
 }
 
+void hbm::communication::SocketNonblocking::clearOutDataCb()
+{
+	m_inDataHandler = DataCb_t();
+	m_eventLoop.eraseOutEvent(m_event);
+}
 
 int hbm::communication::SocketNonblocking::setSocketOptions()
 {
