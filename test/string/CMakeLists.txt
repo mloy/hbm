@@ -11,19 +11,13 @@ if(JSONCPP_FOUND)
 endif()
 
 
-SET(CMAKE_CXX_FLAGS "-std=c++11 -pthread -fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
+IF(FEATURE_GCOV)
+  SET(CMAKE_COVERAGE_FLAGS "-fprofile-arcs -ftest-coverage")
+ENDIF(FEATURE_GCOV)
 
-option(WITH_CPPCHECK "CppCheck" OFF)
+SET(WARN_FLAGS "-fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
 
-if(WITH_CPPCHECK)
-  find_package(cppcheck)
-  include(CppcheckTargets)
-endif()
-
-message(STATUS "-----------------------------------------------------------")
-message(STATUS "CppCheck            : " ${WITH_CPPCHECK})
-message(STATUS "-----------------------------------------------------------")
-
+SET(CMAKE_CXX_FLAGS "-std=c++11 -pipe ${WARN_FLAGS} -ggdb ${CMAKE_COVERAGE_FLAGS}")
 
 
 find_package(Boost COMPONENTS unit_test_framework)
@@ -33,19 +27,8 @@ if(Boost_FOUND)
 endif(Boost_FOUND)
 
 
-# enable coverage inspection:
-# used by: /devscan/client/lib/CMakeLists.txt
-# compile: --coverage
-# link: gcov
-option(GCOV_PACKAGE "GCOV" ON)
-
 
 include_directories(../../include)
-
-
-
-#add_definitions("--coverage")
-
 
 set(SOURCES_SPLITTEST
     splittest.cpp
