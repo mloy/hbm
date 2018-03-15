@@ -24,7 +24,7 @@
 namespace hbm {
 	namespace communication {
 		/// Listens for and accepts incoming connections from clients. A callback function will be called with the worker socket for the accepted client.
-		/// Supports ipv4 and ipv6
+		/// Under Linux ipv4 and ipv6 are supported. Under Windows ipv4 is supported.
 		class TcpServer {
 		public:
 			/// deliveres the worker socket for an accepted client
