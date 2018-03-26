@@ -19,3 +19,19 @@
 ## v1.0.4
  - initialize ipv6 prefix on construction
  - checksubnet() might exclude a device from tests. This is usefull if the configuration of this interface is to be changed.
+
+## v1.0.5
+ - isFirewireAdapter() works under Windows
+ - new method getIpv4MappedIpv6Address returns ipv4 address mapped in ipv6 address
+ - accept upper case letters in ipv6 address
+
+## v1.0.6
+ - multicastserver: Work with interface index instead of interface name
+ - netlink: Fix recognotion of adapter going down
+ - lib, test, tool: Find jsoncpp using pkg-config provided by jsoncpp
+ - doxygen documentation is generated automatically
+
+## v1.0.7
+ - windows: tcpserver does not support ipv6
+ - socketnonblocking: introduced writable event under linux (setOutDataCb())
+
