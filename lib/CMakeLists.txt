@@ -8,6 +8,7 @@ include_directories(../include)
 
 if(ROOT_SEARCH_PATH)
   list(APPEND CMAKE_PREFIX_PATH ${ROOT_SEARCH_PATH}/usr)
+  set( PKG_CONFIG_USE_CMAKE_PREFIX_PATH ON)
 endif()
 
 find_package(PkgConfig REQUIRED)
