@@ -35,3 +35,5 @@
  - windows: tcpserver does not support ipv6
  - socketnonblocking: introduced writable event under linux (setOutDataCb())
 
+## v1.0.8
+ - hbm::jsonrpc_exception does no longer depend on jsoncpp

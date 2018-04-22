@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include <json/value.h>
+//#include <json/value.h>
 #include "hbm/exception/exception.hpp"
 
 namespace hbm {
@@ -17,7 +17,7 @@ namespace hbm {
 		{
 		public:
 			jsonrpcException(int code, const std::string& message="");
-			jsonrpcException(const Json::Value& error);
+			//jsonrpcException(const Json::Value& error);
 
 			virtual ~jsonrpcException() throw();
 
@@ -28,10 +28,10 @@ namespace hbm {
 			/// returns the message from the error object
 			const char* what() const throw();
 
-			const Json::Value& json() const;
+			//const Json::Value& json() const;
 
 		private:
-			Json::Value m_error_obj;
+			//Json::Value m_error_obj;
 			int m_code;
 			std::string m_message;
 		};
