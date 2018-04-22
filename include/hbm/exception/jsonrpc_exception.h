@@ -3,12 +3,11 @@
 // See file LICENSE provided
 
 
-#ifndef __HBM__JET__JSONRPCEXCEPTION
-#define __HBM__JET__JSONRPCEXCEPTION
+#ifndef __HBM__JSONRPCEXCEPTION
+#define __HBM__JSONRPCEXCEPTION
 
 #include <string>
 
-//#include <json/value.h>
 #include "hbm/exception/exception.hpp"
 
 namespace hbm {
@@ -17,7 +16,6 @@ namespace hbm {
 		{
 		public:
 			jsonrpcException(int code, const std::string& message="");
-			//jsonrpcException(const Json::Value& error);
 
 			virtual ~jsonrpcException() throw();
 
@@ -30,7 +28,7 @@ namespace hbm {
 
 			//const Json::Value& json() const;
 
-		private:
+		protected:
 			//Json::Value m_error_obj;
 			int m_code;
 			std::string m_message;
