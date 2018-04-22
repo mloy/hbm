@@ -7,5 +7,4 @@ ci_build_and_test:
     - mkdir build && cd build && cmake .. -DFEATURE_POST_BUILD_UNITTEST=ON && make && make test
   tags:
     - linux
-    - jsoncpp
-
+    
