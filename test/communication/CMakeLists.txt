@@ -3,13 +3,6 @@ cmake_minimum_required(VERSION 2.8)
 
 include_directories(../../include)
 
-#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake)
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(JSONCPP REQUIRED jsoncpp>=1.6.0)
-if(JSONCPP_FOUND)
-  include_directories( ${JSONCPP_INCLUDE_DIR} )
-endif()
 
 enable_testing()
 
@@ -36,7 +29,6 @@ add_executable(
 target_link_libraries (
     multicastserver.test
     hbm
-    ${JSONCPP_LIBRARIES}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
@@ -63,7 +55,6 @@ add_executable(
 target_link_libraries (
     socketnonblocking.test
     hbm
-    ${JSONCPP_LIBRARIES}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
@@ -92,7 +83,6 @@ add_executable(
 target_link_libraries (
     netadapter.test
     hbm
-    ${JSONCPP_LIBRARIES}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
