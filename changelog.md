@@ -1,7 +1,32 @@
 # Changelog for hbm
 
-## v1.0.1
- - Renamed some netlink event types
+## v1.0.9
+ - Update MSVC projects to visual studio 2017
+
+## v1.0.8
+ - hbm::jsonrpc_exception does no longer depend on jsoncpp
+
+## v1.0.7
+ - windows: tcpserver does not support ipv6
+ - socketnonblocking: introduced writable event under linux (setOutDataCb())
+
+## v1.0.6
+ - multicastserver: Work with interface index instead of interface name
+ - netlink: Fix recognotion of adapter going down
+ - lib, test, tool: Find jsoncpp using pkg-config provided by jsoncpp
+ - doxygen documentation is generated automatically
+
+## v1.0.5
+ - isFirewireAdapter() works under Windows
+ - new method getIpv4MappedIpv6Address returns ipv4 address mapped in ipv6 address
+ - accept upper case letters in ipv6 address
+
+## v1.0.4
+ - initialize ipv6 prefix on construction
+ - checksubnet() might exclude a device from tests. This is usefull if the configuration of this interface is to be changed.
+
+## v1.0.3
+ - const correctness for checkSubnet()
 
 ## v1.0.2
  - New method for retrieving subnet of ipv4 address/netmask
@@ -13,27 +38,5 @@
  - Rename header communication/ipv4Address_t.h to communication/ipv4Address.h
  - Rename header communication/ipv6Address_t.h to communication/ipv6Address.h
 
-## v1.0.3
- - const correctness for checkSubnet()
-
-## v1.0.4
- - initialize ipv6 prefix on construction
- - checksubnet() might exclude a device from tests. This is usefull if the configuration of this interface is to be changed.
-
-## v1.0.5
- - isFirewireAdapter() works under Windows
- - new method getIpv4MappedIpv6Address returns ipv4 address mapped in ipv6 address
- - accept upper case letters in ipv6 address
-
-## v1.0.6
- - multicastserver: Work with interface index instead of interface name
- - netlink: Fix recognotion of adapter going down
- - lib, test, tool: Find jsoncpp using pkg-config provided by jsoncpp
- - doxygen documentation is generated automatically
-
-## v1.0.7
- - windows: tcpserver does not support ipv6
- - socketnonblocking: introduced writable event under linux (setOutDataCb())
-
-## v1.0.8
- - hbm::jsonrpc_exception does no longer depend on jsoncpp
+## v1.0.1
+ - Renamed some netlink event types
