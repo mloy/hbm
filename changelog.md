@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.9
+ - Update MSVC projects to visual studio 2017
+
 ## v1.0.8
  - hbm::jsonrpc_exception does no longer depend on jsoncpp
 
