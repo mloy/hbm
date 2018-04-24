@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libhbm", "lib\libhbm.vcxproj", "{70666B4A-4CC1-4699-AA63-0E05BCBEB832}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_json", "..\jsoncpp\makefiles\msvc2012\lib_json.vcxproj", "{1E6C2C1C-6453-4129-AE3F-0EE8E6599C89}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "multicastserver_test", "test\communication\multicastserver_test.vcxproj", "{649D6603-7D8C-4F55-BA9F-C2FECEF6657A}"
 EndProject
@@ -29,14 +27,6 @@ Global
 		{70666B4A-4CC1-4699-AA63-0E05BCBEB832}.Release|Win32.ActiveCfg = Release|Win32
 		{70666B4A-4CC1-4699-AA63-0E05BCBEB832}.Release|Win32.Build.0 = Release|Win32
 		{70666B4A-4CC1-4699-AA63-0E05BCBEB832}.Release|x64.ActiveCfg = Release|Win32
-		{1E6C2C1C-6453-4129-AE3F-0EE8E6599C89}.Debug|Win32.ActiveCfg = Debug|Win32
-		{1E6C2C1C-6453-4129-AE3F-0EE8E6599C89}.Debug|Win32.Build.0 = Debug|Win32
-		{1E6C2C1C-6453-4129-AE3F-0EE8E6599C89}.Debug|x64.ActiveCfg = Debug|x64
-		{1E6C2C1C-6453-4129-AE3F-0EE8E6599C89}.Debug|x64.Build.0 = Debug|x64
-		{1E6C2C1C-6453-4129-AE3F-0EE8E6599C89}.Release|Win32.ActiveCfg = Release|Win32
-		{1E6C2C1C-6453-4129-AE3F-0EE8E6599C89}.Release|Win32.Build.0 = Release|Win32
-		{1E6C2C1C-6453-4129-AE3F-0EE8E6599C89}.Release|x64.ActiveCfg = Release|x64
-		{1E6C2C1C-6453-4129-AE3F-0EE8E6599C89}.Release|x64.Build.0 = Release|x64
 		{649D6603-7D8C-4F55-BA9F-C2FECEF6657A}.Debug|Win32.ActiveCfg = Debug|Win32
 		{649D6603-7D8C-4F55-BA9F-C2FECEF6657A}.Debug|Win32.Build.0 = Debug|Win32
 		{649D6603-7D8C-4F55-BA9F-C2FECEF6657A}.Debug|x64.ActiveCfg = Debug|Win32
