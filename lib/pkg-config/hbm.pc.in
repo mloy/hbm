@@ -1,5 +1,5 @@
-libdir=@CMAKE_INSTALL_PREFIX@
-includedir=@CMAKE_INSTALL_PREFIX@
+libdir=@CMAKE_INSTALL_PREFIX@/lib
+includedir=@CMAKE_INSTALL_PREFIX@/include
 
 Name: hbm
 Description: A C++ library for abstracting system calls and some tools
