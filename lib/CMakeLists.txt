@@ -67,7 +67,7 @@ set_source_files_properties(${HBMLIB_SOURCES} PROPERTIES COMPILE_FLAGS "${EXTRA_
 add_library(hbm SHARED ${HBMLIB_SOURCES})
 add_library(hbm-static STATIC ${HBMLIB_SOURCES})
 
-SET( HBM_VERSION 1.0.8 )
+SET( HBM_VERSION 1.0.10)
 
 set_target_properties(
   hbm
