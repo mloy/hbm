@@ -94,7 +94,7 @@ namespace hbm {
 		int Timer::process()
 		{
 			uint64_t timerEventCount = 0;
-			while (::read(m_fd, &timerEventCount, sizeof(timerEventCount))==sizeof(timerEventCount)) {
+			if (::read(m_fd, &timerEventCount, sizeof(timerEventCount))==sizeof(timerEventCount)) {
 				if (timerEventCount>1) {
 					// this is possible for cyclic timers only!
 					syslog(LOG_WARNING, "cyclic timer %d elapsed %" PRIu64 " times before callback was executed.", m_fd, timerEventCount);
@@ -103,7 +103,7 @@ namespace hbm {
 					m_eventHandler(true);
 				}
 			}
-			return 0;
+			return static_cast< int >(timerEventCount);
 
 		}
 	}

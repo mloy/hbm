@@ -190,51 +190,53 @@ namespace hbm {
 						if(events[n].events & EPOLLIN) {
 							int fd = events[n].data.fd;
 
-							// we do not iterate through the map of events.
-							// Hence callback functions or other threads might remove events from container without causing problems.
-							eventInfos_t::iterator iter = m_inEventInfos.find(fd);
-							if (iter!=m_inEventInfos.end()) {
-								ssize_t result;
-								do {
+							ssize_t result;
+							do {
+								// we are working edge triggered, hence we need to read everything that is available
+
+								// we do not iterate through the map of events.
+								// Hence callback functions or other threads might remove events from container without causing problems.
+								eventInfos_t::iterator iter = m_inEventInfos.find(fd);
+								if (iter!=m_inEventInfos.end()) {
 									// we are working edge triggered, hence we need to read everything that is available
 									try {
 										result = iter->second();
 									} catch (const std::bad_function_call&) {
 										result = 0;
 									}
-								} while (result>0);
-							} else {
-								if (fd==m_stopFd) {
-									// stop notification!
-									return 0;
+								} else {
+									if (fd==m_stopFd) {
+										// stop notification!
+										return 0;
+									}
 								}
-							}
+							} while (result>0);
 						}
 						
 						if(events[n].events & EPOLLOUT) {
 							int fd = events[n].data.fd;
 
-							// we do not iterate through the map of events.
-							// Hence callback functions or other threads might remove events from container without causing problems.
-							eventInfos_t::iterator iter = m_outEventInfos.find(fd);
-							if (iter!=m_outEventInfos.end()) {
-								ssize_t result;
-								do {
-									// we are working edge triggered, hence we need to read everything that is available
+							ssize_t result;
+							do {
+								// we are working edge triggered, hence we need to read everything that is available
+
+								// we do not iterate through the map of events.
+								// Hence callback functions or other threads might remove events from container without causing problems.
+								eventInfos_t::iterator iter = m_outEventInfos.find(fd);
+								if (iter!=m_outEventInfos.end()) {
 									try {
 										result = iter->second();
 									} catch (const std::bad_function_call&) {
 										result = 0;
 									}
-								} while (result>0);
-							} else {
-								if (fd==m_stopFd) {
-									// stop notification!
-									return 0;
+								} else {
+									if (fd==m_stopFd) {
+										// stop notification!
+										return 0;
+									}
 								}
-							}
+							} while (result>0);
 						}
-						
 					}
 				}
 			}

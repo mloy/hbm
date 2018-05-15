@@ -1,5 +1,11 @@
 # Changelog for hbm
 
+## v1.0.11
+ - fix bug in eventloop (Linux): callback function might destroy the object that triggered the event.
+
+## v1.0.10
+ - Build system issues
+
 ## v1.0.9
  - Update MSVC projects to visual studio 2017
 
