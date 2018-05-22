@@ -92,8 +92,16 @@ namespace hbm {
 						// socket got closed
 						m_workers.erase(clientId);
 					} else {
-						if ((errno!=EAGAIN) && (errno!=EWOULDBLOCK)) {
+#ifdef _WIN32
+						int retVal = WSAGetLastError();
+						if ((retVal != WSAEWOULDBLOCK) && (retVal != ERROR_IO_PENDING) && (retVal != WSAEINPROGRESS)) {
+#else
+						if ((errno != EAGAIN) && (errno != EWOULDBLOCK)) {
+#endif
+
+
 							// a real error
+							m_workers.erase(clientId);
 						}
 					}
 				} while (result>0);
@@ -216,20 +224,25 @@ namespace hbm {
 
 			BOOST_AUTO_TEST_CASE(connect_test)
 			{
+				int result;
 				start();
+				hbm::communication::SocketNonblocking client(m_eventloop);
 #ifndef _WIN32
 				static const char server[] = "::1";
 #else
 				static const char server[] = "127.0.0.1";
+
 #endif
+				for (unsigned int cycleIndex = 0; cycleIndex < 1000; ++cycleIndex) {
+					result = client.connect(server, std::to_string(PORT));
+					BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 
-				hbm::communication::SocketNonblocking client(m_eventloop);
+					client.disconnect();
+				}
+
 				// wrong port! Should fail
-				int result = client.connect(server, std::to_string(PORT+1));
+				result = client.connect(server, std::to_string(PORT + 1));
 				BOOST_CHECK_MESSAGE(result == -1, strerror(errno));
-
-				result = client.connect(server, std::to_string(PORT));
-				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 			}
 
 
