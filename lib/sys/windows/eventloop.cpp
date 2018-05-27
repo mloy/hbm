@@ -82,26 +82,33 @@ namespace hbm {
 				pOverlapped = NULL;
 				result = GetQueuedCompletionStatus(m_completionPort, &size, &completionKey, &pOverlapped, INFINITE);
 				if (result == FALSE) {
-					int lastError = GetLastError();
-					
-					if (lastError == ERROR_NETNAME_DELETED) {
-						// ERROR_NETNAME_DELETED happens on closure of connection
-						// Happpens also if tcp keep alive recognizes loss of connection.
-						// We need to call the callback routine only once to handle the error.
-						std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-						eventInfos_t::iterator iter = m_inEventInfos.find(pOverlapped->hEvent);
-						if (iter != m_inEventInfos.end()) {
-							iter->second();
-						}
-					} else if (lastError != ERROR_OPERATION_ABORTED) {
-						// ERROR_OPERATION_ABORTED happens on cancelation of an overlapped operation and is to be ignored.
-						std::string message;
-						LPCSTR messages;
-
-						message = "Event loop stopped with error " + std::to_string(lastError);
-						messages = message.c_str();
+					if (pOverlapped==NULL) {
+						// nothing was dequeued...
+						std::string message = "Event loop woke up but nothing was dequeued. Waiting for next events...";
+						LPCSTR messages = message.c_str();
 						ReportEvent(m_hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL, 1, 0, reinterpret_cast < LPSTRINGTYPE* > (&messages), NULL);
-						break;
+					} else {
+						int lastError = GetLastError();
+						
+						if (lastError == ERROR_NETNAME_DELETED) {
+							// ERROR_NETNAME_DELETED happens on closure of connection
+							// Happpens also if tcp keep alive recognizes loss of connection.
+							// We need to call the callback routine only once to handle the error.
+							std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
+							eventInfos_t::iterator iter = m_inEventInfos.find(pOverlapped->hEvent);
+							if (iter != m_inEventInfos.end()) {
+								iter->second();
+							}
+						} else if (lastError != ERROR_OPERATION_ABORTED) {
+							// ERROR_OPERATION_ABORTED happens on cancelation of an overlapped operation and is to be ignored.
+							std::string message;
+							LPCSTR messages;
+	
+							message = "Event loop stopped with error " + std::to_string(lastError);
+							messages = message.c_str();
+							ReportEvent(m_hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL, 1, 0, reinterpret_cast < LPSTRINGTYPE* > (&messages), NULL);
+							break;
+						}
 					}
 				} else {
 					if (pOverlapped == NULL) {
@@ -112,13 +119,13 @@ namespace hbm {
 					{
 						ssize_t retval;
 
-						std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-						eventInfos_t::iterator iter = m_inEventInfos.find(pOverlapped->hEvent);
-						if (iter != m_inEventInfos.end()) {
-							do {
+						do {
+							std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
+							eventInfos_t::iterator iter = m_inEventInfos.find(pOverlapped->hEvent);
+							if (iter != m_inEventInfos.end()) {
 								retval = iter->second();
-							} while (retval > 0);
-						}
+							}
+						} while (retval > 0);
 					}
 				}
 			} while (true);
