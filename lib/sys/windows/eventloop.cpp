@@ -77,6 +77,13 @@ namespace hbm {
 			DWORD size;
 			ULONG_PTR completionKey;
 			OVERLAPPED* pOverlapped;
+
+
+			if (m_completionPort == NULL) {
+				LPCSTR messages = "Could not create io completion port!";
+				ReportEvent(m_hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL, 1, 0, reinterpret_cast < LPSTRINGTYPE* > (&messages), NULL);
+				return -1;
+			}
 			
 			do {
 				pOverlapped = NULL;
@@ -84,8 +91,7 @@ namespace hbm {
 				if (result == FALSE) {
 					if (pOverlapped==NULL) {
 						// nothing was dequeued...
-						std::string message = "Event loop woke up but nothing was dequeued. Waiting for next events...";
-						LPCSTR messages = message.c_str();
+						LPCSTR messages = "Event loop woke up but nothing was dequeued. Waiting for next events...";
 						ReportEvent(m_hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL, 1, 0, reinterpret_cast < LPSTRINGTYPE* > (&messages), NULL);
 					} else {
 						int lastError = GetLastError();
@@ -130,7 +136,6 @@ namespace hbm {
 				}
 			} while (true);
 			return 0;
-
 		}
 
 		void EventLoop::stop()
