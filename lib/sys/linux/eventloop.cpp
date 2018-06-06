@@ -201,7 +201,8 @@ namespace hbm {
 									// we are working edge triggered, hence we need to read everything that is available
 									try {
 										result = iter->second();
-									} catch (const std::bad_function_call&) {
+									} catch (...) {
+										// does also catch std::bad_function_call
 										result = 0;
 									}
 								} else {
@@ -226,7 +227,8 @@ namespace hbm {
 								if (iter!=m_outEventInfos.end()) {
 									try {
 										result = iter->second();
-									} catch (const std::bad_function_call&) {
+									} catch (...) {
+										// does also catch std::bad_function_call
 										result = 0;
 									}
 								} else {
