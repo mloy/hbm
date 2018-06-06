@@ -210,6 +210,7 @@ namespace hbm {
 										// stop notification!
 										return 0;
 									}
+									result = 0;
 								}
 							} while (result>0);
 						}
@@ -236,6 +237,7 @@ namespace hbm {
 										// stop notification!
 										return 0;
 									}
+									result = 0;
 								}
 							} while (result>0);
 						}
