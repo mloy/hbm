@@ -84,9 +84,10 @@ namespace hbm {
 			uint8_t upperMost = bigAddress >> 24;
 			if (upperMost==0){
 				return false;
-			} else if ((upperMost==24)||(upperMost==25)||(upperMost==26)) {
-				// reserved for quantumx internal firewire communcation
-				return false;
+// this is specific for QuantumX and should not be handled here!
+//			} else if ((upperMost==24)||(upperMost==25)||(upperMost==26)) {
+//				// reserved for quantumx internal firewire communcation
+//				return false;
 			} else if (upperMost==127) {
 				// Loopback and diagnostics
 				return false;
