@@ -136,6 +136,7 @@ namespace hbm {
 			int ret;
 			eventInfos_t::iterator outputEvent = m_outEventInfos.find(fd);
 			if (outputEvent!=m_outEventInfos.end()) {
+				// keep the existing EPOLLOUT event
 				struct epoll_event ev;
 				memset(&ev, 0, sizeof(ev));
 				ev.events = EPOLLOUT | EPOLLET;
@@ -153,10 +154,11 @@ namespace hbm {
 			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 			int ret;
 			eventInfos_t::iterator inputEvent = m_inEventInfos.find(fd);
-			if (inputEvent!=m_outEventInfos.end()) {
+			if (inputEvent!=m_inEventInfos.end()) {
+				// keep the existing EPOLLIN event
 				struct epoll_event ev;
 				memset(&ev, 0, sizeof(ev));
-				ev.events = EPOLLOUT | EPOLLET;
+				ev.events = EPOLLIN | EPOLLET;
 				ev.data.fd = fd;
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
