@@ -2,6 +2,7 @@
 
 ## v1.0.12
  - ipv4 address ranges reserved for QuantumX FireWire should not be checked here
+ - Linux eventloop: Fix confusion when removing in or out event and keep the other
 
 ## v1.0.11
  - fix bug in eventloop (Linux): callback function might destroy the object that triggered the event.
