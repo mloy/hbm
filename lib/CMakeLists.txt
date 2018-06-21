@@ -76,8 +76,11 @@ set_target_properties(
   VERSION ${HBM_VERSION}
   )
 
-configure_file("pkg-config/hbm.pc.in" "pkg-config/hbm.pc" @ONLY)
-
+set(prefix ${CMAKE_INSTALL_PREFIX})
+set(exec_prefix "\${prefix}")
+set(libdir "\${exec_prefix}/lib")
+set(includedir "\${prefix}/include")
+configure_file("pkg-config/hbm.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" @ONLY)
 
 
 INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" DESTINATION lib/pkgconfig)
