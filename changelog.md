@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.12
+ - Build system issues
+
 ## v1.0.11
  - fix bug in eventloop (Linux): callback function might destroy the object that triggered the event.
  - ipv4 address ranges reserved for QuantumX FireWire should not be checked here
