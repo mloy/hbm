@@ -1,6 +1,6 @@
 # Changelog for hbm
 
-## v1.0.12
+## v1.0.12, v1.0.13
  - Build system issues
 
 ## v1.0.11
