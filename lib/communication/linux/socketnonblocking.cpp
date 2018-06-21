@@ -377,10 +377,8 @@ bool hbm::communication::SocketNonblocking::checkSockAddr(const struct ::sockadd
 		return false;
 	}
 
-	if(
-		 (strcmp(host, checkHost)==0) &&
-		 (strcmp(service, ckeckService)==0)
-		 )
+	if ((strcmp(host, checkHost)==0) && (strcmp(service, ckeckService)==0)
+		)
 	{
 		return true;
 	}
