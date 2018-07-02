@@ -50,11 +50,14 @@ namespace hbm {
 			}
 			
 			int mode = EPOLL_CTL_MOD;
-
+			struct epoll_event ev;
+			memset(&ev, 0, sizeof(ev));
+			ev.events = EPOLLIN | EPOLLET;
 			{
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 				eventInfos_t::iterator outputEvent = m_outEventInfos.find(fd);
 				eventInfos_t::iterator inputEvent = m_inEventInfos.find(fd);
+
 				if ((inputEvent==m_inEventInfos.end())&&(outputEvent==m_outEventInfos.end())) {
 					mode = EPOLL_CTL_ADD;
 				}
@@ -65,17 +68,14 @@ namespace hbm {
 					inputEvent->second = eventHandler;
 				}
 
-				struct epoll_event ev;
-				memset(&ev, 0, sizeof(ev));
-				ev.events = EPOLLIN | EPOLLET;
 				if (m_outEventInfos.find(fd)!=m_outEventInfos.end()) {
 					ev.events |= EPOLLOUT;
 				}
-				ev.data.fd = fd;
-				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
-					syslog(LOG_ERR, "epoll_ctl failed while adding event '%s' epoll_d:%d, event_fd:%d", strerror(errno), m_epollfd, fd);
-					return -1;
-				}
+			}
+			ev.data.fd = fd;
+			if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
+				syslog(LOG_ERR, "epoll_ctl failed while adding event '%s' epoll_d:%d, event_fd:%d", strerror(errno), m_epollfd, fd);
+				return -1;
 			}
 
 			// there might have been work to do before fd was added to epoll. This won't be signaled by edge triggered epoll. Try until there is nothing left.
@@ -93,7 +93,9 @@ namespace hbm {
 			}
 			
 			int mode = EPOLL_CTL_MOD;
-
+			struct epoll_event ev;
+			memset(&ev, 0, sizeof(ev));
+			ev.events = EPOLLOUT | EPOLLET;
 			{
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 				eventInfos_t::iterator outputEvent = m_outEventInfos.find(fd);
@@ -109,17 +111,14 @@ namespace hbm {
 					outputEvent->second = eventHandler;
 				}
 
-				struct epoll_event ev;
-				memset(&ev, 0, sizeof(ev));
-				ev.events = EPOLLOUT | EPOLLET;
 				if (m_inEventInfos.find(fd)!=m_inEventInfos.end()) {
 					ev.events |= EPOLLIN;
 				}
-				ev.data.fd = fd;
-				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
-					syslog(LOG_ERR, "epoll_ctl failed while adding event '%s' epoll_d:%d, event_fd:%d", strerror(errno), m_epollfd, fd);
-					return -1;
-				}
+			}
+			ev.data.fd = fd;
+			if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
+				syslog(LOG_ERR, "epoll_ctl failed while adding event '%s' epoll_d:%d, event_fd:%d", strerror(errno), m_epollfd, fd);
+				return -1;
 			}
 
 			// there might have been work to do before fd was added to epoll. This won't be signaled by edge triggered epoll. Try until there is nothing left.
