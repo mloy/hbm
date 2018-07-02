@@ -61,7 +61,7 @@ namespace hbm {
 				if (WSAGetLastError() == WSAEWOULDBLOCK) {
 					// important: Makes io completion to be signalled by the next arriving byte
 					Flags = 0;
-					if (WSARecv(reinterpret_cast <SOCKET> (ev.fileHandle), &signalBuffer, 1, &numberOfBytesRecvd, &Flags, &ev.overlapped, NULL) == 0) {
+					if (WSARecv(reinterpret_cast <SOCKET> (ev.fileHandle), &signalBuffer, 1, NULL, &Flags, &ev.overlapped, NULL) == 0) {
 						// workaround: if the operation completed with success, there was something to be received. In this case the event will not be signaled. Call WSARecv once more to get the data.
 						Flags = 0;
 						retVal = WSARecv(reinterpret_cast <SOCKET> (ev.fileHandle), buffers, 2, &numberOfBytesRecvd, &Flags, NULL, NULL);
