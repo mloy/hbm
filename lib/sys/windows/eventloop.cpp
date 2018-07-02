@@ -97,11 +97,13 @@ namespace hbm {
 						int lastError = GetLastError();
 						
 						if (lastError == ERROR_NETNAME_DELETED) {
+							HANDLE event = pOverlapped->hEvent;
+
 							// ERROR_NETNAME_DELETED happens on closure of connection
 							// Happpens also if tcp keep alive recognizes loss of connection.
 							// We need to call the callback routine only once to handle the error.
 							std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-							eventInfos_t::iterator iter = m_inEventInfos.find(pOverlapped->hEvent);
+							eventInfos_t::iterator iter = m_inEventInfos.find(event);
 							if (iter != m_inEventInfos.end()) {
 								iter->second();
 							}
