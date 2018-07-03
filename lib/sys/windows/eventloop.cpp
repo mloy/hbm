@@ -47,7 +47,11 @@ namespace hbm {
 				return 0;
 			}
 
-			if (CreateIoCompletionPort(fd.fileHandle, m_completionPort, 0, 1) == NULL) {
+			// We use the completionkey to determine the event to handle.
+			// Using the ovelapped structure is dangearous because it is owned by the object that registers the event.
+			// After destruction, GetQueuedCompletionStatus() might deliver an overlapped structure that does not exist anymore!
+			ULONG completionKey = (ULONG)fd.overlapped.hEvent;
+			if (CreateIoCompletionPort(fd.fileHandle, m_completionPort, (ULONG_PTR)completionKey, 1) == NULL) {
 				int lastError = GetLastError();
 				// ERROR_INVALID_PARAMETER means that this handle is already registered
 				if (lastError != ERROR_INVALID_PARAMETER) {
@@ -75,7 +79,7 @@ namespace hbm {
 		{
 			BOOL result;
 			DWORD size;
-			ULONG_PTR completionKey;
+			ULONG_PTR completionKey = 0;
 			OVERLAPPED* pOverlapped;
 
 
@@ -97,7 +101,8 @@ namespace hbm {
 						int lastError = GetLastError();
 						
 						if (lastError == ERROR_NETNAME_DELETED) {
-							HANDLE event = pOverlapped->hEvent;
+							HANDLE event = (HANDLE)completionKey;
+							//HANDLE event = pOverlapped->hEvent;
 
 							// ERROR_NETNAME_DELETED happens on closure of connection
 							// Happpens also if tcp keep alive recognizes loss of connection.
@@ -119,22 +124,29 @@ namespace hbm {
 						}
 					}
 				} else {
-					if (pOverlapped == NULL) {
+//					if (pOverlapped==NULL) {
+//						// stop condition
+//						break;
+//					}
+
+//					{
+					ssize_t retval = 0;
+					HANDLE event = (HANDLE)completionKey;
+					//HANDLE event = pOverlapped->hEvent;
+
+					if (event == WSA_INVALID_EVENT) {
 						// stop condition
-						break;
+						return 0;
 					}
 
-					{
-						ssize_t retval;
-
-						do {
-							std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-							eventInfos_t::iterator iter = m_inEventInfos.find(pOverlapped->hEvent);
-							if (iter != m_inEventInfos.end()) {
-								retval = iter->second();
-							}
-						} while (retval > 0);
-					}
+					do {
+						std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
+						eventInfos_t::iterator iter = m_inEventInfos.find(event);
+						if (iter != m_inEventInfos.end()) {
+							retval = iter->second();
+						}
+					} while (retval > 0);
+//					}
 				}
 			} while (true);
 			return 0;
@@ -142,7 +154,7 @@ namespace hbm {
 
 		void EventLoop::stop()
 		{
-			PostQueuedCompletionStatus(m_completionPort, 0, 0, NULL);
+			PostQueuedCompletionStatus(m_completionPort, 0, (ULONG_PTR)WSA_INVALID_EVENT, NULL);
 		}
 	}
 }
