@@ -43,7 +43,7 @@ namespace hbm {
 			close(m_stopFd);
 		}
 
-		int EventLoop::addEvent(event fd, EventHandler_t eventHandler)
+		int EventLoop::addEvent(event fd, const EventHandler_t &eventHandler)
 		{
 			if((!eventHandler)||(fd==-1)) {
 				return -1;
@@ -86,7 +86,7 @@ namespace hbm {
 			return 0;
 		}
 		
-		int EventLoop::addOutEvent(event fd, EventHandler_t eventHandler)
+		int EventLoop::addOutEvent(event fd, const EventHandler_t &eventHandler)
 		{
 			if(!eventHandler) {
 				return -1;
