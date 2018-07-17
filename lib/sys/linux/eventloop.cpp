@@ -197,7 +197,6 @@ namespace hbm {
 									try {
 										result = iter->second();
 									} catch (...) {
-										// does also catch std::bad_function_call
 										result = 0;
 									}
 								} else {
@@ -208,6 +207,7 @@ namespace hbm {
 									result = 0;
 								}
 								if (result>0) {
+									// there might be more to read...
 									++eventsLeft;
 								} else {
 									// we are done with this event
@@ -220,13 +220,13 @@ namespace hbm {
 									try {
 										result = iter->second();
 									} catch (...) {
-										// does also catch std::bad_function_call
 										result = 0;
 									}
 								} else {
 									result = 0;
 								}
 								if (result>0) {
+									// there might be more to write...
 									++eventsLeft;
 								} else {
 									// we are done with this event

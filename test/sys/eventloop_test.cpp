@@ -234,7 +234,7 @@ BOOST_AUTO_TEST_CASE(restart_test)
 BOOST_AUTO_TEST_CASE(notify_test)
 {
 	unsigned int notificationCount = 0;
-	static const std::chrono::milliseconds duration(100);
+	//static const std::chrono::milliseconds duration(100);
 	hbm::sys::EventLoop eventLoop;
 	hbm::sys::Notifier notifier(eventLoop);
 	notifier.set(std::bind(&notifierIncrement, std::ref(notificationCount)));
@@ -253,12 +253,40 @@ BOOST_AUTO_TEST_CASE(notify_test)
 #endif
 	}
 
+	eventLoop.stop();
+	worker.join();
+
+	BOOST_CHECK_EQUAL(notificationCount, count);
+}
+
+BOOST_AUTO_TEST_CASE(multiple_event_test)
+{
+	unsigned int notificationCount = 0;
+	//static const std::chrono::milliseconds duration(100);
+	hbm::sys::EventLoop eventLoop;
+	hbm::sys::Notifier notifier1(eventLoop);
+	hbm::sys::Notifier notifier2(eventLoop);
+	hbm::sys::Notifier notifier3(eventLoop);
+	hbm::sys::Notifier notifier4(eventLoop);
+	notifier1.set(std::bind(&notifierIncrement, std::ref(notificationCount)));
+	notifier2.set(std::bind(&notifierIncrement, std::ref(notificationCount)));
+	notifier3.set(std::bind(&notifierIncrement, std::ref(notificationCount)));
+	notifier4.set(std::bind(&notifierIncrement, std::ref(notificationCount)));
+	
+	notifier1.notify();
+	notifier2.notify();
+	notifier3.notify();
+	notifier4.notify();
+	BOOST_CHECK_EQUAL(notificationCount, 0);
+
+	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, &eventLoop));
+
 
 
 	eventLoop.stop();
 	worker.join();
 
-	BOOST_CHECK_EQUAL(notificationCount, count);
+	BOOST_CHECK_EQUAL(notificationCount, 4);
 }
 
 BOOST_AUTO_TEST_CASE(oneshottimer_test)
