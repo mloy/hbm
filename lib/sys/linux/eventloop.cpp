@@ -1,4 +1,4 @@
-// Copyright 2014 Hottinger Baldwin Messtechnik
+﻿// Copyright 2014 Hottinger Baldwin Messtechnik
 // Distributed under MIT license
 // See file LICENSE provided
 
@@ -167,36 +167,30 @@ namespace hbm {
 			return ret;
 		}
 		
-		
 		int EventLoop::execute()
 		{
 			int nfds;
 			struct epoll_event events[MAXEVENTS];
+			ssize_t result;
+			int fd;
 
 			while (true) {
 				do {
 					nfds = epoll_wait(m_epollfd, events, MAXEVENTS, -1);
 				} while ((nfds==-1) && (errno==EINTR));
 
-				if (nfds<=0) {
-					// 0 means time out but is not possible here!
-					syslog(LOG_ERR, "epoll_wait failed ('%s') in eventloop ", strerror(errno));
-					return -1;
-				}
-
-
 				{
 					std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-					for (int n = 0; n < nfds; ++n) {
-						if(events[n].events & EPOLLIN) {
-							int fd = events[n].data.fd;
-
-							ssize_t result;
-							do {
-								// we are working edge triggered, hence we need to read everything that is available
-
-								// we do not iterate through the map of events.
-								// Hence callback functions or other threads might remove events from container without causing problems.
+					// We are working edge triggered, hence we need to process everything that is available for each event.
+					// To be fair, the callback of each signaled event is called only once. 
+					// After all the callbacks of all signaled events were called, we start from the beginning until no signaled event is left.
+					unsigned int eventsLeft;
+					
+					do {
+						eventsLeft = 0;
+						for (int n = 0; n < nfds; ++n) {
+							fd = events[n].data.fd;
+							if (events[n].events & EPOLLIN) {
 								eventInfos_t::iterator iter = m_inEventInfos.find(fd);
 								if (iter!=m_inEventInfos.end()) {
 									// we are working edge triggered, hence we need to read everything that is available
@@ -213,18 +207,14 @@ namespace hbm {
 									}
 									result = 0;
 								}
-							} while (result>0);
-						}
-						
-						if(events[n].events & EPOLLOUT) {
-							int fd = events[n].data.fd;
-
-							ssize_t result;
-							do {
-								// we are working edge triggered, hence we need to read everything that is available
-
-								// we do not iterate through the map of events.
-								// Hence callback functions or other threads might remove events from container without causing problems.
+								if (result>0) {
+									++eventsLeft;
+								} else {
+									// we are done with this event
+									events[n].events &= ~EPOLLIN;
+								}
+							}
+							if (events[n].events & EPOLLOUT) {
 								eventInfos_t::iterator iter = m_outEventInfos.find(fd);
 								if (iter!=m_outEventInfos.end()) {
 									try {
@@ -234,15 +224,17 @@ namespace hbm {
 										result = 0;
 									}
 								} else {
-									if (fd==m_stopFd) {
-										// stop notification!
-										return 0;
-									}
 									result = 0;
 								}
-							} while (result>0);
+								if (result>0) {
+									++eventsLeft;
+								} else {
+									// we are done with this event
+									events[n].events &= ~EPOLLOUT;
+								}
+							}
 						}
-					}
+					} while (eventsLeft);
 				}
 			}
 		}
