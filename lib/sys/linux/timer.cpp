@@ -42,7 +42,6 @@ namespace hbm {
 			return set(period.count(), repeated, eventHandler);
 		}
 
-
 		int Timer::set(unsigned int period_ms, bool repeated, Cb_t eventHandler)
 		{
 			if (period_ms==0) {
@@ -93,18 +92,25 @@ namespace hbm {
 
 		int Timer::process()
 		{
+			// callback function is to be executed once! We read until would block, execute once and return 0 so that the eventloop won't call again
+			uint64_t timerEventCountSum = 0;
 			uint64_t timerEventCount = 0;
-			if (::read(m_fd, &timerEventCount, sizeof(timerEventCount))==sizeof(timerEventCount)) {
-				if (timerEventCount>1) {
+			while (::read(m_fd, &timerEventCount, sizeof(timerEventCount))==sizeof(timerEventCount)) {
+				if (timerEventCount>0) {
+					timerEventCountSum += timerEventCount;
+				}
+			}
+
+			if (timerEventCountSum) {
+				if (timerEventCountSum>1) {
 					// this is possible for cyclic timers only!
-					syslog(LOG_WARNING, "cyclic timer %d elapsed %" PRIu64 " times before callback was executed.", m_fd, timerEventCount);
+					syslog(LOG_WARNING, "cyclic timer %d elapsed %" PRIu64 " times before callback was executed.", m_fd, timerEventCountSum);
 				}
 				if (m_eventHandler) {
 					m_eventHandler(true);
 				}
 			}
-			return static_cast< int >(timerEventCount);
-
+			return 0;
 		}
 	}
 }

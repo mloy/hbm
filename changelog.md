@@ -1,5 +1,10 @@
 # Changelog for hbm
 
+## v1.0.16
+ - Linux: Timer callback function is to be executed once! We read all events from the
+ timer until would block, execute once and return 0 so that the eventloop won't call 
+ again.
+
 ## v1.0.15
  - Fair eventloop under linux: The callback of each signaled event is called only once.
  After all the callbacks of all signaled events were called, we start from the 
