@@ -60,6 +60,12 @@ static void notifierIncrement(unsigned int& value)
 	++value;
 }
 
+//static void recursiveNotifierIncrement(hbm::sys::Notifier& notifier, unsigned int& value)
+//{
+//	++value;
+//	notifier.notify();
+//}
+
 static void notifierIncrementCheckLimit()
 {
 	++incrementCount;
@@ -259,6 +265,27 @@ BOOST_AUTO_TEST_CASE(notify_test)
 	BOOST_CHECK_EQUAL(notificationCount, count);
 }
 
+//BOOST_AUTO_TEST_CASE(recursive_notification_test)
+//{
+//	unsigned int notificationCount = 0;
+//	hbm::sys::EventLoop eventLoop;
+//	hbm::sys::Notifier notifier(eventLoop);
+//	notifier.set(std::bind(&recursiveNotifierIncrement, std::ref(notifier), std::ref(notificationCount)));
+//	BOOST_CHECK_EQUAL(notificationCount, 0);
+
+//	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, &eventLoop));
+
+
+//	notifier.notify();
+
+//	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+//	eventLoop.stop();
+//	worker.join();
+
+//	BOOST_CHECK_GT(notificationCount, 1);
+//}
+
 BOOST_AUTO_TEST_CASE(multiple_event_test)
 {
 	unsigned int notificationCount = 0;
@@ -401,7 +428,7 @@ BOOST_AUTO_TEST_CASE(restart_timer_test)
 {
 	hbm::sys::EventLoop eventLoop;
 
-	static const std::chrono::milliseconds duration(100);
+	static const std::chrono::milliseconds duration(50);
 
 	static const unsigned int restartCount = 10;
 	unsigned int counter = 0;

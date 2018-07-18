@@ -178,6 +178,10 @@ namespace hbm {
 				do {
 					nfds = epoll_wait(m_epollfd, events, MAXEVENTS, -1);
 				} while ((nfds==-1) && (errno==EINTR));
+				
+				if (nfds<=0) {
+					return nfds;
+				}
 
 				{
 					std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
