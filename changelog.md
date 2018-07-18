@@ -1,15 +1,23 @@
 # Changelog for hbm
 
+## v1.0.15
+ - Fair eventloop under linux: The callback of each signaled event is called only once.
+ After all the callbacks of all signaled events were called, we start from the 
+ beginning until no signaled event is left.
+
 ## v1.0.14
  - Fix IOCP bug under Windows:	We use the completionkey to determine the event to handle.
- Using the ovelapped structure is dangearous because it is owned by the object that registers the event.
- After destruction, GetQueuedCompletionStatus() might deliver an overlapped structure that does not exist anymore!
+ Using the ovelapped structure is dangearous because it is owned by the object that 
+ registers the event.
+ After destruction, GetQueuedCompletionStatus() might deliver an overlapped structure 
+ that does not exist anymore!
 
 ## v1.0.12, v1.0.13
  - Build system issues
 
 ## v1.0.11
- - fix bug in eventloop (Linux): callback function might destroy the object that triggered the event.
+ - fix bug in eventloop (Linux): callback function might destroy the object that
+   triggered the event.
  - ipv4 address ranges reserved for QuantumX FireWire should not be checked here
  - Linux eventloop: Fix confusion when removing in or out event and keep the other
 
