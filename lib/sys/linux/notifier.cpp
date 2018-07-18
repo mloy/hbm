@@ -49,16 +49,19 @@ namespace hbm {
 
 		int Notifier::process()
 		{
-			uint64_t value;
-			int readStatus = ::read(m_fd, &value, sizeof(value));
-			if(readStatus>0) {
-				for (uint64_t i=0; i<value; i++) {
-					if (m_eventHandler) {
-						m_eventHandler();
-					}
+			uint64_t eventCountSum = 0;
+			uint64_t eventCount = 0;
+			while (::read(m_fd, &eventCount, sizeof(eventCount))==sizeof(eventCount)) {
+				if (eventCount>0) {
+					eventCountSum += eventCount;
 				}
 			}
-			return readStatus;
+			for (uint64_t i=0; i<eventCountSum; i++) {
+				if (m_eventHandler) {
+					m_eventHandler();
+				}
+			}
+			return 0;
 		}
 	}
 }

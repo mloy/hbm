@@ -60,11 +60,11 @@ static void notifierIncrement(unsigned int& value)
 	++value;
 }
 
-//static void recursiveNotifierIncrement(hbm::sys::Notifier& notifier, unsigned int& value)
-//{
-//	++value;
-//	notifier.notify();
-//}
+static void recursiveNotifierIncrement(hbm::sys::Notifier& notifier, unsigned int& value)
+{
+	++value;
+	notifier.notify();
+}
 
 static void notifierIncrementCheckLimit()
 {
@@ -265,26 +265,26 @@ BOOST_AUTO_TEST_CASE(notify_test)
 	BOOST_CHECK_EQUAL(notificationCount, count);
 }
 
-//BOOST_AUTO_TEST_CASE(recursive_notification_test)
-//{
-//	unsigned int notificationCount = 0;
-//	hbm::sys::EventLoop eventLoop;
-//	hbm::sys::Notifier notifier(eventLoop);
-//	notifier.set(std::bind(&recursiveNotifierIncrement, std::ref(notifier), std::ref(notificationCount)));
-//	BOOST_CHECK_EQUAL(notificationCount, 0);
+BOOST_AUTO_TEST_CASE(recursive_notification_test)
+{
+	unsigned int notificationCount = 0;
+	hbm::sys::EventLoop eventLoop;
+	hbm::sys::Notifier notifier(eventLoop);
+	notifier.set(std::bind(&recursiveNotifierIncrement, std::ref(notifier), std::ref(notificationCount)));
+	BOOST_CHECK_EQUAL(notificationCount, 0);
 
-//	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, &eventLoop));
+	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, &eventLoop));
 
 
-//	notifier.notify();
+	notifier.notify();
 
-//	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-//	eventLoop.stop();
-//	worker.join();
+	eventLoop.stop();
+	worker.join();
 
-//	BOOST_CHECK_GT(notificationCount, 1);
-//}
+	BOOST_CHECK_GT(notificationCount, 1);
+}
 
 BOOST_AUTO_TEST_CASE(multiple_event_test)
 {

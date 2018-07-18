@@ -1,5 +1,10 @@
 # Changelog for hbm
 
+
+ - Linux: Notifier collects the number of events first, executes callback accordingly 
+ and returns 0 so that the eventloop won't call
+ again.
+
 ## v1.0.16
  - Linux: Timer callback function is to be executed once! We read all events from the
  timer until would block, execute once and return 0 so that the eventloop won't call 
