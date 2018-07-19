@@ -102,10 +102,11 @@ namespace hbm {
 			}
 
 			if (timerEventCountSum) {
-				if (timerEventCountSum>1) {
-					// this is possible for cyclic timers only!
-					syslog(LOG_WARNING, "cyclic timer %d elapsed %" PRIu64 " times before callback was executed.", m_fd, timerEventCountSum);
-				}
+// This takes a serious amount of time which is disturbing in many cases!
+//				if (timerEventCountSum>1) {
+//					// this is possible for cyclic timers only!
+//					syslog(LOG_WARNING, "cyclic timer %d elapsed %" PRIu64 " times before callback was executed.", m_fd, timerEventCountSum);
+//				}
 				if (m_eventHandler) {
 					m_eventHandler(true);
 				}

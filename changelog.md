@@ -1,9 +1,11 @@
 # Changelog for hbm
 
-
+## v1.0.17
  - Linux: Notifier collects the number of events first, executes callback accordingly 
  and returns 0 so that the eventloop won't call
  again.
+ - Linux: Timer does not log if event happens more than once. This takes a serious 
+ amount of time which is disturbing in many cases.
 
 ## v1.0.16
  - Linux: Timer callback function is to be executed once! We read all events from the
