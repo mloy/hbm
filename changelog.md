@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.18
+ - Linux: Allow gathered write to socket to use cork option
+
 ## v1.0.17
  - Linux: Notifier collects the number of events first, executes callback accordingly 
  and returns 0 so that the eventloop won't call
