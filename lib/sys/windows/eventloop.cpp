@@ -32,7 +32,7 @@ namespace hbm {
 			CloseHandle(m_completionPort);
 		}
 
-		int EventLoop::addEvent(event fd, EventHandler_t eventHandler)
+		int EventLoop::addEvent(event fd, const EventHandler_t &eventHandler)
 		{
 			if (!eventHandler) {
 				return -1;
