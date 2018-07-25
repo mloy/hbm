@@ -233,7 +233,7 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 }
 
 
-ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blocks, size_t blockCount)
+ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blocks, size_t blockCount, bool more)
 {
 	size_t completeLength = 0;
 
@@ -241,7 +241,19 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 		completeLength += blocks[blockIndex].size;
 	}
 
-	ssize_t retVal = writev(m_event, reinterpret_cast < const iovec* > (blocks), blockCount);
+	ssize_t retVal;
+	int flags = 0;
+	if(more) {
+		// we use sendmsg instead of writev because we want to set the flag parameter
+		msghdr msgHdr;
+		memset(&msgHdr, 0, sizeof(msgHdr));
+		msgHdr.msg_iov = const_cast < iovec * > (reinterpret_cast < const iovec * > (blocks));
+		msgHdr.msg_iovlen = blockCount;
+		retVal = sendmsg(m_event, &msgHdr, flags);
+	} else {
+		retVal = writev(m_event, reinterpret_cast < const iovec* > (blocks), blockCount);
+	}
+
 	if (retVal==0) {
 		return retVal;
 	} else if (retVal==-1) {
@@ -263,7 +275,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 				// this block was not send completely
 				size_t bytesRemaining = blockSum - bytesWritten;
 				size_t start = blocks[index].size-bytesRemaining;
-				retVal = sendBlock(static_cast < const unsigned char* > (blocks[index].pData)+start, bytesRemaining, false);
+				retVal = sendBlock(static_cast < const unsigned char* > (blocks[index].pData)+start, bytesRemaining, more);
 				if(retVal>0) {
 					bytesWritten += retVal;
 				} else {
@@ -278,7 +290,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 
 
 
-ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &blocks)
+ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &blocks, bool more)
 {
 	std::vector < dataBlock_t > dataBlockVector;
 	dataBlockVector.reserve(6); // reserve a reasonable number of entries!
@@ -292,7 +304,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 		dataBlockVector.push_back(newIovec);
 	}
 
-	return sendBlocks(&dataBlockVector[0], dataBlockVector.size());
+	return sendBlocks(&dataBlockVector[0], dataBlockVector.size(), more);
 }
 
 ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, size_t size, bool more)

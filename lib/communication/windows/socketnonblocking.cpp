@@ -250,17 +250,17 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
   return static_cast < ssize_t > (len);
 }
 
-ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blocks, size_t blockCount)
+ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blocks, size_t blockCount, bool more)
 {
         hbm::communication::dataBlocks_t dataBlocks;
 	for(unsigned int i=0; i<blockCount; ++i) {
 	        hbm::communication::dataBlock_t dataBlock(blocks[i].pData, blocks[i].size);
 		dataBlocks.push_back(dataBlock);
 	}
-	return sendBlocks(dataBlocks);
+	return sendBlocks(dataBlocks, more);
 }
 
-ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &blocks)
+ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &blocks, bool more)
 {
 	std::vector < WSABUF > buffers;
 	buffers.reserve(blocks.size());
@@ -299,7 +299,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 				// this block was not send completely
 				size_t bytesRemaining = blockSum - bytesWritten;
 				size_t start = buffers[index].len - bytesRemaining;
-				retVal = sendBlock(buffers[index].buf + start, bytesRemaining, false);
+				retVal = sendBlock(buffers[index].buf + start, bytesRemaining, more);
 				if (retVal > 0) {
 					bytesWritten += retVal;
 				}
