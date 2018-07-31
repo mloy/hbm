@@ -92,16 +92,20 @@ namespace hbm {
 
 		int Timer::process()
 		{
-			// callback function is to be executed once! We read until would block, execute once and return 0 so that the eventloop won't call again
-			uint64_t timerEventCountSum = 0;
 			uint64_t timerEventCount = 0;
-			while (::read(m_fd, &timerEventCount, sizeof(timerEventCount))==sizeof(timerEventCount)) {
-				if (timerEventCount>0) {
-					timerEventCountSum += timerEventCount;
-				}
-			}
+			// it is sufficient to read once in order to rearm cyclic timers
+			::read(m_fd, &timerEventCount, sizeof(timerEventCount));
+//			uint64_t timerEventCountSum = 0;
+//			uint64_t timerEventCount = 0;
+// callback function is to be executed once! We read until would block, execute once and return 0 so that the eventloop won't call again
+//			while (::read(m_fd, &timerEventCount, sizeof(timerEventCount))==sizeof(timerEventCount)) {
+//				if (timerEventCount>0) {
+//					timerEventCountSum += timerEventCount;
+//				}
+//			}
 
-			if (timerEventCountSum) {
+			if (timerEventCount) {
+//			if (timerEventCountSum) {
 // This takes a serious amount of time which is disturbing in many cases!
 //				if (timerEventCountSum>1) {
 //					// this is possible for cyclic timers only!

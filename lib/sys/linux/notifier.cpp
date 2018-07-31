@@ -49,14 +49,18 @@ namespace hbm {
 
 		int Notifier::process()
 		{
-			uint64_t eventCountSum = 0;
 			uint64_t eventCount = 0;
-			while (::read(m_fd, &eventCount, sizeof(eventCount))==sizeof(eventCount)) {
-				if (eventCount>0) {
-					eventCountSum += eventCount;
-				}
-			}
-			for (uint64_t i=0; i<eventCountSum; i++) {
+			// it is sufficient to read once in order to rearm
+			::read(m_fd, &eventCount, sizeof(eventCount));
+//			uint64_t eventCountSum = 0;
+//			uint64_t eventCount = 0;
+//			while (::read(m_fd, &eventCount, sizeof(eventCount))==sizeof(eventCount)) {
+//				if (eventCount>0) {
+//					eventCountSum += eventCount;
+//				}
+//			}
+//			for (uint64_t i=0; i<eventCountSum; i++) {
+			for (uint64_t i=0; i<eventCount; i++) {
 				if (m_eventHandler) {
 					m_eventHandler();
 				}

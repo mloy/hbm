@@ -15,7 +15,10 @@
 
 namespace hbm {
 	namespace sys {
-		/// A timer running periodically or in single-shot-mode. Starts when setting the period. Callback routine gets called when period elapsed or running timer gets canceled.
+		/// A timer running periodically or in single-shot-mode. Starts when setting the period.
+		/// Callback routine gets called when period elapsed or running timer gets canceled.
+
+		/// Timers may operate periodically. If timer cycle time elapsed several times until timer is processed, the callback routine is executed only once!
 		class Timer {
 		public:
 			/// called when timer fires or is being cancled

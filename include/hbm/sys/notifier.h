@@ -14,6 +14,7 @@ namespace hbm {
 		class EventLoop;
 
 		/// Notify someone else waiting for a specific event
+		/// If notified n (>0) times until notifier is processed, the callback routine is executed n times!
 		class Notifier {
 			typedef std::function < void () > Cb_t;
 		public:
