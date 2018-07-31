@@ -51,7 +51,10 @@ namespace hbm {
 		{
 			uint64_t eventCount = 0;
 			// it is sufficient to read once in order to rearm
-			::read(m_fd, &eventCount, sizeof(eventCount));
+			ssize_t result = ::read(m_fd, &eventCount, sizeof(eventCount));
+			if (static_cast < size_t > (result)!=sizeof(eventCount)) {
+				return -1;
+			}
 //			uint64_t eventCountSum = 0;
 //			uint64_t eventCount = 0;
 //			while (::read(m_fd, &eventCount, sizeof(eventCount))==sizeof(eventCount)) {

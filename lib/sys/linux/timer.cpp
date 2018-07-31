@@ -94,7 +94,10 @@ namespace hbm {
 		{
 			uint64_t timerEventCount = 0;
 			// it is sufficient to read once in order to rearm cyclic timers
-			::read(m_fd, &timerEventCount, sizeof(timerEventCount));
+			ssize_t result = ::read(m_fd, &timerEventCount, sizeof(timerEventCount));
+			if (static_cast < size_t > (result)!=sizeof(timerEventCount)) {
+				return -1;
+			}
 //			uint64_t timerEventCountSum = 0;
 //			uint64_t timerEventCount = 0;
 // callback function is to be executed once! We read until would block, execute once and return 0 so that the eventloop won't call again
