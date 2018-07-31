@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.22
+ - Linux Optimization: It is sufficient to read once in order to rearm timerfd and eventfd.
+
 ## v1.0.19
  - Linux: Allow gathered write on socket to use cork option
 
