@@ -1,10 +1,16 @@
 stages:
   - build
 
-ci_build_and_test:
+ci_build_and_test_linux:
   stage: build
   script:
     - mkdir build && cd build && cmake .. -DFEATURE_POST_BUILD_UNITTEST=ON && make && make test
   tags:
     - linux
     
+#ci_build_and_test_windows:
+#  stage: build
+#  script:
+#    -
+#  tags:
+#    - windows
