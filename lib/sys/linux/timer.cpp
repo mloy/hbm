@@ -92,30 +92,13 @@ namespace hbm {
 
 		int Timer::process()
 		{
+			// We do not really need to know the count. Read gives 8 byte if timer triggered at least once.
 			uint64_t timerEventCount = 0;
 			// it is sufficient to read once in order to rearm cyclic timers
 			ssize_t result = ::read(m_fd, &timerEventCount, sizeof(timerEventCount));
-			if (static_cast < size_t > (result)!=sizeof(timerEventCount)) {
-				return -1;
-			}
-//			uint64_t timerEventCountSum = 0;
-//			uint64_t timerEventCount = 0;
-// callback function is to be executed once! We read until would block, execute once and return 0 so that the eventloop won't call again
-//			while (::read(m_fd, &timerEventCount, sizeof(timerEventCount))==sizeof(timerEventCount)) {
-//				if (timerEventCount>0) {
-//					timerEventCountSum += timerEventCount;
-//				}
-//			}
-
-			if (timerEventCount) {
-//			if (timerEventCountSum) {
-// This takes a serious amount of time which is disturbing in many cases!
-//				if (timerEventCountSum>1) {
-//					// this is possible for cyclic timers only!
-//					syslog(LOG_WARNING, "cyclic timer %d elapsed %" PRIu64 " times before callback was executed.", m_fd, timerEventCountSum);
-//				}
+			if (static_cast < size_t > (result)==sizeof(timerEventCount)) {
 				if (m_eventHandler) {
-					m_eventHandler(true);
+						m_eventHandler(true);
 				}
 			}
 			return 0;
