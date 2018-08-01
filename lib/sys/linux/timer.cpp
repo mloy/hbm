@@ -33,7 +33,6 @@ namespace hbm {
 		Timer::~Timer()
 		{
 			m_eventLoop.eraseEvent(m_fd);
-			cancel();
 			close(m_fd);
 		}
 
