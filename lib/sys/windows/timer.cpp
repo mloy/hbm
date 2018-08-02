@@ -17,7 +17,7 @@ static void CALLBACK timerCb(void *pData, BOOLEAN fired)
 {
 	if (fired) {
 		hbm::sys::event* pEvent = reinterpret_cast <hbm::sys::event*> (pData);
-		PostQueuedCompletionStatus(pEvent->completionPort, 0, 0, &pEvent->overlapped);
+		PostQueuedCompletionStatus(pEvent->completionPort, 0, (ULONG_PTR)pEvent->overlapped.hEvent, &pEvent->overlapped);
 	}
 }
 
@@ -53,7 +53,6 @@ namespace hbm {
 				DeleteTimerQueueTimer(NULL, m_fd.overlapped.hEvent, NULL);
 				m_fd.overlapped.hEvent = NULL;
 			}
-			//cancel();
 
 			DWORD repeatPeriod;
 			if (repeated) {
