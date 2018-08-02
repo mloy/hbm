@@ -231,7 +231,8 @@ BOOST_AUTO_TEST_CASE(restart_test)
 		executionTimer.cancel();
 
 		BOOST_CHECK_EQUAL(result, 0);
-		BOOST_CHECK_GE(delta.count(), duration.count());
+		// Under windows we need a delta here. Under linux is the result is exact!
+		BOOST_CHECK_LE(abs(duration.count() - delta.count()), 1);
 	}
 }
 
