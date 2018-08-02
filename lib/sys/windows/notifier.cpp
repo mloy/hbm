@@ -20,7 +20,7 @@ namespace hbm {
 		{
 			m_fd.completionPort = m_eventLoop.getCompletionPort();
 			m_fd.overlapped.hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-			//m_eventLoop.addEvent(m_fd, std::bind(&Notifier::process, std::ref(*this)));
+			m_eventLoop.addEvent(m_fd, std::bind(&Notifier::process, std::ref(*this)));
 		}
 
 		Notifier::~Notifier()
@@ -32,7 +32,7 @@ namespace hbm {
 
 		int Notifier::notify()
 		{
-			if (PostQueuedCompletionStatus(m_fd.completionPort, 0, 0, &m_fd.overlapped)) {
+			if (PostQueuedCompletionStatus(m_fd.completionPort, 0, (ULONG_PTR)m_fd.overlapped.hEvent, &m_fd.overlapped)) {
 				return 0;
 			} else {
 				return -1;
