@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "socketnonblocking_test", "t
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "netlinkview", "tool\communication\netlinkview.vcxproj", "{5784BA62-D0E2-4050-B06F-9C4201E5C6BE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "eventlooptest", "test\sys\eventlooptest.vcxproj", "{A0897118-9F5B-4AC7-A27B-59E15FED6A2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -51,8 +53,19 @@ Global
 		{5784BA62-D0E2-4050-B06F-9C4201E5C6BE}.Release|Win32.ActiveCfg = Release|Win32
 		{5784BA62-D0E2-4050-B06F-9C4201E5C6BE}.Release|Win32.Build.0 = Release|Win32
 		{5784BA62-D0E2-4050-B06F-9C4201E5C6BE}.Release|x64.ActiveCfg = Release|Win32
+		{A0897118-9F5B-4AC7-A27B-59E15FED6A2E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A0897118-9F5B-4AC7-A27B-59E15FED6A2E}.Debug|Win32.Build.0 = Debug|Win32
+		{A0897118-9F5B-4AC7-A27B-59E15FED6A2E}.Debug|x64.ActiveCfg = Debug|x64
+		{A0897118-9F5B-4AC7-A27B-59E15FED6A2E}.Debug|x64.Build.0 = Debug|x64
+		{A0897118-9F5B-4AC7-A27B-59E15FED6A2E}.Release|Win32.ActiveCfg = Release|Win32
+		{A0897118-9F5B-4AC7-A27B-59E15FED6A2E}.Release|Win32.Build.0 = Release|Win32
+		{A0897118-9F5B-4AC7-A27B-59E15FED6A2E}.Release|x64.ActiveCfg = Release|x64
+		{A0897118-9F5B-4AC7-A27B-59E15FED6A2E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D0A388F8-A28A-4FC5-B386-8BAF081B0324}
 	EndGlobalSection
 EndGlobal
