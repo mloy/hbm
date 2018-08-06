@@ -39,6 +39,8 @@ namespace hbm {
 			std::string address;
 			/// the subnet mask as string xxx.xxx.xxx.xxx
 			std::string netmask;
+
+			bool operator==(const Ipv4Address& op) const;
 		};
 	}
 }

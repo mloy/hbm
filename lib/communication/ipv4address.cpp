@@ -214,6 +214,11 @@ namespace hbm {
 			}
 			return prefix;
 		}
+
+		bool Ipv4Address::operator == (const Ipv4Address& op) const
+		{
+			return equal(op);
+		}
 	}
 }
 
