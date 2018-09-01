@@ -7,6 +7,7 @@ INCLUDE(generate_doxygen)
 
 option(FEATURE_TOOLS                "Compile client software" OFF)
 option(FEATURE_POST_BUILD_UNITTEST  "Automatically run unit-tests as a post build step" OFF)
+option(FEATURE_GENERATE_DOC         "Generate documentation" OFF)
 
 add_subdirectory("lib")
 
