@@ -186,6 +186,7 @@ namespace hbm {
 			NetadapterList::Adapters adapters = m_netadapterList.get();
 			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
+				::syslog(LOG_DEBUG, "Adding interface %s to multicast group...", adapter.getName().c_str());
 				addInterface(adapter.getIndex());
 			}
 		}
@@ -195,6 +196,7 @@ namespace hbm {
 			NetadapterList::Adapters adapters = m_netadapterList.get();
 			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 				const communication::Netadapter& adapter = iter->second;
+				::syslog(LOG_DEBUG, "Dropping interface %s from multicast group...", adapter.getName().c_str());
 				dropInterface(adapter.getIndex());
 			}
 		}
