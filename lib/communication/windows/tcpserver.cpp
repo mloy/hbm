@@ -42,9 +42,7 @@ namespace hbm {
 
 		int TcpServer::start(uint16_t port, int backlog, Cb_t acceptCb)
 		{
-			////ipv6 does work for ipv4 too!
 			m_listeningEvent.fileHandle = reinterpret_cast < HANDLE > (socket(AF_INET, SOCK_STREAM, 0));
-			//m_listeningEvent.fileHandle = reinterpret_cast < HANDLE > (socket(AF_INET6, SOCK_STREAM, 0));
 
 			DWORD winLen;
 
@@ -59,13 +57,6 @@ namespace hbm {
 			address.sin_family = AF_INET;
 			address.sin_addr.s_addr = htonl(INADDR_ANY);
 			address.sin_port = htons(port);	
-
-
-			//sockaddr_in6 address;
-			//memset(&address, 0, sizeof(address));
-			//address.sin6_family = AF_INET6;
-			//address.sin6_addr = in6addr_any;
-			//address.sin6_port = htons(port);
 
 			if (::bind(reinterpret_cast < SOCKET > (m_listeningEvent.fileHandle), reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
 				printf("%s: Binding socket to port initialization failed '%s'", __FUNCTION__, strerror(errno));
