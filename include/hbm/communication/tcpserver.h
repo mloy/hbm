@@ -10,6 +10,7 @@
 
 #ifdef _WIN32
 #include <WinSock2.h>
+#include <Ws2ipdef.h>
 #include <WS2tcpip.h>
 #include <MSWSock.h>
 #undef max
@@ -67,7 +68,8 @@ namespace hbm {
 			SOCKET m_acceptSocket;
 
 			LPFN_ACCEPTEX m_acceptEx;
-			char m_acceptBuffer[1024];
+			/// be prepared for ipv6
+			char m_acceptBuffer[2*(sizeof(sockaddr_in6)+16)];
 			DWORD m_acceptSize;
 #endif
 			sys::EventLoop& m_eventLoop;

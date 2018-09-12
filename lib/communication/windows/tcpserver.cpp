@@ -12,6 +12,8 @@
 #include <memory>
 #include <cstring>
 
+#include "Ws2ipdef.h"
+
 #include <errno.h>
 
 #include "hbm/communication/socketnonblocking.h"
@@ -112,9 +114,11 @@ namespace hbm {
 		int TcpServer::prepareAccept()
 		{
 			m_acceptSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-			//m_acceptSocket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 
-			BOOL result = m_acceptEx(reinterpret_cast < SOCKET > (m_listeningEvent.fileHandle), m_acceptSocket, m_acceptBuffer, 0, 128, 128, &m_acceptSize, &m_listeningEvent.overlapped);
+			// We do not want to receive data here hence dwReceiveDataLength is 0.
+			// From MSDN for dwLocalAddressLength, dwRemoteAddressLength:
+			// "This value must be at least 16 bytes more than the maximum address length for the transport protocol in use."
+			BOOL result = m_acceptEx(reinterpret_cast < SOCKET > (m_listeningEvent.fileHandle), m_acceptSocket, m_acceptBuffer, 0, sizeof(sockaddr_in6)+16, sizeof(sockaddr_in6)+16, &m_acceptSize, &m_listeningEvent.overlapped);
 			if (result == FALSE) {
 				if (WSAGetLastError() == WSA_IO_PENDING) {
 					return 0;
