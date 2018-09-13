@@ -209,7 +209,7 @@ namespace hbm {
 			struct addrinfo* pResult = NULL;
 			char portString[8];
 
-			struct ip_mreqn im;
+			struct ip_mreq im;
 
 			memset(&hints, 0, sizeof(hints));
 
@@ -235,7 +235,7 @@ namespace hbm {
 
 			freeaddrinfo(pResult);
 
-			if (inet_aton(interfaceAddress.c_str(), &im.imr_address) == 0) {
+			if (inet_aton(interfaceAddress.c_str(), &im.imr_interface) == 0) {
 				::syslog(LOG_ERR, "'%s' not a valid IP address for IP_ADD_MEMBERSHIP!", interfaceAddress.c_str());
 				return -1;
 			}
