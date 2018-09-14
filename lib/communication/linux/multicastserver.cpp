@@ -85,20 +85,15 @@ namespace hbm {
 				freeaddrinfo(pResult);
 			}
 
-
-
-
-
 			if (m_receiveEvent < 0) {
 				::syslog(LOG_ERR, "Could not create receiving socket!");
 				return -1;
 			}
 
-
-
 			// sufficient buffer for several messages
 			int RcvBufSize = 128000;
 			if (setsockopt(m_receiveEvent, SOL_SOCKET, SO_RCVBUF, &RcvBufSize, sizeof(RcvBufSize)) < 0) {
+				::syslog(LOG_ERR, "Could not set SO_RCVBUF!");
 				return -1;
 			}
 
@@ -255,9 +250,10 @@ namespace hbm {
 						// ignore already added
 						return 0;
 					}
-					syslog(LOG_ERR, "interface address %s could not be added to multicastgroup %s '%s'", interfaceAddress.c_str(), m_mutlicastgroup.c_str(), strerror(errno));
+					syslog(LOG_ERR, "Interface %s could not be added to multicast group %s '%s'", interfaceAddress.c_str(), m_mutlicastgroup.c_str(), strerror(errno));
 					return -1;
 				}
+				syslog(LOG_INFO, "Interface %s joined multicast group %s", interfaceAddress.c_str(), m_mutlicastgroup.c_str());
 				return 1;
 			} else {
 				if(retVal!=0) {
@@ -267,6 +263,7 @@ namespace hbm {
 					}
 					return -1;
 				}
+				syslog(LOG_INFO, "Interface %s dropped from multicast group %s", interfaceAddress.c_str(), m_mutlicastgroup.c_str());
 				return 1;
 			}
 		}
@@ -319,9 +316,10 @@ namespace hbm {
 						// ignore already added
 						return 0;
 					}
-					syslog(LOG_ERR, "interface address %d could not be added to multicastgroup %s '%s'", interfaceIndex, m_mutlicastgroup.c_str(), strerror(errno));
+					syslog(LOG_ERR, "Interface %d could not be added to multicast group %s '%s'", interfaceIndex, m_mutlicastgroup.c_str(), strerror(errno));
 					return -1;
 				}
+				syslog(LOG_INFO, "Interface %d joined multicast group %s", interfaceIndex, m_mutlicastgroup.c_str());
 				return 1;
 			} else {
 				if(retVal!=0) {
@@ -331,6 +329,7 @@ namespace hbm {
 					}
 					return -1;
 				}
+				syslog(LOG_INFO, "Interface %d dropped from multicast group %s", interfaceIndex, m_mutlicastgroup.c_str());
 				return 1;
 			}
 		}
@@ -633,10 +632,10 @@ namespace hbm {
 				return err;
 			}
 
-				err = setupReceiveSocket();
-				if(err<0) {
-					return err;
-				}
+			err = setupReceiveSocket();
+			if(err<0) {
+				return err;
+			}
 
 			m_dataHandler = dataHandler;
 			if (dataHandler) {
