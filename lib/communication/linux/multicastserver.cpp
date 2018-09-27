@@ -437,20 +437,7 @@ namespace hbm {
 
 		int MulticastServer::sendOverInterface(const Netadapter& adapter, const std::string& data, unsigned int ttl) const
 		{
-			if (data.empty()) {
-				return 0;
-			}
-
-			int retVal = 0;
-
-			const communication::AddressesWithNetmask addressesWithNetmask = adapter.getIpv4Addresses();
-			if(addressesWithNetmask.empty()) {
-				return communication::ERR_ADAPTERISDOWN;
-			} else {
-				retVal = sendOverInterfaceByAddress(addressesWithNetmask.front().address, data, ttl);
-			}
-
-			return retVal;
+			return sendOverInterfaceByIndex(adapter.getIndex(), data, ttl);
 		}
 
 		int MulticastServer::sendOverInterface(int interfaceIndex, const std::string& data, unsigned int ttl) const
