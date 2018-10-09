@@ -3,6 +3,7 @@
 // See file LICENSE provided
 
 
+#include <stdexcept>
 #include <vector>
 #include <cstring>
 #include <cstdio>
@@ -29,7 +30,6 @@
 #include <netdb.h>
 #endif
 
-#include "hbm/exception/exception.hpp"
 #include "hbm/sys/eventloop.h"
 
 #include "hbm/communication/multicastserver.h"
@@ -345,12 +345,12 @@ namespace hbm {
 
 		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, Netadapter& adapter, int& ttl)
 		{
-			unsigned int interfaceIndex = 0;
+			unsigned int interfaceIndex;
 			ssize_t nbytes = receiveTelegram(msgbuf, len, interfaceIndex, ttl);
-			if(nbytes>0) {
+			if (nbytes>0) {
 				try {
 					adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
-				} catch( const hbm::exception::exception&) {
+				} catch( const std::runtime_error&) {
 					::syslog(LOG_ERR, "%s no interface with index %d!", __FUNCTION__, interfaceIndex);
 					nbytes = -1;
 				}
@@ -360,12 +360,12 @@ namespace hbm {
 
 		ssize_t MulticastServer::receiveTelegram(void* msgbuf, size_t len, std::string& adapterName, int& ttl)
 		{
-			unsigned int interfaceIndex = 0;
+			unsigned int interfaceIndex;
 			ssize_t nbytes = receiveTelegram(msgbuf, len, interfaceIndex, ttl);
-			if(nbytes>0) {
+			if (nbytes>0) {
 				try {
 					adapterName = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex).getName();
-				} catch( const hbm::exception::exception&) {
+				} catch( const std::runtime_error&) {
 					::syslog(LOG_ERR, "%s no interface with index %d!", __FUNCTION__, interfaceIndex);
 					nbytes = -1;
 				}
@@ -377,6 +377,7 @@ namespace hbm {
 		{
 			// we do use recvmsg here because we get some additional information: The interface we received from.
 			ttl = 1;
+			adapterIndex = 0;
 			char controlbuffer[100];
 			ssize_t nbytes;
 
@@ -395,8 +396,7 @@ namespace hbm {
 			nbytes = ::recvmsg(m_receiveEvent, &msg, 0);
 
 			if (nbytes > 0) {
-				for (struct cmsghdr* pcmsghdr = CMSG_FIRSTHDR(&msg); pcmsghdr != NULL; pcmsghdr = CMSG_NXTHDR(&msg, pcmsghdr))
-				{
+				for (struct cmsghdr* pcmsghdr = CMSG_FIRSTHDR(&msg); pcmsghdr != NULL; pcmsghdr = CMSG_NXTHDR(&msg, pcmsghdr)) {
 					if (pcmsghdr->cmsg_type == IP_PKTINFO) {
 						struct in_pktinfo pktinfo;
 						std::memcpy(&pktinfo, CMSG_DATA(pcmsghdr), sizeof(pktinfo));
@@ -451,7 +451,7 @@ namespace hbm {
 			try {
 				communication::Netadapter adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
 				retVal = sendOverInterface(adapter, data, ttl);
-			} catch( const hbm::exception::exception&) {
+			} catch( const std::runtime_error&) {
 				retVal = communication::ERR_INVALIDADAPTER;
 			}
 			return retVal;
@@ -469,7 +469,7 @@ namespace hbm {
 			try {
 				Netadapter adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
 				retVal = sendOverInterface(adapter, pData, length, ttl);
-			} catch( const hbm::exception::exception&) {
+			} catch( const std::runtime_error&) {
 				retVal = ERR_INVALIDADAPTER;
 			}
 			return retVal;
