@@ -23,6 +23,14 @@ namespace hbm {
 		static const char DATA[] = "data";
 		static const char PARAMS[] = "params";
 		static const char ID[] = "id";
+
+		// example of an successfull rpc
+		// --> {"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 1}
+		// <-- {"jsonrpc": "2.0", "result": 19, "id": 1}
+
+		// example of a failes
+		//--> {"jsonrpc": "2.0", "method": "foobar", "id": "1"}
+		//<-- {"jsonrpc": "2.0", "error": {"code": -32601, "message": "Method not found"}, "id": "1"}
 	}
 }
 #endif
