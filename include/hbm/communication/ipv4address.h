@@ -40,6 +40,7 @@ namespace hbm {
 			/// the subnet mask as string xxx.xxx.xxx.xxx
 			std::string netmask;
 
+			/// \return if ipv4 address and subnet mask are equal
 			bool operator==(const Ipv4Address& op) const;
 		};
 	}
