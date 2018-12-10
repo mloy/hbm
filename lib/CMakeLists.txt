@@ -69,7 +69,10 @@ add_library(hbm-static STATIC ${HBMLIB_SOURCES})
 
 
 SET( HBM_MAJOR_VERSION 1)
-SET( HBM_VERSION ${HBM_MAJOR_VERSION}.0.22 )
+SET( HBM_MINOR_VERSION 0)
+SET( HBM_TAG_NUMBER 22)
+
+SET( HBM_VERSION ${HBM_MAJOR_VERSION}.${HBM_MINOR_VERSION}.${HBM_TAG_NUMBER} )
 
 set_target_properties(
   hbm
@@ -82,7 +85,8 @@ set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix "\${prefix}")
 set(libdir "\${exec_prefix}/lib")
 set(includedir "\${prefix}/include")
-configure_file("pkg-config/hbm.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/pkg-config/hbm.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/version.h.in" "${PROJECT_BINARY_DIR}/version.h")
 
 
 INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" DESTINATION lib/pkgconfig)
@@ -90,3 +94,4 @@ INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" DESTINATION lib/pk
 install(TARGETS hbm LIBRARY DESTINATION lib)
 install(TARGETS hbm-static ARCHIVE DESTINATION lib)
 install (DIRECTORY ${INTERFACE_INCLUDE_DIR} DESTINATION include)
+install (FILES "${PROJECT_BINARY_DIR}/version.h" DESTINATION include)

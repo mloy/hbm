@@ -1,4 +1,0 @@
-#define HBM_VERSION_MAJOR 1
-#define HBM_VERSION_MINOR 0
-#define HBM_VERSION_PATCH 4
-

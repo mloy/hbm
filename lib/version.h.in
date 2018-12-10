@@ -1,0 +1,8 @@
+// Copyright 2014 Hottinger Baldwin Messtechnik
+// Distributed under MIT license
+// See file LICENSE provided
+
+// version information
+#define HBM_MAJOR_VERSION @HBM_MAJOR_VERSION@
+#define HBM_MINOR_VERSION @HBM_MINOR_VERSION@
+#define HBM_TAG_NUMBER @HBM_TAG_NUMBER@
