@@ -442,7 +442,7 @@ namespace hbm {
 
 			const communication::AddressesWithNetmask addressesWithNetmask = adapter.getIpv4Addresses();
 			if(addressesWithNetmask.empty()) {
-				return communication::ERR_ADAPTERISDOWN;
+				return communication::ERR_NO_SUCCESS;
 			} else {
 				retVal = sendOverInterfaceByAddress(addressesWithNetmask.front().address, data, ttl);
 			}
