@@ -94,4 +94,4 @@ INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" DESTINATION lib/pk
 install(TARGETS hbm LIBRARY DESTINATION lib)
 install(TARGETS hbm-static ARCHIVE DESTINATION lib)
 install (DIRECTORY ${INTERFACE_INCLUDE_DIR} DESTINATION include)
-install (FILES "${PROJECT_BINARY_DIR}/version.h" DESTINATION include)
+install (FILES "${PROJECT_BINARY_DIR}/version.h" DESTINATION include/hbm/)

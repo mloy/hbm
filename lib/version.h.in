@@ -2,7 +2,12 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
+#ifndef __HBM_VERSION_H__
+#define __HBM_VERSION_H__
+
 // version information
 #define HBM_MAJOR_VERSION @HBM_MAJOR_VERSION@
 #define HBM_MINOR_VERSION @HBM_MINOR_VERSION@
 #define HBM_TAG_NUMBER @HBM_TAG_NUMBER@
+
+#endif
