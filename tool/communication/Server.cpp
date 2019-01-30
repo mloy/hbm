@@ -6,7 +6,6 @@
 
 #include <hbm/sys/eventloop.h>
 #include <hbm/communication/tcpserver.h>
-#include <hbm/communication/bufferedreader.h>
 #include <hbm/communication/socketnonblocking.h>
 
 
@@ -41,7 +40,7 @@ int main(int argc, char* argv[])
 
 	hbm::communication::TcpServer server(eventloop);
 
-	uint16_t port = std::stoul(argv[1]);
+	uint16_t port = static_cast < uint16_t > (std::stoul(argv[1]));
 
 	server.start(port, 1, &cb);
 

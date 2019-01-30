@@ -4,13 +4,13 @@
 #include <string>
 
 #include <hbm/sys/eventloop.h>
-#include <hbm/communication/bufferedreader.h>
 #include <hbm/communication/socketnonblocking.h>
 
 
 int main(int argc, char* argv[])
 {
-	int result;
+	int retval;
+	ssize_t result;
 	if (argc != 3) {
 		std::cout << "syntax: " << argv[0] << " < server address > < server port >" << std::endl;
 	}
@@ -21,8 +21,8 @@ int main(int argc, char* argv[])
 	std::string address = argv[1];
 	std::string port = argv[2];
 
-	result = client.connect(address, port);
-	if (result!=0) {
+	retval = client.connect(address, port);
+	if (retval!=0) {
 		std::cerr << "could not connect to server!" << std::endl;
 		return EXIT_FAILURE;
 	}
