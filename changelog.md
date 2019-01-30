@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.25
+ - Linux: Fix versioning and interface header issues
+
 ## v1.0.24
  - Linux: Identify interface for sending multicast by device index if possible. 
    This even works if the interface does not have an ip address.
