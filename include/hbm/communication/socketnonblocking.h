@@ -136,8 +136,8 @@ namespace hbm
 			{
 				return m_event;
 			}
-			
-private:			
+
+private:
 			/// should not be copied
 			SocketNonblocking(const SocketNonblocking& op);
 
