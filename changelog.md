@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.26 
+ - Linux: Support for UNIX domain sockets
+
 ## v1.0.25
  - Linux: Fix versioning and interface header issues
 
