@@ -11,15 +11,19 @@ int main(int argc, char* argv[])
 {
 	int retval;
 	ssize_t result;
-	if (argc != 3) {
-		std::cout << "syntax: " << argv[0] << " < server address > < server port >" << std::endl;
+	if (argc < 2) {
+		std::cout << "syntax: " << argv[0] << " < server address > [< server port >]" << std::endl;
+		std::cout << "syntax: " << argv[0] << " < server unix domain socket >" << std::endl;
 	}
 	hbm::sys::EventLoop eventloop;
 
 	hbm::communication::SocketNonblocking client(eventloop);
 
+	std::string port;
 	std::string address = argv[1];
-	std::string port = argv[2];
+	if (argc>=3) {
+		port = argv[2];
+	}
 
 	retval = client.connect(address, port);
 	if (retval!=0) {
@@ -28,8 +32,6 @@ int main(int argc, char* argv[])
 	}
 	const char sndBuffer[] = "hallo";
 	char recvBuffer[1024];
-
-	result = client.receiveComplete(recvBuffer, sizeof(sndBuffer));
 
 	do {
 		result = client.sendBlock(sndBuffer, sizeof(sndBuffer), false);

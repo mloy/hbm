@@ -88,6 +88,7 @@ namespace hbm {
 				return -1;
 			}
 
+			::unlink(path.c_str());
 			if (::bind(m_listeningEvent, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
 				::syslog(LOG_ERR, "server: Binding socket to unix domain socket %s failed '%s'", path.c_str(), strerror(errno));
 				return -1;

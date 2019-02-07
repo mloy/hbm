@@ -40,9 +40,14 @@ int main(int argc, char* argv[])
 
 	hbm::communication::TcpServer server(eventloop);
 
-	uint16_t port = static_cast < uint16_t > (std::stoul(argv[1]));
+	try {
+		uint16_t port = static_cast < uint16_t > (std::stoul(argv[1]));
 
-	server.start(port, 1, &cb);
+		server.start(port, 1, &cb);
+	} catch(...) {
+		// interprete parameter as unix domain socket name
+		server.start(argv[1], 1, &cb);
+	}
 
 	eventloop.execute();
 	return EXIT_SUCCESS;
