@@ -6,7 +6,7 @@
 #include <cstring>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
-
+#include <sys/un.h>
 #include <unistd.h>
 
 #include <errno.h>
@@ -39,7 +39,6 @@ namespace hbm {
 
 			//ipv6 does work for ipv4 too!
 			sockaddr_in6 address;
-
 			memset(&address, 0, sizeof(address));
 			address.sin6_family = AF_INET6;
 			address.sin6_addr = in6addr_any;
@@ -47,19 +46,50 @@ namespace hbm {
 
 			m_listeningEvent = ::socket(address.sin6_family, SOCK_STREAM | SOCK_NONBLOCK, 0);
 			if (m_listeningEvent==-1) {
-				::syslog(LOG_ERR, "TCP server: Socket initialization failed '%s'", strerror(errno));
+				::syslog(LOG_ERR, "server: Socket initialization failed '%s'", strerror(errno));
 				return -1;
 			}
 			
 			uint32_t yes = 1;
 			// important for start after stop. Otherwise we have to wait some time until the port is really freed by the operating system.
 			if (setsockopt(m_listeningEvent, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
-				::syslog(LOG_ERR, "TCP server: Could not set SO_REUSEADDR!");
+				::syslog(LOG_ERR, "server: Could not set SO_REUSEADDR!");
 				return -1;
 			}
 			
 			if (::bind(m_listeningEvent, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
-				::syslog(LOG_ERR, "TCP server: Binding socket to port %u failed '%s'", port, strerror(errno));
+				::syslog(LOG_ERR, "server: Binding socket to port %u failed '%s'", port, strerror(errno));
+				return -1;
+			}
+			if (listen(m_listeningEvent, backlog)==-1) {
+				return -1;
+			}
+			m_acceptCb = acceptCb;
+			m_eventLoop.addEvent(m_listeningEvent, std::bind(&TcpServer::process, this));
+			return 0;
+		}
+
+		int TcpServer::start(const std::string& path, int backlog, Cb_t acceptCb)
+		{
+			sockaddr_un address;
+			memset(&address, 0, sizeof(address));
+			address.sun_family = AF_UNIX;
+			strncpy(address.sun_path, path.c_str(), sizeof(address.sun_path)-1);
+			m_listeningEvent = ::socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0);
+			if (m_listeningEvent==-1) {
+				::syslog(LOG_ERR, "server: Socket initialization failed '%s'", strerror(errno));
+				return -1;
+			}
+
+			uint32_t yes = 1;
+			// important for start after stop. Otherwise we have to wait some time until the port is really freed by the operating system.
+			if (setsockopt(m_listeningEvent, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+				::syslog(LOG_ERR, "server: Could not set SO_REUSEADDR!");
+				return -1;
+			}
+
+			if (::bind(m_listeningEvent, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
+				::syslog(LOG_ERR, "server: Binding socket to unix domain socket %s failed '%s'", path.c_str(), strerror(errno));
 				return -1;
 			}
 			if (listen(m_listeningEvent, backlog)==-1) {
@@ -82,7 +112,7 @@ namespace hbm {
 			int clientFd = ::accept(m_listeningEvent, NULL, NULL);
 			if (clientFd==-1) {
 				if ((errno!=EWOULDBLOCK) && (errno!=EAGAIN) && (errno!=EINTR) ) {
-					::syslog(LOG_ERR, "TCP server: error accepting connection '%s'", strerror(errno));
+					::syslog(LOG_ERR, "server: error accepting connection '%s'", strerror(errno));
 				}
 				return -1;
 			}

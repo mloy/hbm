@@ -40,6 +40,11 @@ namespace hbm {
 			/// @param acceptCb called when accepting a new tcp client
 			int start(uint16_t port, int backlog, Cb_t acceptCb);
 
+			/// @param path path of unix domain socket to listen to
+			/// @param backlog Maximum length of the queue of pending connections
+			/// @param acceptCb called when accepting a new tcp client
+			int start(const std::string& path, int backlog, Cb_t acceptCb);
+
 			/// Remove this object from the event loop and close the server socket
 			void stop();
 
