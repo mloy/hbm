@@ -67,6 +67,8 @@ namespace hbm
 			virtual ~SocketNonblocking();
 
 			/// this method does work blocking
+			/// \param address address of tcp server or path od unix domain socket
+			/// \param port leave empty to create unix domain
 			/// \return 0: success; -1: error
 			int connect(const std::string& address, const std::string& port);
 

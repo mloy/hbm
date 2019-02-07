@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <sys/un.h>
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <net/if_arp.h>
@@ -85,35 +86,46 @@ void hbm::communication::SocketNonblocking::clearOutDataCb()
 int hbm::communication::SocketNonblocking::setSocketOptions()
 {
 	int opt = 1;
+	int domain;
+	socklen_t len = sizeof(domain);
 
-	// turn off Nagle algorithm
-	if (setsockopt(m_event, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
-		syslog(LOG_ERR, "error turning off nagle algorithm");
+	if (getsockopt(m_event, SOL_SOCKET, SO_DOMAIN, &domain, &len)==-1) {
+		syslog(LOG_ERR, "could not determine socket domain");
 		return -1;
 	}
 
-	opt = 12;
-	// the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe;
-	// after the connection is marked to need keepalive, this counter is not used any further
-	if (setsockopt(m_event, SOL_TCP, TCP_KEEPIDLE, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
-		syslog(LOG_ERR, "error setting socket option TCP_KEEPIDLE");
-		return -1;
-}
+	if ((domain==AF_INET) || (domain==AF_INET6)) {
+		// those are relevant for ip sockets only:
 
+		// turn off Nagle algorithm
+		if (setsockopt(m_event, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+			syslog(LOG_ERR, "error turning off nagle algorithm");
+			return -1;
+		}
 
-	opt = 3;
-	// the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
-	if (setsockopt(m_event, SOL_TCP, TCP_KEEPINTVL, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
-		syslog(LOG_ERR, "error setting socket option TCP_KEEPINTVL");
-		return -1;
+		opt = 12;
+		// the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe;
+		// after the connection is marked to need keepalive, this counter is not used any further
+		if (setsockopt(m_event, SOL_TCP, TCP_KEEPIDLE, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+			syslog(LOG_ERR, "error setting socket option TCP_KEEPIDLE");
+			return -1;
 	}
 
 
-	opt = 2;
-	// the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
-	if (setsockopt(m_event, SOL_TCP, TCP_KEEPCNT, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
-		syslog(LOG_ERR, "error setting socket option TCP_KEEPCNT");
-		return -1;
+		opt = 3;
+		// the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+		if (setsockopt(m_event, SOL_TCP, TCP_KEEPINTVL, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+			syslog(LOG_ERR, "error setting socket option TCP_KEEPINTVL");
+			return -1;
+		}
+
+
+		opt = 2;
+		// the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
+		if (setsockopt(m_event, SOL_TCP, TCP_KEEPCNT, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
+			syslog(LOG_ERR, "error setting socket option TCP_KEEPCNT");
+			return -1;
+		}
 	}
 
 
@@ -128,22 +140,31 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 
 int hbm::communication::SocketNonblocking::connect(const std::string &address, const std::string& port)
 {
-	struct addrinfo hints;
-	struct addrinfo* pResult = NULL;
+	if (port.empty()) {
+		// unix domain socket!
+		struct sockaddr_un sockaddr;
+		sockaddr.sun_family = AF_UNIX;
+		strncpy(sockaddr.sun_path, address.c_str(), sizeof(sockaddr.sun_path)-1);
+		return connect(AF_UNIX, reinterpret_cast < struct sockaddr* > (&sockaddr), sizeof(sockaddr));
+	} else {
+		// tcp
+		struct addrinfo hints;
+		struct addrinfo* pResult = NULL;
 
-	memset(&hints, 0, sizeof(hints));
+		memset(&hints, 0, sizeof(hints));
 
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = 6; // Ip V6!
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_protocol = 6; // Ip V6!
 
-	if( getaddrinfo(address.c_str(), port.c_str(), &hints, &pResult)!=0 ) {
-		return -1;
+		if( getaddrinfo(address.c_str(), port.c_str(), &hints, &pResult)!=0 ) {
+			return -1;
+		}
+		int retVal = connect(pResult->ai_family, pResult->ai_addr, pResult->ai_addrlen);
+
+		freeaddrinfo( pResult );
+		return retVal;
 	}
-	int retVal = connect(pResult->ai_family, pResult->ai_addr, pResult->ai_addrlen);
-
-	freeaddrinfo( pResult );
-	return retVal;
 }
 
 int hbm::communication::SocketNonblocking::connect(int domain, const struct sockaddr* pSockAddr, socklen_t len)
