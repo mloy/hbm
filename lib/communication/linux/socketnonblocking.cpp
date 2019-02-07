@@ -138,33 +138,35 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 	return 0;
 }
 
+
 int hbm::communication::SocketNonblocking::connect(const std::string &address, const std::string& port)
 {
-	if (port.empty()) {
-		// unix domain socket!
-		struct sockaddr_un sockaddr;
-		sockaddr.sun_family = AF_UNIX;
-		strncpy(sockaddr.sun_path, address.c_str(), sizeof(sockaddr.sun_path)-1);
-		return connect(AF_UNIX, reinterpret_cast < struct sockaddr* > (&sockaddr), sizeof(sockaddr));
-	} else {
-		// tcp
-		struct addrinfo hints;
-		struct addrinfo* pResult = NULL;
+	// tcp
+	struct addrinfo hints;
+	struct addrinfo* pResult = NULL;
 
-		memset(&hints, 0, sizeof(hints));
+	memset(&hints, 0, sizeof(hints));
 
-		hints.ai_family = AF_UNSPEC;
-		hints.ai_socktype = SOCK_STREAM;
-		hints.ai_protocol = 6; // Ip V6!
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = 6; // Ip V6!
 
-		if( getaddrinfo(address.c_str(), port.c_str(), &hints, &pResult)!=0 ) {
-			return -1;
-		}
-		int retVal = connect(pResult->ai_family, pResult->ai_addr, pResult->ai_addrlen);
-
-		freeaddrinfo( pResult );
-		return retVal;
+	if( getaddrinfo(address.c_str(), port.c_str(), &hints, &pResult)!=0 ) {
+		return -1;
 	}
+	int retVal = connect(pResult->ai_family, pResult->ai_addr, pResult->ai_addrlen);
+
+	freeaddrinfo( pResult );
+	return retVal;
+}
+
+int hbm::communication::SocketNonblocking::connect(const std::string &path)
+{
+	// unix domain socket!
+	struct sockaddr_un sockaddr;
+	sockaddr.sun_family = AF_UNIX;
+	strncpy(sockaddr.sun_path, path.c_str(), sizeof(sockaddr.sun_path)-1);
+	return connect(AF_UNIX, reinterpret_cast < struct sockaddr* > (&sockaddr), sizeof(sockaddr));
 }
 
 int hbm::communication::SocketNonblocking::connect(int domain, const struct sockaddr* pSockAddr, socklen_t len)

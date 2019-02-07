@@ -96,6 +96,7 @@ namespace hbm {
 			if (listen(m_listeningEvent, backlog)==-1) {
 				return -1;
 			}
+			m_path = path;
 			m_acceptCb = acceptCb;
 			m_eventLoop.addEvent(m_listeningEvent, std::bind(&TcpServer::process, this));
 			return 0;
@@ -105,6 +106,10 @@ namespace hbm {
 		{
 			m_eventLoop.eraseEvent(m_listeningEvent);
 			::close(m_listeningEvent);
+			if (m_path.empty()==false) {
+				// unlink unix domain socket
+				::unlink(m_path.c_str());
+			}
 			m_acceptCb = Cb_t();
 		}
 

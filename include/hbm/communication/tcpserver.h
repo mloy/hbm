@@ -79,6 +79,8 @@ namespace hbm {
 #endif
 			sys::EventLoop& m_eventLoop;
 			Cb_t m_acceptCb;
+
+			std::string m_path;
 		};
 	}
 }

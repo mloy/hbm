@@ -68,9 +68,16 @@ namespace hbm
 
 			/// this method does work blocking
 			/// \param address address of tcp server or path od unix domain socket
-			/// \param port leave empty to create unix domain
+			/// \param port tcp port to connect to
 			/// \return 0: success; -1: error
 			int connect(const std::string& address, const std::string& port);
+
+#ifndef _WIN32
+			/// this method does work blocking
+			/// \param path path to unix domain socket
+			/// \return 0: success; -1: error
+			int connect(const std::string &path);
+#endif
 
 			/// this method does work blocking
 			int connect(int domain, const struct sockaddr* pSockAddr, socklen_t len);
