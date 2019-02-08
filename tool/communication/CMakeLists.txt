@@ -18,11 +18,11 @@ SET(NETADAPTERVIEW_SOURCE
 )
 
 add_executable(
-    netadapterview.bin
+    netadapterview
     ${NETADAPTERVIEW_SOURCE}
 )
 
-target_link_libraries( netadapterview.bin
+target_link_libraries( netadapterview
     hbm
     ${JSONCPP_LIBRARIES}
 )
@@ -32,11 +32,11 @@ SET(NETLINKVIEW_SOURCE
 )
 
 add_executable(
-    netlinkview.bin
+    netlinkview
     ${NETLINKVIEW_SOURCE}
 )
 
-target_link_libraries( netlinkview.bin
+target_link_libraries( netlinkview
     hbm
     ${JSONCPP_LIBRARIES}
 )
@@ -46,11 +46,11 @@ SET(SERVER_SOURCE
 )
 
 add_executable(
-    server.bin
+    server
     ${SERVER_SOURCE}
 )
 
-target_link_libraries( server.bin
+target_link_libraries( server
     hbm
     ${JSONCPP_LIBRARIES}
 )
@@ -60,11 +60,11 @@ SET(CLIENT_SOURCE
 )
 
 add_executable(
-    client.bin
+    client
     ${CLIENT_SOURCE}
 )
 
-target_link_libraries( client.bin
+target_link_libraries( client
     hbm
     ${JSONCPP_LIBRARIES}
 )
