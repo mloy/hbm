@@ -164,6 +164,9 @@ int hbm::communication::SocketNonblocking::connect(const std::string &path)
 {
 	// unix domain socket!
 	struct sockaddr_un sockaddr;
+
+	memset(&sockaddr, 0, sizeof(sockaddr));
+
 	sockaddr.sun_family = AF_UNIX;
 	strncpy(sockaddr.sun_path, path.c_str(), sizeof(sockaddr.sun_path)-1);
 	return connect(AF_UNIX, reinterpret_cast < struct sockaddr* > (&sockaddr), sizeof(sockaddr));
