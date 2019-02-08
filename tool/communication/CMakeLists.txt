@@ -41,30 +41,30 @@ target_link_libraries( netlinkview.bin
     ${JSONCPP_LIBRARIES}
 )
 
-SET(TCPSERVER_SOURCE
+SET(SERVER_SOURCE
     Server.cpp
 )
 
 add_executable(
-    tcpserver.bin
-    ${TCPSERVER_SOURCE}
+    server.bin
+    ${SERVER_SOURCE}
 )
 
-target_link_libraries( tcpserver.bin
+target_link_libraries( server.bin
     hbm
     ${JSONCPP_LIBRARIES}
 )
 
-SET(TCPCLIENT_SOURCE
+SET(CLIENT_SOURCE
     Client.cpp
 )
 
 add_executable(
-    tcpclient.bin
-    ${TCPCLIENT_SOURCE}
+    client.bin
+    ${CLIENT_SOURCE}
 )
 
-target_link_libraries( tcpclient.bin
+target_link_libraries( client.bin
     hbm
     ${JSONCPP_LIBRARIES}
 )

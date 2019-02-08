@@ -33,6 +33,7 @@ int main(int argc, char* argv[])
 {
 	if (argc != 2) {
 		std::cout << "syntax: " << argv[0] << " < server port >" << std::endl;
+		std::cout << "syntax: " << argv[0] << " < unix domain socket name >" << std::endl;
 		return EXIT_SUCCESS;
 	}
 
