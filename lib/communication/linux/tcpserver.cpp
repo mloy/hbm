@@ -6,6 +6,7 @@
 #include <cstring>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include <sys/stat.h>
 #include <sys/un.h>
 #include <unistd.h>
 
@@ -93,6 +94,7 @@ namespace hbm {
 				::syslog(LOG_ERR, "server: Binding socket to unix domain socket %s failed '%s'", path.c_str(), strerror(errno));
 				return -1;
 			}
+			chmod(path.c_str(), 0777); // everyone should have access
 			if (listen(m_listeningEvent, backlog)==-1) {
 				return -1;
 			}
