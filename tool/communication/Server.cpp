@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <signal.h>
 #include <stdint.h>
 #include <string>
 
@@ -8,6 +9,19 @@
 #include <hbm/communication/tcpserver.h>
 #include <hbm/communication/socketnonblocking.h>
 
+
+static hbm::sys::EventLoop eventloop;
+
+
+static void SigHandlerStop(int)
+{
+	eventloop.stop();
+}
+
+static void SigHandlerIgnore(int)
+{
+	// do nothing!
+}
 
 static void cb(hbm::communication::clientSocket_t workerSocket)
 {
@@ -31,13 +45,16 @@ static void cb(hbm::communication::clientSocket_t workerSocket)
 
 int main(int argc, char* argv[])
 {
+	signal(SIGTERM, &SigHandlerStop);
+	signal(SIGINT, &SigHandlerStop);
+	signal(SIGPIPE, &SigHandlerIgnore);
+
 	if (argc != 2) {
 		std::cout << "syntax: " << argv[0] << " < server port >" << std::endl;
 		std::cout << "syntax: " << argv[0] << " < unix domain socket name >" << std::endl;
 		return EXIT_SUCCESS;
 	}
 
-	hbm::sys::EventLoop eventloop;
 
 	hbm::communication::TcpServer server(eventloop);
 
