@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.27
+ - Linux: Fix UNIX domain sockets compatibility issue in server class
+
 ## v1.0.26 
  - Linux: Support for UNIX domain sockets
 
