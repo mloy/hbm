@@ -86,20 +86,19 @@ void hbm::communication::SocketNonblocking::clearOutDataCb()
 int hbm::communication::SocketNonblocking::setSocketOptions()
 {
 	int opt = 1;
-	int domain;
-	socklen_t len = sizeof(domain);
 
-	if (getsockopt(m_event, SOL_SOCKET, SO_DOMAIN, &domain, &len)==-1) {
-		syslog(LOG_ERR, "could not determine socket domain");
+	struct sockaddr_storage sockAddr;
+	socklen_t sockAddrSize;
+	if (getsockname(m_event, (struct sockaddr *)&sockAddr, &sockAddrSize) < 0) {
+		syslog(LOG_ERR, "could not determine socket domain %s", strerror(errno));
 		return -1;
 	}
-
-	if ((domain==AF_INET) || (domain==AF_INET6)) {
+	if ((sockAddr.ss_family == AF_INET) || (sockAddr.ss_family == AF_INET6)) {
 		// those are relevant for ip sockets only:
 
 		// turn off Nagle algorithm
 		if (setsockopt(m_event, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&opt), sizeof(opt))==-1) {
-			syslog(LOG_ERR, "error turning off nagle algorithm");
+			syslog(LOG_ERR, "error turning off nagle algorithm %s", strerror(errno));
 			return -1;
 		}
 
