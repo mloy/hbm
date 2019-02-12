@@ -154,7 +154,9 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 		return -1;
 	}
 	int retVal = connect(pResult->ai_family, pResult->ai_addr, pResult->ai_addrlen);
-
+	if (retVal < 0) {
+		syslog(LOG_ERR, "could not connect to tcp socket: '%s'", strerror(errno));
+	}
 	freeaddrinfo( pResult );
 	return retVal;
 }
@@ -168,7 +170,11 @@ int hbm::communication::SocketNonblocking::connect(const std::string &path)
 
 	sockaddr.sun_family = AF_UNIX;
 	strncpy(sockaddr.sun_path, path.c_str(), sizeof(sockaddr.sun_path)-1);
-	return connect(AF_UNIX, reinterpret_cast < struct sockaddr* > (&sockaddr), sizeof(sockaddr));
+	int retVal = connect(AF_UNIX, reinterpret_cast < struct sockaddr* > (&sockaddr), sizeof(sockaddr));
+	if (retVal < 0) {
+		syslog(LOG_ERR, "could not connect to unix domain socket: '%s'", strerror(errno));
+	}
+	return retVal;
 }
 
 int hbm::communication::SocketNonblocking::connect(int domain, const struct sockaddr* pSockAddr, socklen_t len)
