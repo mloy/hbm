@@ -64,7 +64,6 @@ hbm::communication::SocketNonblocking::~SocketNonblocking()
 
 void hbm::communication::SocketNonblocking::setDataCb(DataCb_t dataCb)
 {
-	DWORD size;
 	DWORD flags = 0;
 
 	m_inDataHandler = dataCb;
