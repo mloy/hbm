@@ -142,7 +142,7 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 {
 	// tcp
 	struct addrinfo hints;
-	struct addrinfo* pResult = NULL;
+	struct addrinfo* pResult = nullptr;
 
 	memset(&hints, 0, sizeof(hints));
 
@@ -297,6 +297,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 		return retVal;
 	} else if (retVal==-1) {
 		if((errno!=EWOULDBLOCK) && (errno!=EAGAIN) && (errno!=EINTR) ) {
+			syslog (LOG_ERR, "writev() failed: '%s'", strerror(errno));
 			return retVal;
 		}
 	}
@@ -308,24 +309,26 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 	} else {
 		// in this case we might have written nothing at all or only a part
 		size_t blockSum = 0;
+		size_t bytesRemaining;
 
 		for( size_t index=0; index<blockCount; ++index) {
 			blockSum += blocks[index].size;
-			if (bytesWritten<blockSum) {
+			bytesRemaining = blockSum-bytesWritten;
+			if (bytesRemaining) {
 				// this block was not send completely
-				size_t bytesRemaining = blockSum - bytesWritten;
 				size_t start = blocks[index].size-bytesRemaining;
 				retVal = sendBlock (static_cast < const unsigned char* > (blocks[index].pData)+start, bytesRemaining, more);
 				if (retVal>0) {
-					bytesWritten += retVal;
+					bytesWritten += static_cast < size_t > (retVal);
 				} else {
+					syslog (LOG_ERR, "Failed to send remaining data of writev: '%s'", strerror(errno));
 					return -1;
 				}
 			}
 		}
 	}
 
-	return bytesWritten;
+	return static_cast < ssize_t > (bytesWritten);
 }
 
 
@@ -368,7 +371,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 		numBytes = ::send(m_event, pDat, BytesLeft, flags);
 		if(numBytes>0) {
 			pDat += numBytes;
-			BytesLeft -= numBytes;
+			BytesLeft -= static_cast < size_t > (numBytes);
 		} else if(numBytes==0) {
 			// connection lost...
 			BytesLeft = 0;
@@ -457,7 +460,7 @@ bool hbm::communication::SocketNonblocking::isFirewire() const
 	struct ifreq ifr;
 	memset(&ifr, 0, sizeof(struct ifreq));
 
-	if ((::ioctl(m_event, SIOCGIFHWADDR, (caddr_t)&ifr, sizeof(struct ifreq))) >= 0) {
+	if ((::ioctl(m_event, SIOCGIFHWADDR, &ifr, sizeof(struct ifreq))) >= 0) {
 		if (ifr.ifr_hwaddr.sa_family == ARPHRD_IEEE1394) {
 			retVal = true;
 		}
