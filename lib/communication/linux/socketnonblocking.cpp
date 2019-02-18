@@ -89,7 +89,7 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 
 	struct sockaddr_storage sockAddr;
 	socklen_t sockAddrSize;
-	if (getsockname(m_event, (struct sockaddr *)&sockAddr, &sockAddrSize) < 0) {
+	if (getsockname(m_event, reinterpret_cast< struct sockaddr * > (&sockAddr), &sockAddrSize) < 0) {
 		syslog(LOG_ERR, "could not determine socket domain %s", strerror(errno));
 		return -1;
 	}
@@ -234,12 +234,12 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 	ssize_t retVal;
 	unsigned char* pPos = reinterpret_cast < unsigned char* > (pBlock);
 	size_t sizeLeft = size;
-	while(sizeLeft) {
+	while (sizeLeft) {
 		retVal = m_bufferedReader.recv(m_event, pPos, sizeLeft);
-		if(retVal>0) {
-			sizeLeft -= retVal;
+		if (retVal>0) {
+			sizeLeft -= static_cast < size_t > (retVal);
 			pPos += retVal;
-		} else if(retVal==0) {
+		} else if (retVal==0) {
 			return size-sizeLeft;
 		} else {
 			if(errno==EWOULDBLOCK || errno==EAGAIN) {
@@ -260,7 +260,7 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 			}
 		}
 	}
-	return size;
+	return static_cast < ssize_t > (size);
 }
 
 
@@ -289,7 +289,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 		msgHdr.msg_iovlen = blockCount;
 		retVal = sendmsg(m_event, &msgHdr, MSG_MORE);
 	} else {
-		retVal = writev(m_event, reinterpret_cast < const iovec* > (blocks), blockCount);
+		retVal = writev(m_event, reinterpret_cast < const iovec* > (blocks), static_cast < int > (blockCount));
 	}
 #endif
 
@@ -301,10 +301,10 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 		}
 	}
 
-	size_t bytesWritten = retVal;
+	size_t bytesWritten = static_cast < size_t >(retVal);
 	if(bytesWritten==completeLength) {
 		// we are done!
-		return bytesWritten;
+		return static_cast < ssize_t > (bytesWritten);
 	} else {
 		// in this case we might have written nothing at all or only a part
 		size_t blockSum = 0;
@@ -352,7 +352,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 	const uint8_t* pDat = reinterpret_cast<const uint8_t*>(pBlock);
 	size_t BytesLeft = size;
 	ssize_t numBytes;
-	ssize_t retVal = size;
+	ssize_t retVal = static_cast < ssize_t > (size);
 
 	struct pollfd pfd;
 	pfd.fd = m_event;
