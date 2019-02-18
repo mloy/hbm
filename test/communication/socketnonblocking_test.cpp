@@ -487,7 +487,6 @@ namespace hbm {
 				static const size_t blockSize = bufferSize/blockCount;
 				char buffer[bufferSize] = "a";
 				uint8_t smallBuffer[] = {"hallo"};
-				hbm::communication::dataBlock_t smallDatablocks[2];
 
 				hbm::communication::dataBlocks_t dataBlocks;
 
@@ -510,16 +509,20 @@ namespace hbm {
 				BOOST_CHECK_MESSAGE(result == bufferSize, strerror(errno));
 
 				clearAnswer();
-				smallDatablocks[0].pData = smallBuffer;
-				smallDatablocks[0].size = sizeof(smallBuffer);
-				smallDatablocks[1].pData = smallBuffer;
-				smallDatablocks[1].size = sizeof(smallBuffer);
 
-				result = client.sendBlocks(smallDatablocks, 2, true);
-				result = client.sendBlocks(smallDatablocks, 2, false);
-				BOOST_CHECK_MESSAGE(result == sizeof(smallBuffer)*2, strerror(errno));
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-				std::string answer = getAnswer();
+				hbm::communication::dataBlock_t smallDatablocks[4];
+				size_t bufferCount = sizeof(smallDatablocks)/sizeof(hbm::communication::dataBlock_t);
+
+				for (size_t blockIndex = 0; blockIndex<bufferCount; ++blockIndex) {
+					smallDatablocks[blockIndex].pData = smallBuffer;
+					smallDatablocks[blockIndex].size = sizeof(smallBuffer);
+				}
+
+
+				result = client.sendBlocks(smallDatablocks, bufferCount, true);
+				BOOST_CHECK_MESSAGE((size_t)result == sizeof(smallBuffer)*bufferCount, strerror(errno));
+				result = client.sendBlocks(smallDatablocks, bufferCount, false);
+				BOOST_CHECK_MESSAGE((size_t)result == sizeof(smallBuffer)*bufferCount, strerror(errno));
 
 				client.disconnect();
 
