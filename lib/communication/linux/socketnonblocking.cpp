@@ -88,7 +88,7 @@ int hbm::communication::SocketNonblocking::setSocketOptions()
 	int opt = 1;
 
 	struct sockaddr_storage sockAddr;
-	socklen_t sockAddrSize;
+	socklen_t sockAddrSize = sizeof(sockAddr);
 	if (getsockname(m_event, reinterpret_cast< struct sockaddr * > (&sockAddr), &sockAddrSize) < 0) {
 		syslog(LOG_ERR, "could not determine socket domain %s", strerror(errno));
 		return -1;
