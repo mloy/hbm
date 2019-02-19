@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.28
+ - Linux: Fix getting socket option for determination of socket domain
+
 ## v1.0.27
  - Linux: Fix UNIX domain sockets compatibility issue in server class
 
