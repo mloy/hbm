@@ -100,7 +100,10 @@ namespace hbm {
 
 
 					Adapt.m_name = pNextAd->Description;
-					m_adapters[adapterIndex] = Adapt;
+					if ((Adapt.getIpv4Addresses().empty() == false) || (Adapt.getIpv6Addresses().empty() == false)) {
+						// T-C software does not want interfaces without address!
+						m_adapters[adapterIndex] = Adapt;
+					}
 
 					// move forward to the next adapter in the list so
 					// that we can collect its information.
