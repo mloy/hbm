@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.29
+ - Windows: Fix multicast issues
+
 ## v1.0.28
  - Linux: Fix getting socket option for determination of socket domain
 
