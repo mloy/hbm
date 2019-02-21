@@ -413,12 +413,11 @@ namespace hbm {
 			int retVal = 0;
 			int retValIntern;
 
-			NetadapterList::Adapters adapters = m_netadapterList.get();
+			NetadapterList::AdapterArray adapters = m_netadapterList.getArray();
 
-			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
-				const Netadapter& adapter = iter->second;
+			for (NetadapterList::AdapterArray::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
 
-				retValIntern = sendOverInterface(adapter, pData, length, ttl);
+				retValIntern = sendOverInterfaceByIndex(iter->getIndex(), pData, length, ttl);
 				if (retValIntern != 0) {
 					retVal = retValIntern;
 				}
@@ -469,20 +468,49 @@ namespace hbm {
 
 		int MulticastServer::sendOverInterface(int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
 		{
-			if (pData==NULL) {
-				return 0;
+			if (pData == NULL) {
+				if (length > 0) {
+					return ERR_NO_SUCCESS;
+				}
+				else {
+					return ERR_SUCCESS;
+				}
 			}
 
-			// IPV6_MULTICAST_IF does not work. It is not possible to send via a desired interface index. We have to select the interface by IP address using IP_MULTICAST_IF
+			struct in_addr ifAddr;
+			memset(&ifAddr, 0, sizeof(ifAddr));
 
-			int retVal;
-			try {
-				Netadapter adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
-				retVal = sendOverInterface(adapter, pData, length, ttl);
-			} catch(...) {
-				retVal = ERR_INVALIDADAPTER;
+
+			ifAddr.s_addr = htonl(interfaceIndex);
+
+			if (setsockopt(reinterpret_cast <SOCKET> (m_sendEvent.fileHandle), IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast <char*>(&ifAddr), sizeof(ifAddr))) {
+				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_IF for interface %d!", interfaceIndex);
+				return ERR_INVALIDADAPTER;
+			};
+
+			if (setsockopt(reinterpret_cast <SOCKET> (m_sendEvent.fileHandle), IPPROTO_IP, IP_MULTICAST_TTL, reinterpret_cast <char*>(&ttl), sizeof(ttl))) {
+				::syslog(LOG_ERR, "%d: Error setsockopt IPV6_MULTICAST_HOPS to %u!", interfaceIndex, ttl);
+				return ERR_NO_SUCCESS;
 			}
-			return retVal;
+
+			struct sockaddr_in sendAddr;
+			memset(&sendAddr, 0, sizeof(sendAddr));
+			sendAddr.sin_family = AF_INET;
+			sendAddr.sin_port = htons(m_port);
+			sendAddr.sin_addr.s_addr = inet_addr(m_mutlicastgroup.c_str());
+
+			if (sendAddr.sin_addr.s_addr == INADDR_NONE) {
+				::syslog(LOG_ERR, "Not a valid multicast IP address!");
+				return ERR_NO_SUCCESS;
+			}
+
+			ssize_t nbytes = sendto(reinterpret_cast <SOCKET> (m_sendEvent.fileHandle), reinterpret_cast <const char*> (pData), static_cast <int> (length), 0, reinterpret_cast <struct sockaddr*>(&sendAddr), sizeof(sendAddr));
+
+			if (static_cast <size_t>(nbytes) != length) {
+				::syslog(LOG_ERR, "error sending message over interface %d!", interfaceIndex);
+				return ERR_NO_SUCCESS;
+			}
+			return ERR_SUCCESS;
 		}
 
 		int MulticastServer::sendOverInterface(const Netadapter& adapter, const void* pData, size_t length, unsigned int ttl) const
@@ -587,7 +615,7 @@ namespace hbm {
 
 			struct ip_mreq req;
 			memset(&req, 0, sizeof(req));
-			req.imr_interface.S_un.S_addr = interfaceIndex;
+			req.imr_interface.S_un.S_addr = htonl(interfaceIndex);
 			if (setsockopt(reinterpret_cast < SOCKET > (m_sendEvent.fileHandle), IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast < char* >(&req), sizeof(req))) {
 				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_IF for interface %d!", interfaceIndex);
 				return ERR_INVALIDADAPTER;
