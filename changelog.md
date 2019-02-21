@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.30
+ - Windows: netadapterlist may not contain devices without an address under windows
+
 ## v1.0.29
  - Windows: Fix multicast issues
 
