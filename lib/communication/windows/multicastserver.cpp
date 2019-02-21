@@ -479,7 +479,7 @@ namespace hbm {
 			try {
 				Netadapter adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
 				retVal = sendOverInterface(adapter, pData, length, ttl);
-			} catch( const hbm::exception::exception&) {
+			} catch(...) {
 				retVal = ERR_INVALIDADAPTER;
 			}
 			return retVal;
