@@ -350,7 +350,7 @@ namespace hbm {
 			if(nbytes>0) {
 				try {
 					adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
-				} catch( const hbm::exception::exception&) {
+				} catch(...) {
 					::syslog(LOG_ERR, "%s no interface with index %d!", __FUNCTION__, interfaceIndex);
 					nbytes = -1;
 				}
@@ -365,7 +365,7 @@ namespace hbm {
 			if(nbytes>0) {
 				try {
 					adapterName = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex).getName();
-				} catch( const hbm::exception::exception&) {
+				} catch(...) {
 					::syslog(LOG_ERR, "%s no interface with index %d!", __FUNCTION__, interfaceIndex);
 					nbytes = -1;
 				}
@@ -461,7 +461,7 @@ namespace hbm {
 			try {
 				communication::Netadapter adapter = m_netadapterList.getAdapterByInterfaceIndex(interfaceIndex);
 				retVal = sendOverInterface(adapter, data, ttl);
-			} catch( const hbm::exception::exception&) {
+			} catch(...) {
 				retVal = communication::ERR_INVALIDADAPTER;
 			}
 			return retVal;
