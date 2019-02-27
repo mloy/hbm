@@ -44,7 +44,7 @@ namespace hbm {
 		int Notifier::notify()
 		{
 			static const uint64_t value = 1;
-			return write(m_fd, &value, sizeof(value));
+			return static_cast < int > (write(m_fd, &value, sizeof(value)));
 		}
 
 		int Notifier::process()
@@ -55,14 +55,6 @@ namespace hbm {
 			if (static_cast < size_t > (result)!=sizeof(eventCount)) {
 				return -1;
 			}
-//			uint64_t eventCountSum = 0;
-//			uint64_t eventCount = 0;
-//			while (::read(m_fd, &eventCount, sizeof(eventCount))==sizeof(eventCount)) {
-//				if (eventCount>0) {
-//					eventCountSum += eventCount;
-//				}
-//			}
-//			for (uint64_t i=0; i<eventCountSum; i++) {
 			for (uint64_t i=0; i<eventCount; i++) {
 				if (m_eventHandler) {
 					m_eventHandler();
