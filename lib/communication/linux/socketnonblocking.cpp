@@ -172,7 +172,7 @@ int hbm::communication::SocketNonblocking::connect(const std::string &path)
 	strncpy(sockaddr.sun_path, path.c_str(), sizeof(sockaddr.sun_path)-1);
 	int retVal = connect(AF_UNIX, reinterpret_cast < struct sockaddr* > (&sockaddr), sizeof(sockaddr));
 	if (retVal < 0) {
-		syslog(LOG_ERR, "could not connect to unix domain socket: '%s'", strerror(errno));
+		syslog(LOG_ERR, "could not connect to unix domain socket '%s': '%s'", path.c_str(), strerror(errno));
 	}
 	return retVal;
 }
