@@ -38,11 +38,13 @@ namespace hbm {
 			/// @param port TCP port to listen to
 			/// @param backlog Maximum length of the queue of pending connections
 			/// @param acceptCb called when accepting a new tcp client
+			/// \return -1 on error
 			int start(uint16_t port, int backlog, Cb_t acceptCb);
 
 			/// @param path path of unix domain socket to listen to
 			/// @param backlog Maximum length of the queue of pending connections
 			/// @param acceptCb called when accepting a new tcp client
+			/// \return -1 on error
 			int start(const std::string& path, int backlog, Cb_t acceptCb);
 
 			/// Remove this object from the event loop and close the server socket
