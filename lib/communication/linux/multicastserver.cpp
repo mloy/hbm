@@ -58,7 +58,7 @@ namespace hbm {
 		{
 			{
 				struct addrinfo hints;
-				struct addrinfo* pResult = NULL;
+				struct addrinfo* pResult = nullptr;
 				char portString[8];
 
 				memset(&hints, 0, sizeof(hints));
@@ -179,8 +179,8 @@ namespace hbm {
 		void MulticastServer::addAllInterfaces()
 		{
 			NetadapterList::Adapters adapters = m_netadapterList.get();
-			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
-				const communication::Netadapter& adapter = iter->second;
+			for (const auto &iter: adapters) {
+				const communication::Netadapter& adapter = iter.second;
 				::syslog(LOG_DEBUG, "Adding interface %s to multicast group...", adapter.getName().c_str());
 				addInterface(adapter.getIndex());
 			}
@@ -189,8 +189,8 @@ namespace hbm {
 		void MulticastServer::dropAllInterfaces()
 		{
 			NetadapterList::Adapters adapters = m_netadapterList.get();
-			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
-				const communication::Netadapter& adapter = iter->second;
+			for (const auto &iter: adapters) {
+				const communication::Netadapter& adapter = iter.second;
 				::syslog(LOG_DEBUG, "Dropping interface %s from multicast group...", adapter.getName().c_str());
 				dropInterface(adapter.getIndex());
 			}
@@ -272,7 +272,7 @@ namespace hbm {
 		{
 			int retVal = 0;
 			struct addrinfo hints;
-			struct addrinfo* pResult = NULL;
+			struct addrinfo* pResult = nullptr;
 			char portString[8];
 	
 			struct ip_mreqn im;
@@ -417,8 +417,8 @@ namespace hbm {
 
 			NetadapterList::Adapters adapters = m_netadapterList.get();
 
-			for (NetadapterList::Adapters::const_iterator iter = adapters.begin(); iter != adapters.end(); ++iter) {
-				const Netadapter& adapter = iter->second;
+			for (const auto &iter: adapters) {
+				const Netadapter& adapter = iter.second;
 
 				retValIntern = sendOverInterface(adapter, pData, length, ttl);
 				if (retValIntern != 0) {
@@ -459,7 +459,7 @@ namespace hbm {
 
 		int MulticastServer::sendOverInterface(int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
 		{
-			if (pData==NULL) {
+			if (pData == nullptr) {
 				return 0;
 			}
 
@@ -479,7 +479,7 @@ namespace hbm {
 		{
 			int retVal = ERR_SUCCESS;
 			if(length>0) {
-				if (pData==NULL) {
+				if (pData==nullptr) {
 					retVal = ERR_NO_SUCCESS;
 				} else {
 					const communication::AddressesWithNetmask addressesWithNetmask = adapter.getIpv4Addresses();
@@ -506,7 +506,7 @@ namespace hbm {
 
 		int MulticastServer::sendOverInterfaceByAddress(const std::string& interfaceIp, const void* pData, size_t length, unsigned int ttl) const
 		{
-			if (pData==NULL) {
+			if (pData==nullptr) {
 				if(length>0) {
 					return ERR_NO_SUCCESS;
 				} else {
@@ -567,7 +567,7 @@ namespace hbm {
 
 		int MulticastServer::sendOverInterfaceByIndex(int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
 		{
-			if (pData==NULL) {
+			if (pData==nullptr) {
 				if(length>0) {
 					return ERR_NO_SUCCESS;
 				} else {

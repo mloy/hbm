@@ -340,8 +340,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &bl
 
 	dataBlock_t newIovec;
 
-	for(dataBlocks_t::const_iterator iter=blocks.begin(); iter!=blocks.end(); ++iter) {
-		const dataBlock_t& item = *iter;
+	for (const dataBlock_t& item: blocks) {
 		newIovec.pData = item.pData;
 		newIovec.size = item.size;
 		dataBlockVector.push_back(newIovec);

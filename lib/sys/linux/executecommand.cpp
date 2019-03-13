@@ -85,12 +85,12 @@ namespace hbm {
 
 				std::vector < char* > argv;
 				argv.push_back(const_cast < char* > (command.c_str()));
-				for(params_t::const_iterator iter = params.begin(); iter!=params.end(); ++iter) {
-					argv.push_back( const_cast < char* > ((*iter).c_str()));
+				for (const std::string& iter: params) {
+					argv.push_back( const_cast < char* > (iter.c_str()));
 				}
-				argv.push_back(NULL);
+				argv.push_back(nullptr);
 
-				execve(command.c_str(), &argv[0], NULL);
+				execve(command.c_str(), &argv[0], nullptr);
 				// if we get here at all, an error occurred, but we are in the child
 				// process, so just exit
 				syslog(LOG_ERR, "error executing '%s' '%s'", command.c_str(), strerror(errno));

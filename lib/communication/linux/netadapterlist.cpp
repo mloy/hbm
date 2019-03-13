@@ -229,8 +229,8 @@ namespace hbm {
 			AdapterArray result;
 			result.reserve(m_adapters.size());
 
-			for(Adapters::const_iterator iter = m_adapters.begin(); iter!=m_adapters.end(); ++iter) {
-				result.push_back(iter->second);
+			for (const auto &iter: m_adapters) {
+				result.push_back(iter.second);
 			}
 
 			return result;
@@ -240,9 +240,9 @@ namespace hbm {
 		{
 			std::lock_guard < std::mutex > lock(m_adaptersMtx);
 
-			for (Adapters::const_iterator iter = m_adapters.begin(); iter != m_adapters.end(); ++iter) {
-				if (iter->second.getName().compare(adapterName) == 0) {
-					return iter->second;
+			for (const auto &iter: m_adapters) {
+				if (iter.second.getName().compare(adapterName) == 0) {
+					return iter.second;
 				}
 			}
 
@@ -266,13 +266,12 @@ namespace hbm {
 		{
 			std::string requestedSubnet = requestedAddress.getSubnet();
 
-			for (communication::NetadapterList::Adapters::const_iterator adapterIter=m_adapters.begin(); adapterIter!=m_adapters.end(); ++adapterIter ) {
-				const communication::Netadapter& adapter = adapterIter->second;
+			for (const auto &adapterIter: m_adapters) {
+				const communication::Netadapter& adapter = adapterIter.second;
 				if (excludeAdapterName != adapter.getName()) {
 					communication::AddressesWithNetmask addresses = adapter.getIpv4Addresses();
 
-					for (communication::AddressesWithNetmask::const_iterator addressIter = addresses.begin(); addressIter!=addresses.end(); ++addressIter) {
-						const communication::Ipv4Address& address = *addressIter;
+					for (const communication::Ipv4Address &address: addresses) {
 						if (requestedSubnet==address.getSubnet()) {
 							return adapter.getName();
 						}
