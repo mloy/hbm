@@ -1,5 +1,9 @@
 # Changelog for hbm
 
+## v1.0.31
+ - Use C++ range loops
+ - Windows: Not compatible with Windows XP anymore. We use windows platforms sdk 8.1 and windows platform toolset v1.41
+
 ## v1.0.30
  - Windows: netadapterlist may not contain devices without an address under windows
 
