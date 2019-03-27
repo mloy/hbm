@@ -388,22 +388,22 @@ namespace hbm {
 				}
 				
 				unsigned int index = 0;
-				for (auto iter = clients.begin(); iter!=clients.end(); ++iter) {
+				for (auto &iter: clients) {
 					std::string msg = msgPrefix + std::to_string(index++);
-					result = (*iter)->connect("127.0.0.1", std::to_string(PORT));
+					result = iter->connect("127.0.0.1", std::to_string(PORT));
 					BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
-					(*iter)->setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::placeholders::_1));
+					iter->setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::placeholders::_1));
 					
 					clearAnswer();
-					result = (*iter)->sendBlock(msg.c_str(), msg.length(), false);
+					result = iter->sendBlock(msg.c_str(), msg.length(), false);
 					BOOST_CHECK_MESSAGE(static_cast < size_t > (result) == msg.length(), strerror(errno));
 					std::this_thread::sleep_for(std::chrono::milliseconds(100));
 					std::string answer = getAnswer();
 					BOOST_CHECK_EQUAL(msg, answer);
 				}
 
-				for (auto iter = clients.begin(); iter!=clients.end(); ++iter) {
-					(*iter)->disconnect();
+				for (auto &iter: clients) {
+					iter->disconnect();
 				}
 
 

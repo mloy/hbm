@@ -10,8 +10,8 @@ int main()
 	hbm::communication::NetadapterList adapterList;
 	hbm::communication::NetadapterList::Adapters adapters = adapterList.get();
 
-	for (hbm::communication::NetadapterList::Adapters::const_iterator iter=adapters.begin(); iter!=adapters.end(); ++iter) {
-		const hbm::communication::Netadapter& adapter = iter->second;
+	for (const auto iter: adapters) {
+		const hbm::communication::Netadapter& adapter = iter.second;
 		std::cout << adapter.getName() << std::endl;
 		hbm::communication::AddressesWithNetmask ipv4addresses = adapter.getIpv4Addresses();
 		for (hbm::communication::AddressesWithNetmask::const_iterator addressIter = ipv4addresses.begin(); addressIter!=ipv4addresses.end(); ++addressIter) {
