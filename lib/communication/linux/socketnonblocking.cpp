@@ -336,7 +336,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlocks_t &blocks, bool more)
 {
 	std::vector < dataBlock_t > dataBlockVector;
-	dataBlockVector.reserve(6); // reserve a reasonable number of entries!
+	dataBlockVector.reserve(blocks.size());
 
 	dataBlock_t newIovec;
 
