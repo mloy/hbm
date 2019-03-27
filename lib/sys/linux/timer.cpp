@@ -8,7 +8,7 @@
 
 #include <sys/timerfd.h>
 #include <unistd.h>
-#include <string.h> // for memset()
+#include <cstring> // for memset()
 
 
 #include "hbm/exception/exception.hpp"
