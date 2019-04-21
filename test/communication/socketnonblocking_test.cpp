@@ -574,7 +574,11 @@ namespace hbm {
 				
 				ssize_t result = client.receive(buffer, sizeof(buffer));
 				BOOST_CHECK_EQUAL(result, -1);
+#ifndef _WIN32
 				BOOST_CHECK_EQUAL(errno, EWOULDBLOCK);
+#else
+				BOOST_CHECK_EQUAL(WSAGetLastError(), WSA_IO_PENDING);
+#endif
 			}
 			
 #ifndef _WIN32			
