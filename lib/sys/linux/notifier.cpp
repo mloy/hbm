@@ -24,7 +24,7 @@ namespace hbm {
 			}
 			
 			if (m_eventLoop.addEvent(m_fd, std::bind(&Notifier::process, this))<0) {
-				throw hbm::exception::exception("could not add timer to event loop");
+				throw hbm::exception::exception("could not add notifier to event loop");
 			}
 		}
 
