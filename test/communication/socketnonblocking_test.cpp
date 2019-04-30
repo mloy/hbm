@@ -25,6 +25,14 @@
 #include "hbm/sys/timer.h"
 
 
+#ifndef _WIN32
+static const char server[] = "::1";
+#else
+static const char server[] = "127.0.0.1";
+
+#endif
+
+
 namespace hbm {
 	namespace communication {
 		namespace test {
@@ -227,12 +235,6 @@ namespace hbm {
 				int result;
 				start();
 				hbm::communication::SocketNonblocking client(m_eventloop);
-#ifndef _WIN32
-				static const char server[] = "::1";
-#else
-				static const char server[] = "127.0.0.1";
-
-#endif
 				for (unsigned int cycleIndex = 0; cycleIndex < 1000; ++cycleIndex) {
 					result = client.connect(server, std::to_string(PORT));
 					BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
@@ -245,6 +247,29 @@ namespace hbm {
 				BOOST_CHECK_MESSAGE(result == -1, strerror(errno));
 			}
 
+			BOOST_AUTO_TEST_CASE(connect_multiple_test)
+			{
+				static const unsigned int CLIENT_COUNT = 32;
+				static const unsigned int CYCLE_COUNT = 100;
+
+				int result;
+				start();
+
+				std::vector < std::unique_ptr < hbm::communication::SocketNonblocking > > clients;
+
+				for (size_t clientIndex = 0; clientIndex < CLIENT_COUNT; ++clientIndex) {
+					clients.push_back(std::unique_ptr < hbm::communication::SocketNonblocking >(new hbm::communication::SocketNonblocking(m_eventloop)));
+				}
+
+				for (unsigned int cycleIndex = 0; cycleIndex < CYCLE_COUNT; ++cycleIndex) {
+					for (unsigned int clientIndex = 0; clientIndex < CLIENT_COUNT; ++clientIndex) {
+						result = clients[clientIndex]->connect(server, std::to_string(PORT));
+						BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
+
+						clients[clientIndex]->disconnect();
+					}
+				}
+			}
 
 			BOOST_AUTO_TEST_CASE(send_recv_test)
 			{
@@ -255,7 +280,7 @@ namespace hbm {
 				start();
 
 				hbm::communication::SocketNonblocking client(m_eventloop);
-				result = client.connect("127.0.0.1", std::to_string(PORT));
+				result = client.connect(server, std::to_string(PORT));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 
 				result = client.send(msg, sizeof(msg), false);
@@ -292,7 +317,7 @@ namespace hbm {
 
 				hbm::communication::SocketNonblocking client(m_eventloop);
 				//client.setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::placeholders::_1));
-				result = client.connect("127.0.0.1", std::to_string(PORT));
+				result = client.connect(server, std::to_string(PORT));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 
 				for( unsigned int cycleIndex=0; cycleIndex<100; ++cycleIndex) {
@@ -339,7 +364,7 @@ namespace hbm {
 
 				hbm::communication::SocketNonblocking client(m_eventloop);
 				client.setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::placeholders::_1));
-				result = client.connect("127.0.0.1", std::to_string(PORT));
+				result = client.connect(server, std::to_string(PORT));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 
 				clearAnswer();
@@ -390,7 +415,7 @@ namespace hbm {
 				unsigned int index = 0;
 				for (auto &iter: clients) {
 					std::string msg = msgPrefix + std::to_string(index++);
-					result = iter->connect("127.0.0.1", std::to_string(PORT));
+					result = iter->connect(server, std::to_string(PORT));
 					BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 					iter->setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::placeholders::_1));
 					
@@ -447,7 +472,7 @@ namespace hbm {
 				start();
 
 				hbm::communication::SocketNonblocking client(m_eventloop);
-				result = client.connect("127.0.0.1", std::to_string(PORT));
+				result = client.connect(server, std::to_string(PORT));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 				client.setDataCb(std::bind(&serverFixture::clientReceiveSingleBytes, this, std::placeholders::_1));
 
@@ -498,7 +523,7 @@ namespace hbm {
 				start();
 
 				hbm::communication::SocketNonblocking client(m_eventloop);
-				result = client.connect("127.0.0.1", std::to_string(PORT));
+				result = client.connect(server, std::to_string(PORT));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 
 				client.setDataCb(std::bind(&serverFixture::clientReceive, this, std::placeholders::_1));
@@ -550,7 +575,7 @@ namespace hbm {
 				start();
 
 				hbm::communication::SocketNonblocking client(m_eventloop);
-				result = client.connect("127.0.0.1", std::to_string(PORT));
+				result = client.connect(server, std::to_string(PORT));
 				BOOST_CHECK_MESSAGE(result == 0, strerror(errno));
 
 				client.setDataCb(std::bind(&serverFixture::clientReceive, this, std::placeholders::_1));
@@ -570,7 +595,7 @@ namespace hbm {
 			{
 				char buffer[1000];
 				hbm::communication::SocketNonblocking client(m_eventloop);
-				client.connect("127.0.0.1", std::to_string(PORT));
+				client.connect(server, std::to_string(PORT));
 				
 				ssize_t result = client.receive(buffer, sizeof(buffer));
 				BOOST_CHECK_EQUAL(result, -1);
@@ -589,7 +614,7 @@ namespace hbm {
 				socklen_t len;
 				char data[1000000] = { 0 };
 				hbm::communication::SocketNonblocking client(m_eventloop);
-				client.connect("127.0.0.1", std::to_string(PORT));
+				client.connect(server, std::to_string(PORT));
 				
 				unsigned int notifiyCount = 0;
 				client.setOutDataCb(std::bind(&serverFixture::clientNotify, this, std::ref(notifiyCount)));
