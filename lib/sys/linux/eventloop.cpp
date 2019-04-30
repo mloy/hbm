@@ -53,6 +53,7 @@ namespace hbm {
 			struct epoll_event ev;
 			memset(&ev, 0, sizeof(ev));
 			ev.events = EPOLLIN | EPOLLET;
+			ev.data.fd = fd;
 			{
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 				eventInfos_t::iterator outputEvent = m_outEventInfos.find(fd);
@@ -71,11 +72,14 @@ namespace hbm {
 				if (m_outEventInfos.find(fd)!=m_outEventInfos.end()) {
 					ev.events |= EPOLLOUT;
 				}
-			}
-			ev.data.fd = fd;
-			if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
-				syslog(LOG_ERR, "epoll_ctl failed while adding event '%s' epoll_d:%d, event_fd:%d", strerror(errno), m_epollfd, fd);
-				return -1;
+				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
+					if (mode==EPOLL_CTL_MOD) {
+						syslog(LOG_ERR, "epoll_ctl failed while modifying event '%s' (%d) epoll_d:%d, event_fd:%d", strerror(errno), errno, m_epollfd, fd);
+					} else {
+						syslog(LOG_ERR, "epoll_ctl failed while adding event '%s' (%d) epoll_d:%d, event_fd:%d", strerror(errno), errno, m_epollfd, fd);
+					}
+					return -1;
+				}
 			}
 
 			// there might have been work to do before fd was added to epoll. This won't be signaled by edge triggered epoll. Try until there is nothing left.
