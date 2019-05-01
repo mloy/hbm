@@ -289,32 +289,27 @@ BOOST_AUTO_TEST_CASE(recursive_notification_test)
 
 BOOST_AUTO_TEST_CASE(multiple_event_test)
 {
+	static const unsigned int NOTIFIER_COUNT = 10;
 	unsigned int notificationCount = 0;
-	//static const std::chrono::milliseconds duration(100);
 	hbm::sys::EventLoop eventLoop;
-	hbm::sys::Notifier notifier1(eventLoop);
-	hbm::sys::Notifier notifier2(eventLoop);
-	hbm::sys::Notifier notifier3(eventLoop);
-	hbm::sys::Notifier notifier4(eventLoop);
-	notifier1.set(std::bind(&notifierIncrement, std::ref(notificationCount)));
-	notifier2.set(std::bind(&notifierIncrement, std::ref(notificationCount)));
-	notifier3.set(std::bind(&notifierIncrement, std::ref(notificationCount)));
-	notifier4.set(std::bind(&notifierIncrement, std::ref(notificationCount)));
-	
-	notifier1.notify();
-	notifier2.notify();
-	notifier3.notify();
-	notifier4.notify();
+
+	std::vector < std::unique_ptr < hbm::sys::Notifier > > notifiers;
+	for (unsigned int i=0; i<NOTIFIER_COUNT; ++i) {
+		std::unique_ptr < hbm::sys::Notifier >notifier(new hbm::sys::Notifier(eventLoop));
+		notifier->set(std::bind(&notifierIncrement, std::ref(notificationCount)));
+		notifier->notify();
+		notifiers.push_back(std::move(notifier));
+	}
+
 	BOOST_CHECK_EQUAL(notificationCount, 0);
 
 	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, &eventLoop));
 
 
-
 	eventLoop.stop();
 	worker.join();
 
-	BOOST_CHECK_EQUAL(notificationCount, 4);
+	BOOST_CHECK_EQUAL(notificationCount, NOTIFIER_COUNT);
 }
 
 BOOST_AUTO_TEST_CASE(oneshottimer_test)
@@ -522,7 +517,7 @@ BOOST_AUTO_TEST_CASE(removenotifier_test)
 	BOOST_CHECK_LT(counter, timerCount);
 }
 
-BOOST_AUTO_TEST_CASE(addandremoveevents_test)
+BOOST_AUTO_TEST_CASE(add_and_remove_events_test)
 {
 	typedef std::vector < std::unique_ptr < hbm::sys::Notifier > > Notifiers;
 	static const unsigned int cycleCount = 10;
@@ -543,7 +538,6 @@ BOOST_AUTO_TEST_CASE(addandremoveevents_test)
 		incrementCount = 0;
 		for (unsigned int i = 0; i < eventCount; ++i) {
 			std::unique_ptr < hbm::sys::Notifier >notifier(new hbm::sys::Notifier(eventLoop));
-			//notifier->set(std::bind(&notifierIncrement, std::ref(eventCounter)));
 			notifier->set(std::bind(&notifierIncrementCheckLimit));
 			notifiers.push_back(std::move(notifier));
 		}
