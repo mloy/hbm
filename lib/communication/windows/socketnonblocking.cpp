@@ -361,7 +361,7 @@ void hbm::communication::SocketNonblocking::disconnect()
 {
 	m_eventLoop.eraseEvent(m_event);
 	// Windows: shutdown() before close in order to force gracefull shutdown.
-	// Windows: This has to be donw after removing the event from the event loop to prevent a deadlock.
+	// Windows: This has to be done after removing the event from the event loop to prevent a deadlock.
 	::shutdown(reinterpret_cast <SOCKET> (m_event.fileHandle), SD_BOTH);
 	::closesocket(reinterpret_cast < SOCKET > (m_event.fileHandle));
 	m_event.fileHandle = INVALID_HANDLE_VALUE;
