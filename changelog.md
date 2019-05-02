@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.33
+ - Windows: socket shutdown after removal from event loop
+
 ## v1.0.32
  - Windows: shutdown() before closing socket in order to force gracefull shutdown
 
