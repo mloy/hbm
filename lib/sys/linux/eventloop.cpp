@@ -146,7 +146,7 @@ namespace hbm {
 				ev.data.fd = fd;
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
-				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, NULL);
+				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
 			}
 			m_inEventInfos.erase(fd);
 			return ret;
@@ -165,7 +165,7 @@ namespace hbm {
 				ev.data.fd = fd;
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
-				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, NULL);
+				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
 			}
 			m_outEventInfos.erase(fd);
 			return ret;
