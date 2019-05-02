@@ -359,9 +359,10 @@ ssize_t hbm::communication::SocketNonblocking::send(const void* pBlock, size_t s
 
 void hbm::communication::SocketNonblocking::disconnect()
 {
-	// Windows: shutdown() before close in order to force gracefull shutdown
-	::shutdown(reinterpret_cast < SOCKET > (m_event.fileHandle), SD_BOTH);
 	m_eventLoop.eraseEvent(m_event);
+	// Windows: shutdown() before close in order to force gracefull shutdown.
+	// Windows: This has to be donw after removing the event from the event loop to prevent a deadlock.
+	::shutdown(reinterpret_cast <SOCKET> (m_event.fileHandle), SD_BOTH);
 	::closesocket(reinterpret_cast < SOCKET > (m_event.fileHandle));
 	m_event.fileHandle = INVALID_HANDLE_VALUE;
 }
