@@ -118,11 +118,11 @@ namespace hbm {
 				if (m_inEventInfos.find(fd)!=m_inEventInfos.end()) {
 					ev.events |= EPOLLIN;
 				}
-			}
-			ev.data.fd = fd;
-			if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
-				syslog(LOG_ERR, "epoll_ctl failed while adding event '%s' epoll_d:%d, event_fd:%d", strerror(errno), m_epollfd, fd);
-				return -1;
+				ev.data.fd = fd;
+				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
+					syslog(LOG_ERR, "epoll_ctl failed while adding event '%s' epoll_d:%d, event_fd:%d", strerror(errno), m_epollfd, fd);
+					return -1;
+				}
 			}
 
 			// there might have been work to do before fd was added to epoll. This won't be signaled by edge triggered epoll. Try until there is nothing left.
