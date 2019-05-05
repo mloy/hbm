@@ -305,7 +305,6 @@ BOOST_AUTO_TEST_CASE(multiple_event_test)
 
 	std::thread worker(std::bind(&hbm::sys::EventLoop::execute, &eventLoop));
 
-
 	eventLoop.stop();
 	worker.join();
 
@@ -369,7 +368,7 @@ BOOST_AUTO_TEST_CASE(cyclictimer_test)
 	BOOST_CHECK_EQUAL(result, 0);
 }
 
-BOOST_AUTO_TEST_CASE(severaltimerevents_test)
+BOOST_AUTO_TEST_CASE(several_timer_events_test)
 {
 	static const unsigned int timerCycle = 100;
 	static const unsigned int timerCount = 10;
@@ -466,7 +465,6 @@ BOOST_AUTO_TEST_CASE(retrigger_timer_test)
 
 
 	// we retrigger the timer before it does signal!
-	std::this_thread::sleep_for(duration / 2);
 	timer.set(std::chrono::milliseconds(duration * 2), false, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
 
 
@@ -487,34 +485,6 @@ BOOST_AUTO_TEST_CASE(retrigger_timer_test)
 
 	eventLoop.stop();
 	worker.join();
-}
-
-
-
-
-BOOST_AUTO_TEST_CASE(removenotifier_test)
-{
-	static const unsigned int timerCycle = 100;
-	static const unsigned int timerCount = 10;
-	static const std::chrono::milliseconds duration(timerCycle * timerCount);
-	hbm::sys::EventLoop eventLoop;
-	hbm::sys::Timer executionTimer(eventLoop);
-
-	unsigned int counter = 0;
-	bool canceled = false;
-	executionTimer.set(duration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventLoop)));
-	std::thread worker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
-
-	{
-		// leaving this scope leads to destruction of the timer and the removal from the event loop
-		hbm::sys::Timer cyclicTimer(eventLoop);
-		cyclicTimer.set(timerCycle, true, std::bind(&timerEventHandlerIncrement, std::placeholders::_1, std::ref(counter), std::ref(canceled)));
-		std::this_thread::sleep_for(std::chrono::milliseconds(timerCycle * timerCount / 2));
-	}
-
-	worker.join();
-
-	BOOST_CHECK_LT(counter, timerCount);
 }
 
 BOOST_AUTO_TEST_CASE(add_and_remove_events_test)
