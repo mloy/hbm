@@ -114,7 +114,7 @@ namespace hbm {
 					if (eventHandlers.inEvent) {
 						ev.events |= EPOLLIN;
 					}
-					eventHandlers.inEvent = eventHandler;
+					eventHandlers.outEvent = eventHandler;
 				}
 
 				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
