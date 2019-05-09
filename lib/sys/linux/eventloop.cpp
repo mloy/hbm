@@ -60,7 +60,6 @@ namespace hbm {
 				EventsHandlers_t* pEventHandlers;
 				if (eventsIter==m_eventInfos.end()) {
 					pEventHandlers = new EventsHandlers_t;
-					pEventHandlers->inEvent = eventHandler;
 					m_eventInfos.emplace(std::make_pair(fd, pEventHandlers));
 					mode = EPOLL_CTL_ADD;
 				} else {
@@ -68,8 +67,8 @@ namespace hbm {
 					if (pEventHandlers->outEvent) {
 						ev.events |= EPOLLOUT;
 					}
-					pEventHandlers->inEvent = eventHandler;
 				}
+				pEventHandlers->inEvent = eventHandler;
 
 				ev.data.ptr = pEventHandlers;
 				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
@@ -107,7 +106,6 @@ namespace hbm {
 				EventsHandlers_t* pEventHandlers;
 				if (eventsIter==m_eventInfos.end()) {
 					pEventHandlers = new EventsHandlers_t;
-					pEventHandlers->outEvent = eventHandler;
 					m_eventInfos.emplace(std::make_pair(fd, pEventHandlers));
 					mode = EPOLL_CTL_ADD;
 				} else {
@@ -115,8 +113,8 @@ namespace hbm {
 					if (pEventHandlers->inEvent) {
 						ev.events |= EPOLLIN;
 					}
-					pEventHandlers->outEvent = eventHandler;
 				}
+				pEventHandlers->outEvent = eventHandler;
 
 				ev.data.ptr = pEventHandlers;
 				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
@@ -142,7 +140,7 @@ namespace hbm {
 			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 			int ret;
 			eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
-			if ( eventsIter==m_eventInfos.end()) {
+			if (eventsIter==m_eventInfos.end()) {
 				return -1;
 			}
 			EventsHandlers_t *pEventHandlers = eventsIter->second;
@@ -166,7 +164,7 @@ namespace hbm {
 			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 			int ret;
 			eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
-			if ( eventsIter==m_eventInfos.end()) {
+			if (eventsIter==m_eventInfos.end()) {
 				return -1;
 			}
 			EventsHandlers_t *pEventHandlers = eventsIter->second;
@@ -227,7 +225,7 @@ namespace hbm {
 										// ignore
 									}
 								}
-								// we handle only one or the other, otherwise we might execute second.outEvent() after the handler was already deleted by second.inEvent()
+								// we handle only EPOLLIN or EPOLLOUT, otherwise we might execute second.outEvent() after the handler was already deleted by second.inEvent()
 								else if (events[n].events & EPOLLOUT) {
 									try {
 										result = pEventHandlers->outEvent();
