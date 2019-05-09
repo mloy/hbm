@@ -30,7 +30,7 @@ namespace hbm {
 			struct epoll_event ev;
 			memset(&ev, 0, sizeof(ev));
 			ev.events = EPOLLIN | EPOLLET;
-			ev.data.u32 = m_stopFd;
+			ev.data.ptr = nullptr;
 			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_stopFd, &ev) == -1) {
 				throw hbm::exception::exception(std::string("add stop notifier to eventloop failed ") + strerror(errno));
 			}
@@ -53,24 +53,25 @@ namespace hbm {
 			struct epoll_event ev;
 			memset(&ev, 0, sizeof(ev));
 			ev.events = EPOLLIN | EPOLLET;
-			ev.data.fd = fd;
 			{
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 				eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
 
+				EventsHandlers_t* pEventHandlers;
 				if (eventsIter==m_eventInfos.end()) {
-					EventsHandlers_t eventHandlers;
-					eventHandlers.inEvent = eventHandler;
-					m_eventInfos.emplace(std::make_pair(fd, eventHandlers));
+					pEventHandlers = new EventsHandlers_t;
+					pEventHandlers->inEvent = eventHandler;
+					m_eventInfos.emplace(std::make_pair(fd, pEventHandlers));
 					mode = EPOLL_CTL_ADD;
 				} else {
-					EventsHandlers_t &eventHandlers = eventsIter->second;
-					if (eventHandlers.outEvent) {
+					pEventHandlers = eventsIter->second;
+					if (pEventHandlers->outEvent) {
 						ev.events |= EPOLLOUT;
 					}
-					eventHandlers.inEvent = eventHandler;
+					pEventHandlers->inEvent = eventHandler;
 				}
 
+				ev.data.ptr = pEventHandlers;
 				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
 					if (mode==EPOLL_CTL_MOD) {
 						syslog(LOG_ERR, "epoll_ctl failed while modifying event '%s' (%d) epoll_d:%d, event_fd:%d", strerror(errno), errno, m_epollfd, fd);
@@ -99,24 +100,25 @@ namespace hbm {
 			struct epoll_event ev;
 			memset(&ev, 0, sizeof(ev));
 			ev.events = EPOLLOUT | EPOLLET;
-			ev.data.fd = fd;
 			{
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 				eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
 
+				EventsHandlers_t* pEventHandlers;
 				if (eventsIter==m_eventInfos.end()) {
-					EventsHandlers_t eventHandlers;
-					eventHandlers.outEvent = eventHandler;
-					m_eventInfos.emplace(std::make_pair(fd, eventHandlers));
+					pEventHandlers = new EventsHandlers_t;
+					pEventHandlers->outEvent = eventHandler;
+					m_eventInfos.emplace(std::make_pair(fd, pEventHandlers));
 					mode = EPOLL_CTL_ADD;
 				} else {
-					EventsHandlers_t &eventHandlers = eventsIter->second;
-					if (eventHandlers.inEvent) {
+					pEventHandlers = eventsIter->second;
+					if (pEventHandlers->inEvent) {
 						ev.events |= EPOLLIN;
 					}
-					eventHandlers.outEvent = eventHandler;
+					pEventHandlers->outEvent = eventHandler;
 				}
 
+				ev.data.ptr = pEventHandlers;
 				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
 					if (mode==EPOLL_CTL_MOD) {
 						syslog(LOG_ERR, "epoll_ctl failed while modifying event '%s' (%d) epoll_d:%d, event_fd:%d", strerror(errno), errno, m_epollfd, fd);
@@ -143,17 +145,18 @@ namespace hbm {
 			if ( eventsIter==m_eventInfos.end()) {
 				return -1;
 			}
-			EventsHandlers_t &eventHandlers = eventsIter->second;
-			if (eventHandlers.outEvent) {
+			EventsHandlers_t *pEventHandlers = eventsIter->second;
+			if (pEventHandlers->outEvent) {
 				// keep the existing EPOLLOUT event
 				struct epoll_event ev;
 				memset(&ev, 0, sizeof(ev));
 				ev.events = EPOLLOUT | EPOLLET;
-				ev.data.fd = fd;
+				ev.data.ptr = pEventHandlers;
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
 				m_eventInfos.erase(eventsIter);
+				delete pEventHandlers;
 			}
 			return ret;
 		}
@@ -166,17 +169,18 @@ namespace hbm {
 			if ( eventsIter==m_eventInfos.end()) {
 				return -1;
 			}
-			EventsHandlers_t &eventHandlers = eventsIter->second;
-			if (eventHandlers.inEvent) {
+			EventsHandlers_t *pEventHandlers = eventsIter->second;
+			if (pEventHandlers->inEvent) {
 				// keep the existing EPOLLIN event
 				struct epoll_event ev;
 				memset(&ev, 0, sizeof(ev));
 				ev.events = EPOLLIN | EPOLLET;
-				ev.data.fd = fd;
+				ev.data.ptr = pEventHandlers;
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
 				m_eventInfos.erase(eventsIter);
+				delete pEventHandlers;
 			}
 			return ret;
 		}
@@ -186,7 +190,7 @@ namespace hbm {
 			int nfds;
 			struct epoll_event events[MAXEVENTS];
 			ssize_t result;
-			int fd;
+			EventsHandlers_t *pEventHandlers;
 
 			while (true) {
 				do {
@@ -206,13 +210,12 @@ namespace hbm {
 					do {
 						eventsLeft = 0;
 						for (int n = 0; n < nfds; ++n) {
-							fd = events[n].data.fd;
-							eventInfos_t::iterator iter = m_eventInfos.find(fd);
-							if (iter!=m_eventInfos.end()) {
+							pEventHandlers = reinterpret_cast < EventsHandlers_t* > (events[n].data.ptr);
+							if (pEventHandlers) {
 								// we are working edge triggered, hence we need to read everything that is available
 								if (events[n].events & EPOLLIN) {
 									try {
-										result = iter->second.inEvent();
+										result = pEventHandlers->inEvent();
 										if (result>0) {
 											// there might be more to read...
 											++eventsLeft;
@@ -224,9 +227,10 @@ namespace hbm {
 										// ignore
 									}
 								}
-								if (events[n].events & EPOLLOUT) {
+								// we handle only one or the other, otherwise we might execute second.outEvent() after the handler was already deleted by second.inEvent()
+								else if (events[n].events & EPOLLOUT) {
 									try {
-										result = iter->second.outEvent();
+										result = pEventHandlers->outEvent();
 										if (result>0) {
 											// there might be more to write...
 											++eventsLeft;
@@ -239,10 +243,8 @@ namespace hbm {
 									}
 								}
 							} else {
-								if (fd==m_stopFd) {
-									// stop notification!
-									return 0;
-								}
+								// stop eventloop notification!
+								return 0;
 							}
 						}
 					} while (eventsLeft);

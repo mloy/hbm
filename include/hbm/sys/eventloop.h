@@ -70,7 +70,7 @@ namespace hbm {
 				/// callback function for events for writing
 				EventHandler_t outEvent;
 			};
-			typedef std::unordered_map <event, EventsHandlers_t > eventInfos_t;
+			typedef std::unordered_map <event, EventsHandlers_t* > eventInfos_t;
 			int m_epollfd;
 			event m_stopFd;
 #endif
