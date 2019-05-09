@@ -203,52 +203,45 @@ namespace hbm {
 					// To be fair, the callback of each signaled event is called only once. 
 					// After all the callbacks of all signaled events were called, we start from the beginning until no signaled event is left.
 					unsigned int eventsLeft;
-					
 					do {
 						eventsLeft = 0;
 						for (int n = 0; n < nfds; ++n) {
 							fd = events[n].data.fd;
-							if (events[n].events & EPOLLIN) {
-								eventInfos_t::iterator iter = m_eventInfos.find(fd);
-								if (iter!=m_eventInfos.end()) {
-									// we are working edge triggered, hence we need to read everything that is available
+							eventInfos_t::iterator iter = m_eventInfos.find(fd);
+							if (iter!=m_eventInfos.end()) {
+								// we are working edge triggered, hence we need to read everything that is available
+								if (events[n].events & EPOLLIN) {
 									try {
 										result = iter->second.inEvent();
+										if (result>0) {
+											// there might be more to read...
+											++eventsLeft;
+										} else {
+											// we are done with this event
+											events[n].events &= ~EPOLLIN;
+										}
 									} catch (...) {
-										result = 0;
+										// ignore
 									}
-								} else {
-									if (fd==m_stopFd) {
-										// stop notification!
-										return 0;
-									}
-									result = 0;
 								}
-								if (result>0) {
-									// there might be more to read...
-									++eventsLeft;
-								} else {
-									// we are done with this event
-									events[n].events &= ~EPOLLIN;
-								}
-							}
-							if (events[n].events & EPOLLOUT) {
-								eventInfos_t::iterator iter = m_eventInfos.find(fd);
-								if (iter!=m_eventInfos.end()) {
+								if (events[n].events & EPOLLOUT) {
 									try {
 										result = iter->second.outEvent();
+										if (result>0) {
+											// there might be more to write...
+											++eventsLeft;
+										} else {
+											// we are done with this event
+											events[n].events &= ~EPOLLOUT;
+										}
 									} catch (...) {
-										result = 0;
+										// ignore
 									}
-								} else {
-									result = 0;
 								}
-								if (result>0) {
-									// there might be more to write...
-									++eventsLeft;
-								} else {
-									// we are done with this event
-									events[n].events &= ~EPOLLOUT;
+							} else {
+								if (fd==m_stopFd) {
+									// stop notification!
+									return 0;
 								}
 							}
 						}
