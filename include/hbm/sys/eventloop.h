@@ -64,16 +64,19 @@ namespace hbm {
 			HANDLE m_completionPort;
 			HANDLE m_hEventLog;
 #else
-			typedef std::unordered_map <event, EventHandler_t > eventInfos_t;
+			struct EventsHandlers_t {
+				/// callback function for events for reading
+				EventHandler_t inEvent;
+				/// callback function for events for writing
+				EventHandler_t outEvent;
+			};
+			typedef std::unordered_map <event, EventsHandlers_t > eventInfos_t;
 			int m_epollfd;
 			event m_stopFd;
 #endif
 			/// events handled by event loop
 			std::recursive_mutex m_eventInfosMtx;
-			/// callback functions for events for reading
-			eventInfos_t m_inEventInfos;
-			/// callback functions for events for writing
-			eventInfos_t m_outEventInfos;
+			eventInfos_t m_eventInfos;
 		};
 	}
 }

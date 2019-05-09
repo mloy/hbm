@@ -56,22 +56,21 @@ namespace hbm {
 			ev.data.fd = fd;
 			{
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-				eventInfos_t::iterator outputEvent = m_outEventInfos.find(fd);
-				eventInfos_t::iterator inputEvent = m_inEventInfos.find(fd);
+				eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
 
-				if ((inputEvent==m_inEventInfos.end())&&(outputEvent==m_outEventInfos.end())) {
+				if (eventsIter==m_eventInfos.end()) {
+					EventsHandlers_t eventHandlers;
+					eventHandlers.inEvent = eventHandler;
+					m_eventInfos.emplace(std::make_pair(fd, eventHandlers));
 					mode = EPOLL_CTL_ADD;
-				}
-
-				if (inputEvent==m_inEventInfos.end()) {
-					m_inEventInfos.emplace(std::make_pair(fd, eventHandler));
 				} else {
-					inputEvent->second = eventHandler;
+					EventsHandlers_t &eventHandlers = eventsIter->second;
+					if (eventHandlers.outEvent) {
+						ev.events |= EPOLLOUT;
+					}
+					eventHandlers.inEvent = eventHandler;
 				}
 
-				if (outputEvent!=m_outEventInfos.end()) {
-					ev.events |= EPOLLOUT;
-				}
 				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
 					if (mode==EPOLL_CTL_MOD) {
 						syslog(LOG_ERR, "epoll_ctl failed while modifying event '%s' (%d) epoll_d:%d, event_fd:%d", strerror(errno), errno, m_epollfd, fd);
@@ -103,22 +102,21 @@ namespace hbm {
 			ev.data.fd = fd;
 			{
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-				eventInfos_t::iterator outputEvent = m_outEventInfos.find(fd);
-				eventInfos_t::iterator inputEvent = m_inEventInfos.find(fd);
-				
-				if ((inputEvent==m_inEventInfos.end())&&(outputEvent==m_outEventInfos.end())) {
+				eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
+
+				if (eventsIter==m_eventInfos.end()) {
+					EventsHandlers_t eventHandlers;
+					eventHandlers.outEvent = eventHandler;
+					m_eventInfos.emplace(std::make_pair(fd, eventHandlers));
 					mode = EPOLL_CTL_ADD;
-				}
-
-				if (outputEvent==m_outEventInfos.end()) {
-					m_outEventInfos.emplace(std::make_pair(fd, eventHandler));
 				} else {
-					outputEvent->second = eventHandler;
+					EventsHandlers_t &eventHandlers = eventsIter->second;
+					if (eventHandlers.inEvent) {
+						ev.events |= EPOLLIN;
+					}
+					eventHandlers.inEvent = eventHandler;
 				}
 
-				if (inputEvent!=m_inEventInfos.end()) {
-					ev.events |= EPOLLIN;
-				}
 				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
 					if (mode==EPOLL_CTL_MOD) {
 						syslog(LOG_ERR, "epoll_ctl failed while modifying event '%s' (%d) epoll_d:%d, event_fd:%d", strerror(errno), errno, m_epollfd, fd);
@@ -141,8 +139,12 @@ namespace hbm {
 		{
 			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 			int ret;
-			eventInfos_t::iterator outputEvent = m_outEventInfos.find(fd);
-			if (outputEvent!=m_outEventInfos.end()) {
+			eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
+			if ( eventsIter==m_eventInfos.end()) {
+				return -1;
+			}
+			EventsHandlers_t &eventHandlers = eventsIter->second;
+			if (eventHandlers.outEvent) {
 				// keep the existing EPOLLOUT event
 				struct epoll_event ev;
 				memset(&ev, 0, sizeof(ev));
@@ -151,8 +153,8 @@ namespace hbm {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
+				m_eventInfos.erase(eventsIter);
 			}
-			m_inEventInfos.erase(fd);
 			return ret;
 		}
 
@@ -160,8 +162,12 @@ namespace hbm {
 		{
 			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 			int ret;
-			eventInfos_t::iterator inputEvent = m_inEventInfos.find(fd);
-			if (inputEvent!=m_inEventInfos.end()) {
+			eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
+			if ( eventsIter==m_eventInfos.end()) {
+				return -1;
+			}
+			EventsHandlers_t &eventHandlers = eventsIter->second;
+			if (eventHandlers.inEvent) {
 				// keep the existing EPOLLIN event
 				struct epoll_event ev;
 				memset(&ev, 0, sizeof(ev));
@@ -170,8 +176,8 @@ namespace hbm {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
+				m_eventInfos.erase(eventsIter);
 			}
-			m_outEventInfos.erase(fd);
 			return ret;
 		}
 		
@@ -203,11 +209,11 @@ namespace hbm {
 						for (int n = 0; n < nfds; ++n) {
 							fd = events[n].data.fd;
 							if (events[n].events & EPOLLIN) {
-								eventInfos_t::iterator iter = m_inEventInfos.find(fd);
-								if (iter!=m_inEventInfos.end()) {
+								eventInfos_t::iterator iter = m_eventInfos.find(fd);
+								if (iter!=m_eventInfos.end()) {
 									// we are working edge triggered, hence we need to read everything that is available
 									try {
-										result = iter->second();
+										result = iter->second.inEvent();
 									} catch (...) {
 										result = 0;
 									}
@@ -227,10 +233,10 @@ namespace hbm {
 								}
 							}
 							if (events[n].events & EPOLLOUT) {
-								eventInfos_t::iterator iter = m_outEventInfos.find(fd);
-								if (iter!=m_outEventInfos.end()) {
+								eventInfos_t::iterator iter = m_eventInfos.find(fd);
+								if (iter!=m_eventInfos.end()) {
 									try {
-										result = iter->second();
+										result = iter->second.outEvent();
 									} catch (...) {
 										result = 0;
 									}
