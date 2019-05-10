@@ -6,7 +6,7 @@
 #define _EventLoop_H
 
 
-
+#include <list>
 #include <unordered_map>
 #ifdef _WIN32
 	#include <WinSock2.h>
@@ -70,8 +70,13 @@ namespace hbm {
 				/// callback function for events for writing
 				EventHandler_t outEvent;
 			};
+			std::list < EventsHandlers_t* > m_eraseList;
 			typedef std::unordered_map <event, EventsHandlers_t* > eventInfos_t;
+			EventLoop::EventsHandlers_t m_stopHandler;
+			EventLoop::EventsHandlers_t m_eraseHandler;
+
 			int m_epollfd;
+			event m_eraseFd;
 			event m_stopFd;
 #endif
 			/// events handled by event loop

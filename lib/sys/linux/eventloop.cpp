@@ -14,6 +14,9 @@
 
 #include "hbm/sys/eventloop.h"
 
+
+static const uint64_t notifyValue = 1;
+
 namespace hbm {
 	namespace sys {
 		static const unsigned int MAXEVENTS = 16;
@@ -21,6 +24,7 @@ namespace hbm {
 
 		EventLoop::EventLoop()
 			: m_epollfd(epoll_create(1)) // parameter is ignored but must be greater than 0
+			, m_eraseFd(eventfd(0, EFD_NONBLOCK))
 			, m_stopFd(eventfd(0, EFD_NONBLOCK))
 		{
 			if (m_epollfd==-1) {
@@ -30,7 +34,13 @@ namespace hbm {
 			struct epoll_event ev;
 			memset(&ev, 0, sizeof(ev));
 			ev.events = EPOLLIN | EPOLLET;
-			ev.data.ptr = nullptr;
+
+			ev.data.ptr = &m_eraseHandler;
+			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_eraseFd, &ev) == -1) {
+				throw hbm::exception::exception(std::string("add erase notifier to eventloop failed ") + strerror(errno));
+			}
+
+			ev.data.ptr = &m_stopHandler;
 			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_stopFd, &ev) == -1) {
 				throw hbm::exception::exception(std::string("add stop notifier to eventloop failed ") + strerror(errno));
 			}
@@ -40,6 +50,7 @@ namespace hbm {
 		{
 			stop();
 			close(m_epollfd);
+			close(m_eraseFd);
 			close(m_stopFd);
 		}
 
@@ -154,7 +165,12 @@ namespace hbm {
 			} else {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
 				m_eventInfos.erase(eventsIter);
-				delete pEventHandlers;
+
+				//delete pEventHandlers;
+				m_eraseList.push_back(pEventHandlers);
+				if (write(m_eraseFd, &notifyValue, sizeof(notifyValue))<0) {
+					syslog(LOG_ERR, "could not notify deletion of event handler from eventloop failed");
+				}
 			}
 			return ret;
 		}
@@ -178,7 +194,12 @@ namespace hbm {
 			} else {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
 				m_eventInfos.erase(eventsIter);
-				delete pEventHandlers;
+
+				//delete pEventHandlers;
+				m_eraseList.push_back(pEventHandlers);
+				if (write(m_eraseFd, &notifyValue, sizeof(notifyValue))<0) {
+					syslog(LOG_ERR, "could not notify deletion of event handler from eventloop failed");
+				}
 			}
 			return ret;
 		}
@@ -189,6 +210,7 @@ namespace hbm {
 			struct epoll_event events[MAXEVENTS];
 			ssize_t result;
 			EventsHandlers_t *pEventHandlers;
+			uint64_t dummyValue;
 
 			while (true) {
 				do {
@@ -209,7 +231,14 @@ namespace hbm {
 						eventsLeft = 0;
 						for (int n = 0; n < nfds; ++n) {
 							pEventHandlers = reinterpret_cast < EventsHandlers_t* > (events[n].data.ptr);
-							if (pEventHandlers) {
+							if (pEventHandlers==&m_stopHandler) {
+								read(m_stopFd, &dummyValue, sizeof(dummyValue));
+								// stop eventloop notification!
+								return 0;
+							} else if (pEventHandlers==&m_eraseHandler) {
+								// woke up to queue deletion of handlers
+								read(m_eraseFd, &dummyValue, sizeof(dummyValue));
+							} else {
 								// we are working edge triggered, hence we need to read everything that is available
 								if (events[n].events & EPOLLIN) {
 									try {
@@ -240,20 +269,23 @@ namespace hbm {
 										// ignore
 									}
 								}
-							} else {
-								// stop eventloop notification!
-								return 0;
 							}
 						}
 					} while (eventsLeft);
+
+					// see whether there are events to be deleted...
+					// Has to be done after processing pending events.
+					for (EventsHandlers_t* iter: m_eraseList) {
+						delete iter;
+					}
+					m_eraseList.clear();
 				}
 			}
 		}
 
 		void EventLoop::stop()
 		{
-			static const uint64_t value = 1;
-			if (write(m_stopFd, &value, sizeof(value))<0) {
+			if (write(m_stopFd, &notifyValue, sizeof(notifyValue))<0) {
 				syslog(LOG_ERR, "notifying stop of eventloop failed");
 			}
 		}
