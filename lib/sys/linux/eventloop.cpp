@@ -68,20 +68,22 @@ namespace hbm {
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 				eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
 
-				EventsHandlers_t* pEventHandlers;
 				if (eventsIter==m_eventInfos.end()) {
-					pEventHandlers = new EventsHandlers_t;
-					m_eventInfos.emplace(std::make_pair(fd, pEventHandlers));
+					EventsHandlers_t eventHandlers;
+					eventHandlers.inEvent = eventHandler;
+					std::pair < eventInfos_t::iterator, bool > result = m_eventInfos.emplace(std::make_pair(fd, eventHandlers));
+					eventsIter = result.first;
 					mode = EPOLL_CTL_ADD;
 				} else {
-					pEventHandlers = eventsIter->second;
-					if (pEventHandlers->outEvent) {
+					EventsHandlers_t &eventHandlers = eventsIter->second;
+					if (eventHandlers.outEvent) {
 						ev.events |= EPOLLOUT;
 					}
+					eventHandlers.inEvent = eventHandler;
 				}
-				pEventHandlers->inEvent = eventHandler;
+				ev.data.ptr = &eventsIter->second;
 
-				ev.data.ptr = pEventHandlers;
+
 				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
 					if (mode==EPOLL_CTL_MOD) {
 						syslog(LOG_ERR, "epoll_ctl failed while modifying event '%s' (%d) epoll_d:%d, event_fd:%d", strerror(errno), errno, m_epollfd, fd);
@@ -114,20 +116,22 @@ namespace hbm {
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 				eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
 
-				EventsHandlers_t* pEventHandlers;
 				if (eventsIter==m_eventInfos.end()) {
-					pEventHandlers = new EventsHandlers_t;
-					m_eventInfos.emplace(std::make_pair(fd, pEventHandlers));
+					EventsHandlers_t eventHandlers;
+					eventHandlers.outEvent = eventHandler;
+					std::pair < eventInfos_t::iterator, bool > result = m_eventInfos.emplace(std::make_pair(fd, eventHandlers));
+					eventsIter = result.first;
 					mode = EPOLL_CTL_ADD;
 				} else {
-					pEventHandlers = eventsIter->second;
-					if (pEventHandlers->inEvent) {
+					EventsHandlers_t &eventHandlers = eventsIter->second;
+					if (eventHandlers.inEvent) {
 						ev.events |= EPOLLIN;
 					}
+					eventHandlers.outEvent = eventHandler;
 				}
-				pEventHandlers->outEvent = eventHandler;
+				ev.data.ptr = &eventsIter->second;
 
-				ev.data.ptr = pEventHandlers;
+
 				if (epoll_ctl(m_epollfd, mode, fd, &ev) == -1) {
 					if (mode==EPOLL_CTL_MOD) {
 						syslog(LOG_ERR, "epoll_ctl failed while modifying event '%s' (%d) epoll_d:%d, event_fd:%d", strerror(errno), errno, m_epollfd, fd);
@@ -154,20 +158,19 @@ namespace hbm {
 			if (eventsIter==m_eventInfos.end()) {
 				return -1;
 			}
-			EventsHandlers_t *pEventHandlers = eventsIter->second;
-			if (pEventHandlers->outEvent) {
+			EventsHandlers_t &eventHandlers = eventsIter->second;
+			if (eventHandlers.outEvent) {
 				// keep the existing EPOLLOUT event
 				struct epoll_event ev;
 				memset(&ev, 0, sizeof(ev));
 				ev.events = EPOLLOUT | EPOLLET;
-				ev.data.ptr = pEventHandlers;
+				ev.data.ptr = &eventHandlers;
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
-				m_eventInfos.erase(eventsIter);
-
+				//m_eventInfos.erase(eventsIter);
 				//delete pEventHandlers;
-				m_eraseList.push_back(pEventHandlers);
+				m_eraseList.push_back(fd);
 				if (write(m_eraseFd, &notifyValue, sizeof(notifyValue))<0) {
 					syslog(LOG_ERR, "could not notify deletion of event handler from eventloop failed");
 				}
@@ -183,20 +186,19 @@ namespace hbm {
 			if (eventsIter==m_eventInfos.end()) {
 				return -1;
 			}
-			EventsHandlers_t *pEventHandlers = eventsIter->second;
-			if (pEventHandlers->inEvent) {
+			EventsHandlers_t &eventHandlers = eventsIter->second;
+			if (eventHandlers.inEvent) {
 				// keep the existing EPOLLIN event
 				struct epoll_event ev;
 				memset(&ev, 0, sizeof(ev));
 				ev.events = EPOLLIN | EPOLLET;
-				ev.data.ptr = pEventHandlers;
+				ev.data.ptr = &eventHandlers;
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
-				m_eventInfos.erase(eventsIter);
-
+				//m_eventInfos.erase(eventsIter);
 				//delete pEventHandlers;
-				m_eraseList.push_back(pEventHandlers);
+				m_eraseList.push_back(fd);
 				if (write(m_eraseFd, &notifyValue, sizeof(notifyValue))<0) {
 					syslog(LOG_ERR, "could not notify deletion of event handler from eventloop failed");
 				}
@@ -275,8 +277,8 @@ namespace hbm {
 
 					// see whether there are events to be deleted...
 					// Has to be done after processing pending events.
-					for (EventsHandlers_t* iter: m_eraseList) {
-						delete iter;
+					for (event iter: m_eraseList) {
+						m_eventInfos.erase(iter);
 					}
 					m_eraseList.clear();
 				}

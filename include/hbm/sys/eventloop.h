@@ -70,8 +70,8 @@ namespace hbm {
 				/// callback function for events for writing
 				EventHandler_t outEvent;
 			};
-			std::list < EventsHandlers_t* > m_eraseList;
-			typedef std::unordered_map <event, EventsHandlers_t* > eventInfos_t;
+			std::list < event > m_eraseList;
+			typedef std::unordered_map <event, EventsHandlers_t > eventInfos_t;
 			EventLoop::EventsHandlers_t m_stopHandler;
 			EventLoop::EventsHandlers_t m_eraseHandler;
 
