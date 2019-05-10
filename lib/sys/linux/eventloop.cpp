@@ -212,7 +212,6 @@ namespace hbm {
 			struct epoll_event events[MAXEVENTS];
 			ssize_t result;
 			EventsHandlers_t *pEventHandlers;
-			uint64_t dummyValue;
 
 			while (true) {
 				do {
@@ -234,12 +233,12 @@ namespace hbm {
 						for (int n = 0; n < nfds; ++n) {
 							pEventHandlers = reinterpret_cast < EventsHandlers_t* > (events[n].data.ptr);
 							if (pEventHandlers==&m_stopHandler) {
-								read(m_stopFd, &dummyValue, sizeof(dummyValue));
-								// stop eventloop notification!
+								// We are working edge triggered. Reading away the event is not necessary.
+								// Stop eventloop notification!
 								return 0;
 							} else if (pEventHandlers==&m_eraseHandler) {
-								// woke up to queue deletion of handlers
-								read(m_eraseFd, &dummyValue, sizeof(dummyValue));
+								// We are working edge triggered. Reading away the event is not necessary.
+								// Woke up to queue deletion of handlers
 							} else {
 								// we are working edge triggered, hence we need to read everything that is available
 								if (events[n].events & EPOLLIN) {
