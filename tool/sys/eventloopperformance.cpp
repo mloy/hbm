@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -25,6 +26,15 @@ int main()
 {
 	notifier.set(std::bind(&notifierCb));
 	notifier.notify();
+	std::chrono::high_resolution_clock::time_point t1;
+	std::chrono::high_resolution_clock::time_point t2;
+
+	t1 = std::chrono::high_resolution_clock::now();
 	eventloop.execute();
+
+	t2 = std::chrono::high_resolution_clock::now();
+	std::chrono::microseconds diff = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
+
+	std::cout << "execution time for " << EVENTLIMIT << " event notifications: " << diff.count() << "µs" << std::endl;
 	return EXIT_SUCCESS;
 }

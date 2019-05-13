@@ -25,3 +25,5 @@ add_executable(
 target_link_libraries( eventloopperformance
     hbm
 )
+
+install(TARGETS eventloopperformance RUNTIME DESTINATION bin)
