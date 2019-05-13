@@ -32,7 +32,6 @@ namespace hbm {
 			struct epoll_event ev;
 			memset(&ev, 0, sizeof(ev));
 			ev.events = EPOLLIN | EPOLLET;
-
 			ev.data.ptr = nullptr;
 			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_stopFd, &ev) == -1) {
 				throw hbm::exception::exception(std::string("add stop notifier to eventloop failed ") + strerror(errno));
@@ -163,7 +162,8 @@ namespace hbm {
 
 				for (int eventIndex = 0; eventIndex<m_eventCount; ++eventIndex) {
 					if (m_events[eventIndex].data.ptr==&eventsIter->second) {
-						// Turn all events off so that no handlers callback function will be called afterwards!
+						// Turn all events off so that no handlers callback function will be called from
+						// pending events afterwards!
 						// This is important so that entry can savely be erased from m_eventInfos
 						m_events[eventIndex].events = 0;
 						break;
@@ -195,7 +195,8 @@ namespace hbm {
 
 				for (int eventIndex = 0; eventIndex<m_eventCount; ++eventIndex) {
 					if (m_events[eventIndex].data.ptr==&eventsIter->second) {
-						// Turn all events off so that no handlers callback function will be called afterwards!
+						// Turn all events off so that no handlers callback function will be called from
+						// pending events afterwards!
 						// This is important so that entry can savely be erased from m_eventInfos
 						m_events[eventIndex].events = 0;
 						break;
