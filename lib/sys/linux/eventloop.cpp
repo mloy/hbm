@@ -19,12 +19,10 @@ static const uint64_t notifyValue = 1;
 
 namespace hbm {
 	namespace sys {
-		static const unsigned int MAXEVENTS = 16;
 
 
 		EventLoop::EventLoop()
 			: m_epollfd(epoll_create(1)) // parameter is ignored but must be greater than 0
-			, m_eraseFd(eventfd(0, EFD_NONBLOCK))
 			, m_stopFd(eventfd(0, EFD_NONBLOCK))
 		{
 			if (m_epollfd==-1) {
@@ -34,11 +32,6 @@ namespace hbm {
 			struct epoll_event ev;
 			memset(&ev, 0, sizeof(ev));
 			ev.events = EPOLLIN | EPOLLET;
-
-			ev.data.ptr = &m_eraseHandler;
-			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_eraseFd, &ev) == -1) {
-				throw hbm::exception::exception(std::string("add erase notifier to eventloop failed ") + strerror(errno));
-			}
 
 			ev.data.ptr = &m_stopHandler;
 			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_stopFd, &ev) == -1) {
@@ -50,7 +43,6 @@ namespace hbm {
 		{
 			stop();
 			close(m_epollfd);
-			close(m_eraseFd);
 			close(m_stopFd);
 		}
 
@@ -168,12 +160,16 @@ namespace hbm {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
-				//m_eventInfos.erase(eventsIter);
-				//delete pEventHandlers;
-				m_eraseList.push_back(fd);
-				if (write(m_eraseFd, &notifyValue, sizeof(notifyValue))<0) {
-					syslog(LOG_ERR, "could not notify deletion of event handler from eventloop failed");
+
+				for (int eventIndex = 0; eventIndex<m_eventCount; ++eventIndex) {
+					if (m_events[eventIndex].data.ptr==&eventsIter->second) {
+						// Turn all events off so that no handlers callback function will be called afterwards!
+						// This is important so that entry can savely be erased from m_eventInfos
+						m_events[eventIndex].events = 0;
+						break;
+					}
 				}
+				m_eventInfos.erase(eventsIter);
 			}
 			return ret;
 		}
@@ -196,30 +192,32 @@ namespace hbm {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
-				//m_eventInfos.erase(eventsIter);
-				//delete pEventHandlers;
-				m_eraseList.push_back(fd);
-				if (write(m_eraseFd, &notifyValue, sizeof(notifyValue))<0) {
-					syslog(LOG_ERR, "could not notify deletion of event handler from eventloop failed");
+
+				for (int eventIndex = 0; eventIndex<m_eventCount; ++eventIndex) {
+					if (m_events[eventIndex].data.ptr==&eventsIter->second) {
+						// Turn all events off so that no handlers callback function will be called afterwards!
+						// This is important so that entry can savely be erased from m_eventInfos
+						m_events[eventIndex].events = 0;
+						break;
+					}
 				}
+				m_eventInfos.erase(eventsIter);
 			}
 			return ret;
 		}
 		
 		int EventLoop::execute()
 		{
-			int nfds;
-			struct epoll_event events[MAXEVENTS];
 			ssize_t result;
 			EventsHandlers_t *pEventHandlers;
 
 			while (true) {
 				do {
-					nfds = epoll_wait(m_epollfd, events, MAXEVENTS, -1);
-				} while ((nfds==-1) && (errno==EINTR));
+					m_eventCount = epoll_wait(m_epollfd, m_events, MAXEVENTS, -1);
+				} while ((m_eventCount==-1) && (errno==EINTR));
 				
-				if (nfds<=0) {
-					return nfds;
+				if (m_eventCount<=0) {
+					return m_eventCount;
 				}
 
 				{
@@ -230,18 +228,15 @@ namespace hbm {
 					unsigned int eventsLeft;
 					do {
 						eventsLeft = 0;
-						for (int n = 0; n < nfds; ++n) {
-							pEventHandlers = reinterpret_cast < EventsHandlers_t* > (events[n].data.ptr);
+						for (int n = 0; n < m_eventCount; ++n) {
+							pEventHandlers = reinterpret_cast < EventsHandlers_t* > (m_events[n].data.ptr);
 							if (pEventHandlers==&m_stopHandler) {
 								// We are working edge triggered. Reading away the event is not necessary.
 								// Stop eventloop notification!
 								return 0;
-							} else if (pEventHandlers==&m_eraseHandler) {
-								// We are working edge triggered. Reading away the event is not necessary.
-								// Woke up to queue deletion of handlers
 							} else {
 								// we are working edge triggered, hence we need to read everything that is available
-								if (events[n].events & EPOLLIN) {
+								if (m_events[n].events & EPOLLIN) {
 									try {
 										result = pEventHandlers->inEvent();
 										if (result>0) {
@@ -249,14 +244,14 @@ namespace hbm {
 											++eventsLeft;
 										} else {
 											// we are done with this event
-											events[n].events &= ~EPOLLIN;
+											m_events[n].events &= ~EPOLLIN;
 										}
 									} catch (...) {
 										// ignore
 									}
 								}
 								// we handle only EPOLLIN or EPOLLOUT, otherwise we might execute second.outEvent() after the handler was already deleted by second.inEvent()
-								else if (events[n].events & EPOLLOUT) {
+								else if (m_events[n].events & EPOLLOUT) {
 									try {
 										result = pEventHandlers->outEvent();
 										if (result>0) {
@@ -264,7 +259,7 @@ namespace hbm {
 											++eventsLeft;
 										} else {
 											// we are done with this event
-											events[n].events &= ~EPOLLOUT;
+											m_events[n].events &= ~EPOLLOUT;
 										}
 									} catch (...) {
 										// ignore
@@ -273,13 +268,6 @@ namespace hbm {
 							}
 						}
 					} while (eventsLeft);
-
-					// see whether there are events to be deleted...
-					// Has to be done after processing pending events.
-					for (event iter: m_eraseList) {
-						m_eventInfos.erase(iter);
-					}
-					m_eraseList.clear();
 				}
 			}
 		}

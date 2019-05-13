@@ -6,11 +6,12 @@
 #define _EventLoop_H
 
 
-#include <list>
 #include <unordered_map>
 #ifdef _WIN32
 	#include <WinSock2.h>
 	#include <Windows.h>
+#else
+	#include <sys/epoll.h>
 #endif
 #include <functional>
 #include <mutex>
@@ -64,22 +65,26 @@ namespace hbm {
 			HANDLE m_completionPort;
 			HANDLE m_hEventLog;
 #else
+			/// maximum number of events that may be queued with epoll_wait()
+			static const unsigned int MAXEVENTS = 16;
+			/// events from epoll_wait
+			struct epoll_event m_events[MAXEVENTS];
+			/// number of events from epoll_wait
+			int m_eventCount;
+
 			struct EventsHandlers_t {
 				/// callback function for events for reading
 				EventHandler_t inEvent;
 				/// callback function for events for writing
 				EventHandler_t outEvent;
 			};
-			std::list < event > m_eraseList;
 			typedef std::unordered_map <event, EventsHandlers_t > eventInfos_t;
 			EventLoop::EventsHandlers_t m_stopHandler;
-			EventLoop::EventsHandlers_t m_eraseHandler;
 
 			int m_epollfd;
-			event m_eraseFd;
 			event m_stopFd;
 #endif
-			/// events handled by event loop
+			/// protects access on events structures
 			std::recursive_mutex m_eventInfosMtx;
 			eventInfos_t m_eventInfos;
 		};
