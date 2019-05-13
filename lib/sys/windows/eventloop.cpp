@@ -40,7 +40,7 @@ namespace hbm {
 
 			{
 				std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-				m_inEventInfos[fd.overlapped.hEvent] = eventHandler;
+				m_eventInfos[fd.overlapped.hEvent] = eventHandler;
 			}
 			
 			if (fd.fileHandle == INVALID_HANDLE_VALUE) {
@@ -71,7 +71,7 @@ namespace hbm {
 		int EventLoop::eraseEvent(event fd)
 		{
 			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-			m_inEventInfos.erase(fd.overlapped.hEvent);
+			m_eventInfos.erase(fd.overlapped.hEvent);
 			return 0;
 		}
 
@@ -108,8 +108,8 @@ namespace hbm {
 							// Happpens also if tcp keep alive recognizes loss of connection.
 							// We need to call the callback routine only once to handle the error.
 							std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-							eventInfos_t::iterator iter = m_inEventInfos.find(event);
-							if (iter != m_inEventInfos.end()) {
+							eventInfos_t::iterator iter = m_eventInfos.find(event);
+							if (iter != m_eventInfos.end()) {
 								iter->second();
 							}
 						} else if (lastError != ERROR_OPERATION_ABORTED) {
@@ -141,8 +141,8 @@ namespace hbm {
 
 					do {
 						std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
-						eventInfos_t::iterator iter = m_inEventInfos.find(event);
-						if (iter != m_inEventInfos.end()) {
+						eventInfos_t::iterator iter = m_eventInfos.find(event);
+						if (iter != m_eventInfos.end()) {
 							retval = iter->second();
 						}
 					} while (retval > 0);

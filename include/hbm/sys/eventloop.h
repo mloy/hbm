@@ -34,15 +34,20 @@ namespace hbm {
 			/// \param eventHandler callback function to be called if file descriptor gets readable.
 			int addEvent(event fd, const EventHandler_t &eventHandler);
 
+
+#ifndef _WIN32
 			/// existing event handler of an fd will be replaced
 			/// \param fd a non-blocking file descriptor to observe
 			/// \param eventHandler callback function to be called if file descriptor gets writable.
 			int addOutEvent(event fd, const EventHandler_t &eventHandler);
+#endif
 
 			/// remove an event from the event loop
 			int eraseEvent(event fd);
+#ifndef _WIN32
 			/// remove an event from the event loop
 			int eraseOutEvent(event fd);
+#endif
 
 			/// \return 0 stopped; -1 error
 			int execute();
