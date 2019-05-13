@@ -79,7 +79,6 @@ namespace hbm {
 				EventHandler_t outEvent;
 			};
 			typedef std::unordered_map <event, EventsHandlers_t > eventInfos_t;
-			EventLoop::EventsHandlers_t m_stopHandler;
 
 			int m_epollfd;
 			event m_stopFd;

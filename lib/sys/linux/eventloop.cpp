@@ -33,7 +33,7 @@ namespace hbm {
 			memset(&ev, 0, sizeof(ev));
 			ev.events = EPOLLIN | EPOLLET;
 
-			ev.data.ptr = &m_stopHandler;
+			ev.data.ptr = nullptr;
 			if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_stopFd, &ev) == -1) {
 				throw hbm::exception::exception(std::string("add stop notifier to eventloop failed ") + strerror(errno));
 			}
@@ -230,11 +230,7 @@ namespace hbm {
 						eventsLeft = 0;
 						for (int n = 0; n < m_eventCount; ++n) {
 							pEventHandlers = reinterpret_cast < EventsHandlers_t* > (m_events[n].data.ptr);
-							if (pEventHandlers==&m_stopHandler) {
-								// We are working edge triggered. Reading away the event is not necessary.
-								// Stop eventloop notification!
-								return 0;
-							} else {
+							if (pEventHandlers) {
 								// we are working edge triggered, hence we need to read everything that is available
 								if (m_events[n].events & EPOLLIN) {
 									try {
@@ -264,6 +260,10 @@ namespace hbm {
 										// ignore
 									}
 								}
+							} else {
+								// We are working edge triggered. Reading away the event is not necessary.
+								// Stop eventloop notification!
+								return 0;
 							}
 						}
 					} while (eventsLeft);
