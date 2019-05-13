@@ -12,7 +12,8 @@ option(FEATURE_GENERATE_DOC         "Generate documentation" OFF)
 add_subdirectory("lib")
 
 if(FEATURE_TOOLS)
-  add_subdirectory("tool/communication")
+    add_subdirectory("tool/communication")
+    add_subdirectory("tool/sys")
 endif()
 
 if(FEATURE_POST_BUILD_UNITTEST)
