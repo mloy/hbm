@@ -250,8 +250,7 @@ namespace hbm {
 										// ignore
 									}
 								}
-								// we handle only EPOLLIN or EPOLLOUT, otherwise we might execute second.outEvent() after the handler was already deleted by second.inEvent()
-								else if (m_events[n].events & EPOLLOUT) {
+								if (m_events[n].events & EPOLLOUT) {
 									try {
 										result = pEventHandlers->outEvent();
 										if (result>0) {
