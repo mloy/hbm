@@ -32,6 +32,11 @@ static unsigned int incrementLimit = 0;
 static std::mutex incrementLimitMtx;
 static std::condition_variable incrementLimitCnd;
 
+static int dummyCb()
+{
+	return 0;
+}
+
 static void timerEventHandlerIncrement(bool fired, unsigned int& value, bool& canceled)
 {
 	if (fired) {
@@ -499,7 +504,15 @@ BOOST_AUTO_TEST_CASE(add_and_remove_events_test)
 
 	incrementLimit = eventCount;
 	bool signaled;
-	
+
+	// invalid function pointer
+	int result = eventLoop.addEvent(0, nullptr);
+	BOOST_CHECK_EQUAL(result, -1);
+
+	// invalid file descriptor
+	result = eventLoop.addEvent(-1, &dummyCb);
+	BOOST_CHECK_EQUAL(result, -1);
+
 
 	std::thread worker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
 
