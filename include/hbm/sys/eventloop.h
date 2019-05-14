@@ -15,7 +15,6 @@
 #endif
 #include <functional>
 #include <mutex>
-#include <thread>
 
 #include "hbm/exception/exception.hpp"
 #include "hbm/sys/defines.h"
