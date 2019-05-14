@@ -48,7 +48,7 @@ static int receiveAndKeep(hbm::communication::MulticastServer& mcs)
 		if (result>0) {
 			{
 				std::unique_lock < std::mutex > lock(receivedMtx);
-				received += std::string(buf, result);
+				received = std::string(buf, result);
 			}
 			receivedCnd.notify_one();
 			std::cout << __FUNCTION__ << " '" << received << "'" <<std::endl;
@@ -164,8 +164,6 @@ BOOST_AUTO_TEST_CASE(start_send_stop_test)
 	result = mcsSender.start(MULTICASTGROUP, UDP_PORT, std::bind(&receiveAndDiscard, std::placeholders::_1));
 	BOOST_CHECK_EQUAL(result,0);
 
-	// use one interface for sending
-	mcsSender.addInterface(firstadapter.getIndex());
 	mcsSender.setMulticastLoop(true);
 	for (unsigned int i=0; i<CYCLECOUNT; ++i) {
 		result = mcsReceiver.start(MULTICASTGROUP, UDP_PORT, std::bind(&receiveAndKeep, std::placeholders::_1));
