@@ -48,6 +48,7 @@ static int receiveAndKeep(hbm::communication::MulticastServer& mcs)
 		if (result>0) {
 			{
 				std::unique_lock < std::mutex > lock(receivedMtx);
+				// we may receive the same message several times because there might be several interfaces used for sending
 				received = std::string(buf, result);
 			}
 			receivedCnd.notify_one();
