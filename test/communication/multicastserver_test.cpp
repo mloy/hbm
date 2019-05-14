@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(start_send_stop_test)
 	static const unsigned int UDP_PORT = 22222;
 	static const unsigned int CYCLECOUNT = 100;
 
-	static const std::string MSG = "testest";
+	static const std::string MSG = "test1test2";
 	int result;
 	bool signaled;
 
@@ -159,17 +159,19 @@ BOOST_AUTO_TEST_CASE(start_send_stop_test)
 	hbm::communication::NetadapterList adapters;
 	hbm::communication::MulticastServer mcsReceiver(adapters, eventloop);
 	hbm::communication::MulticastServer mcsSender(adapters, eventloop);
+	hbm::communication::Netadapter firstadapter = adapters.get().begin()->second;
 
 	result = mcsSender.start(MULTICASTGROUP, UDP_PORT, std::bind(&receiveAndDiscard, std::placeholders::_1));
 	BOOST_CHECK_EQUAL(result,0);
 
-	mcsSender.addAllInterfaces();
+	// use one interface for sending
+	mcsSender.addInterface(firstadapter.getIndex());
 	mcsSender.setMulticastLoop(true);
 	for (unsigned int i=0; i<CYCLECOUNT; ++i) {
-		received.clear();
 		result = mcsReceiver.start(MULTICASTGROUP, UDP_PORT, std::bind(&receiveAndKeep, std::placeholders::_1));
 		BOOST_CHECK_EQUAL(result, 0);
 		mcsReceiver.addAllInterfaces();
+		received.clear();
 		mcsSender.send(MSG.c_str(), MSG.length());
 
 		{
