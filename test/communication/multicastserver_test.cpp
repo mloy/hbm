@@ -46,7 +46,10 @@ static int receiveAndKeep(hbm::communication::MulticastServer& mcs)
 		int ttl;
 		result = mcs.receiveTelegram(buf, sizeof(buf), adapterIndex, ttl);
 		if (result>0) {
-			received += std::string(buf, result);
+			{
+				std::unique_lock < std::mutex > lock(receivedMtx);
+				received += std::string(buf, result);
+			}
 			receivedCnd.notify_one();
 			std::cout << __FUNCTION__ << " '" << received << "'" <<std::endl;
 		}
@@ -165,6 +168,7 @@ BOOST_AUTO_TEST_CASE(start_send_stop_test)
 	for (unsigned int i=0; i<CYCLECOUNT; ++i) {
 		received.clear();
 		result = mcsReceiver.start(MULTICASTGROUP, UDP_PORT, std::bind(&receiveAndKeep, std::placeholders::_1));
+		BOOST_CHECK_EQUAL(result, 0);
 		mcsReceiver.addAllInterfaces();
 		mcsSender.send(MSG.c_str(), MSG.length());
 

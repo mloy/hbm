@@ -615,12 +615,12 @@ namespace hbm {
 			m_mutlicastgroup = multicastGroup;
 			m_port = port;
 			int err = setupSendSocket();
-			if(err<0) {
+			if (err<0) {
 				return err;
 			}
 
 			err = setupReceiveSocket();
-			if(err<0) {
+			if (err<0) {
 				return err;
 			}
 
