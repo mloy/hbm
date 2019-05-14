@@ -46,7 +46,6 @@ namespace hbm {
 			, m_eventLoop(eventLoop)
 			, m_dataHandler()
 		{
-
 		}
 
 		MulticastServer::~MulticastServer()

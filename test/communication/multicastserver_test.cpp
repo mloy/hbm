@@ -60,10 +60,10 @@ static int receiveAndKeep(hbm::communication::MulticastServer& mcs)
 static int receiveAndDiscard(hbm::communication::MulticastServer& mcs)
 {
 	ssize_t result;
+	char buf[1024];
+	unsigned int adapterIndex;
+	int ttl;
 	do {
-		char buf[1042];
-		unsigned int adapterIndex;
-		int ttl;
 		result = mcs.receiveTelegram(buf, sizeof(buf), adapterIndex, ttl);
 	} while(result>=0);
 	return 0;
@@ -177,7 +177,6 @@ BOOST_AUTO_TEST_CASE(start_send_stop_test)
 			signaled = receivedCnd.wait_for(lock, std::chrono::milliseconds(100), checkReceived);
 		}
 
-		//std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		BOOST_CHECK_EQUAL(signaled, true);
 		mcsReceiver.stop();
 		BOOST_CHECK_EQUAL(MSG, received);
