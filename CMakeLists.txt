@@ -8,8 +8,6 @@ INCLUDE(generate_doxygen)
 option(FEATURE_TOOLS                "Compile client software" OFF)
 option(FEATURE_POST_BUILD_UNITTEST  "Automatically run unit-tests as a post build step" OFF)
 option(FEATURE_GENERATE_DOC         "Generate documentation" OFF)
-option(FEATURE_GCOV "Enable profiling and coverage report analysis" OFF)
-
 
 add_subdirectory("lib")
 
