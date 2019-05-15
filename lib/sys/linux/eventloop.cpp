@@ -22,7 +22,8 @@ namespace hbm {
 
 
 		EventLoop::EventLoop()
-			: m_epollfd(epoll_create(1)) // parameter is ignored but must be greater than 0
+			: m_eventCount(0)
+			, m_epollfd(epoll_create(1)) // parameter is ignored but must be greater than 0
 			, m_stopFd(eventfd(0, EFD_NONBLOCK))
 		{
 			if (m_epollfd==-1) {
