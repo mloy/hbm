@@ -505,6 +505,8 @@ BOOST_AUTO_TEST_CASE(add_and_remove_events_test)
 	incrementLimit = eventCount;
 	bool signaled;
 
+#ifndef _WIN32
+	//under windows, the 1st parameter is a complex parameter
 	// invalid function pointer
 	int result = eventLoop.addEvent(0, nullptr);
 	BOOST_CHECK_EQUAL(result, -1);
@@ -512,7 +514,7 @@ BOOST_AUTO_TEST_CASE(add_and_remove_events_test)
 	// invalid file descriptor
 	result = eventLoop.addEvent(-1, &dummyCb);
 	BOOST_CHECK_EQUAL(result, -1);
-
+#endif
 
 	std::thread worker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
 

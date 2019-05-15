@@ -165,7 +165,7 @@
     <ClCompile Include="communication\windows\wmi.cpp" />
     <ClCompile Include="exception\errno_exception.cpp" />
     <ClCompile Include="exception\exception.cpp" />
-    <ClCompile Include="exception\jsonrpc_exception.cpp" />  
+    <ClCompile Include="exception\jsonrpc_exception.cpp" />
     <ClCompile Include="string\replace.cpp" />
     <ClCompile Include="string\split.cpp" />
     <ClCompile Include="string\trim.cpp" />
@@ -184,6 +184,15 @@
     <ClInclude Include="..\include\hbm\communication\socketnonblocking.h" />
     <ClInclude Include="..\include\hbm\communication\tcpserver.h" />
     <ClInclude Include="..\include\hbm\communication\wmi.h" />
+    <ClInclude Include="..\include\hbm\exception\errno_exception.hpp" />
+    <ClInclude Include="..\include\hbm\exception\exception.hpp" />
+    <ClInclude Include="..\include\hbm\exception\jsonrpc_exception.h" />
+    <ClInclude Include="..\include\hbm\sys\defines.h" />
+    <ClInclude Include="..\include\hbm\sys\eventloop.h" />
+    <ClInclude Include="..\include\hbm\sys\executecommand.h" />
+    <ClInclude Include="..\include\hbm\sys\notifier.h" />
+    <ClInclude Include="..\include\hbm\sys\pidfile.h" />
+    <ClInclude Include="..\include\hbm\sys\timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

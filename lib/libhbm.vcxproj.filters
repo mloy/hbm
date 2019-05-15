@@ -32,6 +32,12 @@
     <Filter Include="lib\exception">
       <UniqueIdentifier>{2f7c84dc-0bee-41ea-b1d3-32bc75222354}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\sys">
+      <UniqueIdentifier>{dfae2b3d-7e91-45c1-9650-3de119de6bcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\exception">
+      <UniqueIdentifier>{7ebc30bc-e2d8-482c-ad5b-90d5e3a19746}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="communication\windows\bufferedreader.cpp">
@@ -91,6 +97,8 @@
     <ClCompile Include="communication\windows\wmi.cpp">
       <Filter>lib\communication\windows</Filter>
     </ClCompile>
+    <ClCompile Include="exception\errno_exception.cpp" />
+    <ClCompile Include="exception\exception.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\hbm\communication\bufferedreader.h">
@@ -116,6 +124,33 @@
     </ClInclude>
     <ClInclude Include="..\include\hbm\communication\wmi.h">
       <Filter>include\communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\sys\defines.h">
+      <Filter>include\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\sys\eventloop.h">
+      <Filter>include\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\sys\executecommand.h">
+      <Filter>include\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\sys\notifier.h">
+      <Filter>include\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\sys\pidfile.h">
+      <Filter>include\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\sys\timer.h">
+      <Filter>include\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\exception\errno_exception.hpp">
+      <Filter>include\exception</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\exception\exception.hpp">
+      <Filter>include\exception</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\hbm\exception\jsonrpc_exception.h">
+      <Filter>include\exception</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
