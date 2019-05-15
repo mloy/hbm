@@ -240,7 +240,7 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 			sizeLeft -= static_cast < size_t > (retVal);
 			pPos += retVal;
 		} else if (retVal==0) {
-			return size-sizeLeft;
+			return static_cast < int > (size-sizeLeft);
 		} else {
 			if(errno==EWOULDBLOCK || errno==EAGAIN) {
 				// wait for socket to become readable.

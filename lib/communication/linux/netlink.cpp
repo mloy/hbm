@@ -208,7 +208,7 @@ namespace hbm {
 			uint8_t readBuffer[MAX_DATAGRAM_SIZE];
 			ssize_t nBytes = receive(readBuffer, sizeof(readBuffer));
 			if (nBytes>0) {
-				processNetlinkTelegram(readBuffer, nBytes);
+				processNetlinkTelegram(readBuffer, static_cast < size_t > (nBytes));
 			}
 			return nBytes;
 		}

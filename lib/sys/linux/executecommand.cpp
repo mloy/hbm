@@ -109,7 +109,7 @@ namespace hbm {
 						syslog(LOG_ERR, "error writing to stdin of child '%s'", command.c_str());
 						break;
 					}
-					stdinDataSize -= ret;
+					stdinDataSize -= static_cast < size_t > (ret);
 					pStdinData += ret;
 				}
 				close(pfd[PIPE_WRITE]);

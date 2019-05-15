@@ -115,7 +115,7 @@ namespace hbm {
 			//	return -1;
 			//}
 
-			if (bind(m_receiveEvent, (struct sockaddr*)&m_receiveAddr, sizeof(m_receiveAddr)) < 0) {
+			if (bind(m_receiveEvent, reinterpret_cast <struct sockaddr*> (&m_receiveAddr), sizeof(m_receiveAddr)) < 0) {
 				::syslog(LOG_ERR, "Could not bind socket!");
 				return -1;
 			}
@@ -336,7 +336,7 @@ namespace hbm {
 		int MulticastServer::process()
 		{
 			if (m_dataHandler) {
-				return m_dataHandler(*this);
+				return static_cast < int > (m_dataHandler(*this));
 			} else {
 				return -1;
 			}

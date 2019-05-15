@@ -38,7 +38,7 @@ namespace hbm {
 
 		int Timer::set(std::chrono::milliseconds period, bool repeated, Cb_t eventHandler)
 		{
-			return set(period.count(), repeated, eventHandler);
+			return set(static_cast < unsigned int > (period.count()), repeated, eventHandler);
 		}
 
 		int Timer::set(unsigned int period_ms, bool repeated, Cb_t eventHandler)
