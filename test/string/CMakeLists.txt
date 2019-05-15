@@ -3,9 +3,9 @@ project("hbm_string_test" CXX)
 cmake_minimum_required(VERSION 2.8)
 
 
-IF(FEATURE_GCOV)
-  SET(CMAKE_COVERAGE_FLAGS "-fprofile-arcs -ftest-coverage")
-ENDIF(FEATURE_GCOV)
+#IF(FEATURE_GCOV)
+  SET(CMAKE_COVERAGE_FLAGS "-g -fprofile-arcs -ftest-coverage")
+#ENDIF(FEATURE_GCOV)
 
 SET(WARN_FLAGS "-fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
 
