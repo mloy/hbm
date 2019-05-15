@@ -65,7 +65,7 @@ set(HBMLIB_SOURCES
 set_source_files_properties(${HBMLIB_SOURCES} PROPERTIES COMPILE_FLAGS "${EXTRA_FLAGS}")
 
 add_library(hbm SHARED ${HBMLIB_SOURCES})
-add_library(hbm-static STATIC ${HBMLIB_SOURCES})
+#add_library(hbm-static STATIC ${HBMLIB_SOURCES})
 
 
 SET( HBM_MAJOR_VERSION 1)
@@ -92,6 +92,6 @@ configure_file("${PROJECT_SOURCE_DIR}/version.h.in" "${PROJECT_BINARY_DIR}/versi
 INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" DESTINATION lib/pkgconfig)
 
 install(TARGETS hbm LIBRARY DESTINATION lib)
-install(TARGETS hbm-static ARCHIVE DESTINATION lib)
+#install(TARGETS hbm-static ARCHIVE DESTINATION lib)
 install (DIRECTORY ${INTERFACE_INCLUDE_DIR} DESTINATION include)
 install (FILES "${PROJECT_BINARY_DIR}/version.h" DESTINATION include/hbm/)
