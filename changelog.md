@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.34
+ - Linux: More efficient eventloop handling
+
 ## v1.0.33
  - Windows: socket shutdown after removal from event loop
 
