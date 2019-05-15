@@ -163,7 +163,9 @@
     <ClCompile Include="communication\windows\socketnonblocking.cpp" />
     <ClCompile Include="communication\windows\tcpserver.cpp" />
     <ClCompile Include="communication\windows\wmi.cpp" />
-    <ClCompile Include="exception\jsonrpc_exception.cpp" />
+    <ClCompile Include="exception\errno_exception.cpp" />
+    <ClCompile Include="exception\exception.cpp" />
+    <ClCompile Include="exception\jsonrpc_exception.cpp" />  
     <ClCompile Include="string\replace.cpp" />
     <ClCompile Include="string\split.cpp" />
     <ClCompile Include="string\trim.cpp" />

@@ -10,13 +10,11 @@
 #include <stdexcept>
 #include <string>
 
-#ifdef __GNUG__
-#include <cstdlib>
+//#ifdef __GNUG__
+//#include <cstdlib>
 
-#include <execinfo.h>
-#endif
-
-#include "hbm/debug/stack_trace.hpp"
+//#include <execinfo.h>
+//#endif
 
 namespace hbm {
 	namespace exception {
@@ -31,18 +29,9 @@ namespace hbm {
 		/// }
 		class exception : public std::runtime_error {
 			public:
-				exception(const std::string& description)
-					: std::runtime_error(description)
-					, output(std::string(std::runtime_error::what()))
-				{
-					output.append("\n");
-					output.append(hbm::debug::fill_stack_trace());
-				}
-				virtual ~exception() throw() {}
-				virtual const char* what() const throw()
-				{
-					return output.c_str();
-				}
+				exception(const std::string& description);
+				virtual ~exception() noexcept;
+				virtual const char* what() const noexcept;
 			protected:
 				std::string output;
 

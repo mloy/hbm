@@ -17,14 +17,14 @@ namespace hbm {
 		public:
 			jsonrpcException(int code, const std::string& message="");
 
-			virtual ~jsonrpcException() throw();
+			virtual ~jsonrpcException() noexcept;
 
-			int code() const throw();
+			int code() const noexcept;
 
-			std::string message() const throw();
+			std::string message() const noexcept;
 
 			/// returns the message from the error object
-			const char* what() const throw();
+			const char* what() const noexcept;
 
 			//const Json::Value& json() const;
 

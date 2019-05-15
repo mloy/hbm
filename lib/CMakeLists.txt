@@ -51,6 +51,8 @@ set(HBMLIB_SOURCES
   communication/linux/netlink.cpp
   communication/linux/socketnonblocking.cpp
   communication/linux/tcpserver.cpp
+  exception/errno_exception.cpp
+  exception/exception.cpp
   exception/jsonrpc_exception.cpp
   string/replace.cpp
   string/split.cpp
