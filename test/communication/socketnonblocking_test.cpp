@@ -198,7 +198,7 @@ namespace hbm {
 			// the numbe of file descriptors of this process
 			cmd = "ls -1 /proc/" + std::to_string(processId) + "/fd | wc -l";
 			pipe = popen(cmd.c_str(), "r");
-			if(fgets(readBuffer, sizeof(readBuffer), pipe)==NULL) {
+			if(fgets(readBuffer, sizeof(readBuffer), pipe)==nullptr) {
 				BOOST_ASSERT("Could not get number of fds of process");
 			}
 			fdCountBefore = std::stoul(readBuffer);
@@ -218,7 +218,7 @@ namespace hbm {
 			GetProcessHandleCount( GetCurrentProcess(), &fdCountAfter);
 #else
 			pipe = popen(cmd.c_str(), "r");
-			if(fgets(readBuffer, sizeof(readBuffer), pipe)==NULL) {
+			if(fgets(readBuffer, sizeof(readBuffer), pipe)==nullptr) {
 				BOOST_ASSERT("Could not get number of fds of process");
 			}
 			fdCountAfter = std::stoul(readBuffer);

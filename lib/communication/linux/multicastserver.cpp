@@ -200,7 +200,7 @@ namespace hbm {
 		{
 			int retVal = 0;
 			struct addrinfo hints;
-			struct addrinfo* pResult = NULL;
+			struct addrinfo* pResult = nullptr;
 			char portString[8];
 
 			struct ip_mreq im;
@@ -395,7 +395,7 @@ namespace hbm {
 			nbytes = ::recvmsg(m_receiveEvent, &msg, 0);
 
 			if (nbytes > 0) {
-				for (struct cmsghdr* pcmsghdr = CMSG_FIRSTHDR(&msg); pcmsghdr != NULL; pcmsghdr = CMSG_NXTHDR(&msg, pcmsghdr)) {
+				for (struct cmsghdr* pcmsghdr = CMSG_FIRSTHDR(&msg); pcmsghdr != nullptr; pcmsghdr = CMSG_NXTHDR(&msg, pcmsghdr)) {
 					if (pcmsghdr->cmsg_type == IP_PKTINFO) {
 						struct in_pktinfo pktinfo;
 						std::memcpy(&pktinfo, CMSG_DATA(pcmsghdr), sizeof(pktinfo));

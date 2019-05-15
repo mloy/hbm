@@ -133,8 +133,8 @@ namespace hbm {
 
 			interface = interfaces;
 
-			while (interface != NULL) {
-				if (interface->ifa_addr != NULL) {
+			while (interface != nullptr) {
+				if (interface->ifa_addr != nullptr) {
 					if (interface->ifa_flags & IFF_MULTICAST) {
 							hardwareInfo_t hardwareInfo = getHardwareInfo(interface->ifa_name);
 							if (hardwareInfo.isHardware) {

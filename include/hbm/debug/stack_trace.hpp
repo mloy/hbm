@@ -25,7 +25,7 @@ namespace hbm {
 			void *backtrace_buffer[backtrace_size];
 			unsigned int num_functions = ::backtrace(backtrace_buffer, backtrace_size);
 			char **function_strings = ::backtrace_symbols(backtrace_buffer, num_functions);
-			if (function_strings != NULL) {
+			if (function_strings != nullptr) {
 				output.append("\n----------- stacktrace begin\n");
 				output.append("\n");
 				for (unsigned int i = 0; i < num_functions; ++i) {

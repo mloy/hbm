@@ -38,7 +38,7 @@ namespace hbm {
 		{
 			std::string retVal;
 			FILE* f = popen(command.c_str(),"r");
-			if (f == NULL) {
+			if (f == nullptr) {
 				std::string msg = std::string(__FUNCTION__) + "popen failed (cmd=" + command + ")!";
 				throw hbm::exception::exception(msg);
 			} else {

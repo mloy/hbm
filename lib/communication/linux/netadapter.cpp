@@ -27,7 +27,7 @@ namespace hbm {
 
 			FILE* fp = ::fopen("/proc/net/route", "r");
 
-			if (fp != NULL) {
+			if (fp != nullptr) {
 				if (fscanf(fp, "%*[^\n]\n") < 0) { // Skip the first line
 					::syslog(LOG_ERR, "error reading first line of /proc/net/route!");
 				} else {

@@ -29,7 +29,7 @@ static int inet_pton_forWindowsxp(int af, const char *src, void *dst)
 	strncpy(src_copy, src, INET6_ADDRSTRLEN + 1);
 	src_copy[INET6_ADDRSTRLEN] = 0;
 
-	if (WSAStringToAddressA(src_copy, af, NULL, (struct sockaddr *)&ss, &size) == 0) {
+	if (WSAStringToAddressA(src_copy, af, nullptr, (struct sockaddr *)&ss, &size) == 0) {
 		switch (af) {
 		case AF_INET:
 			*(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;

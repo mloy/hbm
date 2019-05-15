@@ -31,7 +31,7 @@ namespace hbm
 		/// used for scatter gather operations
 		struct dataBlock_t {
 			dataBlock_t()
-				: pData(NULL)
+				: pData(nullptr)
 				, size(0)
 			{
 			}

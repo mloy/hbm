@@ -117,7 +117,7 @@ namespace hbm {
 
 		int TcpServer::process()
 		{
-			int clientFd = ::accept(m_listeningEvent, NULL, NULL);
+			int clientFd = ::accept(m_listeningEvent, nullptr, nullptr);
 			if (clientFd==-1) {
 				if ((errno!=EWOULDBLOCK) && (errno!=EAGAIN) && (errno!=EINTR) ) {
 					::syslog(LOG_ERR, "server: error accepting connection '%s'", strerror(errno));

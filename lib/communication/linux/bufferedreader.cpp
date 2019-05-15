@@ -48,7 +48,7 @@ namespace hbm {
 
 			if (retVal>static_cast < ssize_t > (desiredLen)) {
 				// readv returns the total number of bytes read
-				m_fillLevel = retVal-desiredLen;
+				m_fillLevel = static_cast < size_t > (retVal)-desiredLen;
 				return static_cast < ssize_t > (desiredLen);
 			}
 			m_fillLevel = 0;

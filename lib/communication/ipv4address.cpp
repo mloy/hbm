@@ -149,8 +149,8 @@ namespace hbm {
 			}
 
 			for (unsigned int index=0; index<4; ++index) {
-				addressByte = std::stoul(addressParts[index], NULL, 10);
-				netmaskByte = std::stoul(netmaskParts[index], NULL, 10);
+				addressByte = std::stoul(addressParts[index], nullptr, 10);
+				netmaskByte = std::stoul(netmaskParts[index], nullptr, 10);
 				if ((addressByte>255) || (netmaskByte>255)) {
 					// not a valid address!
 					return "";

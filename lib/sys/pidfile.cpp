@@ -28,7 +28,7 @@ namespace hbm {
 			m_pidFileName += ".pid";
 			FILE* pidFile = ::fopen(m_pidFileName.c_str(), "w");
 
-			if (pidFile == NULL) {
+			if (pidFile == nullptr) {
 				std::string msg;
 				msg = "could not create pid file ";
 				msg += m_pidFileName;
