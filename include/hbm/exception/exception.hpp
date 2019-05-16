@@ -10,12 +10,6 @@
 #include <stdexcept>
 #include <string>
 
-//#ifdef __GNUG__
-//#include <cstdlib>
-
-//#include <execinfo.h>
-//#endif
-
 namespace hbm {
 	namespace exception {
 		/// base class for all exceptions raised/thrown by hbm-code.

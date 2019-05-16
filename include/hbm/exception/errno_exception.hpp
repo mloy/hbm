@@ -8,10 +8,6 @@
 #define HBM__ERRNO_EXCEPTION_H
 
 
-//#include <cstring>
-//#include <string>
-
-//#include <errno.h>
 
 #include "hbm/exception/exception.hpp"
 
@@ -33,7 +29,7 @@ namespace hbm {
 
 			virtual ~errno_exception() noexcept;
 
-			int errorno() const;
+			int errorno() const noexcept;
 		private:
 			const int _errorno;
 		};

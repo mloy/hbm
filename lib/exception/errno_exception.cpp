@@ -9,11 +9,12 @@
 
 #include "hbm/exception/errno_exception.hpp"
 #include "hbm/exception/exception.hpp"
+
 namespace hbm {
 	namespace exception {
 		errno_exception::errno_exception()
-			: hbm::exception::exception(::strerror(errno)),
-				_errorno(errno)
+			: hbm::exception::exception(::strerror(errno))
+			, _errorno(errno)
 		{
 		}
 
@@ -21,7 +22,7 @@ namespace hbm {
 		{
 		}
 
-		int errno_exception::errorno() const
+		int errno_exception::errorno() const noexcept
 		{
 			return _errorno;
 		}

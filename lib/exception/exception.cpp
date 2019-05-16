@@ -14,7 +14,11 @@ namespace hbm {
 			output.append("\n");
 			output.append(hbm::debug::fill_stack_trace());
 		}
-		exception::~exception() noexcept {}
+
+		exception::~exception()
+		{
+		}
+
 		const char* exception::what() const noexcept
 		{
 			return output.c_str();

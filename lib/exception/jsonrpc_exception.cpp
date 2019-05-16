@@ -2,6 +2,7 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
+#include <string>
 
 #include "hbm/exception/jsonrpc_exception.h"
 #include "hbm/jsonrpc/jsonrpc_defines.h"
