@@ -14,7 +14,6 @@ SET(CMAKE_CXX_FLAGS "-std=c++11 -fno-common -Wall -Werror -Wshadow -Wextra -Wini
 find_package(Boost COMPONENTS unit_test_framework)
 IF(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
-  LIST(APPEND ADDITIONAL_LIBS ${Boost_LIBRARIES})
 endif(Boost_FOUND)
 
 SET(MULTICASTSERVER_TEST
