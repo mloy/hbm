@@ -212,14 +212,16 @@ namespace hbm {
 		{
 			ssize_t result;
 			EventsHandlers_t *pEventHandlers;
+			unsigned int eventsLeft;
 
 			while (true) {
-				do {
-					m_eventCount = epoll_wait(m_epollfd, m_events, MAXEVENTS, -1);
-				} while ((m_eventCount==-1) && (errno==EINTR));
-				
-				if (m_eventCount<=0) {
-					return m_eventCount;
+				m_eventCount = epoll_wait(m_epollfd, m_events, MAXEVENTS, -1);
+
+				if (m_eventCount==-1) {
+					if (errno!=EINTR) {
+						// ignore interuption by signal
+						return m_eventCount;
+					}
 				}
 
 				{
@@ -227,7 +229,6 @@ namespace hbm {
 					// We are working edge triggered, hence we need to process everything that is available for each event.
 					// To be fair, the callback of each signaled event is called only once. 
 					// After all the callbacks of all signaled events were called, we start from the beginning until no signaled event is left.
-					unsigned int eventsLeft;
 					do {
 						eventsLeft = 0;
 						for (int n = 0; n < m_eventCount; ++n) {
