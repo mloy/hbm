@@ -15,12 +15,18 @@
 
 #include "hbm/sys/timer.h"
 
+// default callback does nothing and returns 0 to tell the eventloop that there is nothing more to do
+static int nop(bool)
+{
+	return 0;
+}
+
 namespace hbm {
 	namespace sys {
 		Timer::Timer(EventLoop &eventLoop)
 			: m_fd(timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK))
 			, m_eventLoop(eventLoop)
-			, m_eventHandler()
+			, m_eventHandler(&nop)
 		{
 			if (m_fd<0) {
 				throw hbm::exception::exception(std::string("could not create timer fd '") + strerror(errno) + "'");
@@ -58,7 +64,11 @@ namespace hbm {
 				timespec.it_interval.tv_sec = period_s;
 				timespec.it_interval.tv_nsec = rest * 1000 * 1000;
 			}
-			m_eventHandler = eventHandler;
+			if (m_eventHandler) {
+				m_eventHandler = eventHandler;
+			} else {
+				m_eventHandler = &nop;
+			}
 			return timerfd_settime(m_fd, 0, &timespec, nullptr);
 		}
 
@@ -69,7 +79,7 @@ namespace hbm {
 
 			// Before calling callback function with fired=false, we need to clear the callback routine. Otherwise a recursive call might happen
 			Cb_t originalEventHandler = m_eventHandler;
-			m_eventHandler = Cb_t();
+			m_eventHandler = &nop;
 
 			if (timerfd_gettime(m_fd, &timespec)==-1) {
 				syslog(LOG_ERR, "error getting remaining time of timer %d '%s'", m_fd, strerror(errno));
@@ -96,9 +106,7 @@ namespace hbm {
 			// it is sufficient to read once in order to rearm cyclic timers
 			ssize_t result = ::read(m_fd, &timerEventCount, sizeof(timerEventCount));
 			if (static_cast < size_t > (result)==sizeof(timerEventCount)) {
-				if (m_eventHandler) {
-						m_eventHandler(true);
-				}
+				m_eventHandler(true);
 			}
 			return 0;
 		}

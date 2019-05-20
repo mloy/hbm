@@ -12,12 +12,18 @@
 #include "hbm/sys/notifier.h"
 #include "hbm/sys/eventloop.h"
 
+// default callback does nothing and returns 0 to tell the eventloop that there is nothing more to do
+static int nop()
+{
+	return 0;
+}
+
 namespace hbm {
 	namespace sys {
 		Notifier::Notifier(EventLoop& eventLoop)
 			: m_fd(eventfd(0, EFD_NONBLOCK))
 			, m_eventLoop(eventLoop)
-			, m_eventHandler()
+			, m_eventHandler(&nop)
 		{
 			if (m_fd<0) {
 				throw hbm::exception::exception("could not create event fd");
@@ -36,7 +42,11 @@ namespace hbm {
 
 		int Notifier::set(Cb_t eventHandler)
 		{
-			m_eventHandler = eventHandler;
+			if (eventHandler) {
+				m_eventHandler = eventHandler;
+			} else {
+				m_eventHandler = &nop;
+			}
 			return 0;
 		}
 
@@ -56,9 +66,7 @@ namespace hbm {
 				return -1;
 			}
 			for (uint64_t i=0; i<eventCount; i++) {
-				if (m_eventHandler) {
-					m_eventHandler();
-				}
+				m_eventHandler();
 			}
 			return 0;
 		}
