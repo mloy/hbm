@@ -277,11 +277,23 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 	ssize_t retVal;
 #ifdef WRITEV_TEST
 	// for testing reasons, we want to send a part only. The rest is to be processed afterwards!
+	ssize_t internelRetVal;
 	size_t blockIndex;
+	retVal = 0;
 	for (blockIndex = 0; blockIndex<blockCount/2; ++blockIndex) {
-		retVal = sendBlock (blocks[blockIndex].pData, blocks[blockIndex].size, more);
+		internelRetVal = sendBlock (blocks[blockIndex].pData, blocks[blockIndex].size, more);
+		if (internelRetVal<=0) {
+			return 0;
+		} else {
+			retVal += internelRetVal;
+		}
 	}
-	retVal = sendBlock (blocks[blockIndex].pData, blocks[blockIndex].size/2, more);
+	internelRetVal = sendBlock (blocks[blockIndex].pData, blocks[blockIndex].size/2, more);
+	if (internelRetVal<=0) {
+		return 0;
+	} else {
+		retVal += internelRetVal;
+	}
 #else
 	if (more) {
 		// we use sendmsg instead of writev because we want to set the flag parameter
@@ -311,12 +323,12 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 	} else {
 		// in this case we might have written nothing at all or only a part
 		size_t blockSum = 0;
-		size_t bytesRemaining;
+		ssize_t bytesRemaining;
 
 		for( size_t index=0; index<blockCount; ++index) {
 			blockSum += blocks[index].size;
 			bytesRemaining = blockSum-bytesWritten;
-			if (bytesRemaining) {
+			if (bytesRemaining>0) {
 				// this block was not send completely
 				size_t start = blocks[index].size-bytesRemaining;
 				retVal = sendBlock (static_cast < const unsigned char* > (blocks[index].pData)+start, bytesRemaining, more);
