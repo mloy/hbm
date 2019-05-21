@@ -307,17 +307,20 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 	}
 #endif
 
+	size_t bytesWritten;
 	if (retVal==0) {
 		return retVal;
 	} else if (retVal==-1) {
-		if((errno!=EWOULDBLOCK) && (errno!=EAGAIN) && (errno!=EINTR) ) {
+		if ((errno!=EWOULDBLOCK) && (errno!=EAGAIN) && (errno!=EINTR) ) {
 			syslog (LOG_ERR, "writev() failed: '%s'", strerror(errno));
 			return retVal;
 		}
+		bytesWritten = 0;
+	} else {
+		bytesWritten = static_cast < size_t >(retVal);
 	}
 
-	size_t bytesWritten = static_cast < size_t >(retVal);
-	if(bytesWritten==completeLength) {
+	if (bytesWritten==completeLength) {
 		// we are done!
 		return static_cast < ssize_t > (bytesWritten);
 	} else {
