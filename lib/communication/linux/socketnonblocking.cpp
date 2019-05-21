@@ -27,6 +27,8 @@
 #include "hbm/communication/socketnonblocking.h"
 
 
+//#define WRITEV_TEST
+
 /// Maximum time to wait for connecting
 const time_t TIMEOUT_CONNECT_S = 5;
 
@@ -321,7 +323,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blo
 				if (retVal>0) {
 					bytesWritten += static_cast < size_t > (retVal);
 				} else {
-					syslog (LOG_ERR, "Failed to send remaining data of writev: '%s'", strerror(errno));
+					syslog (LOG_ERR, "Failed to send remaining data of writev: %d '%s'", errno, strerror(errno));
 					return -1;
 				}
 			}
