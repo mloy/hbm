@@ -369,7 +369,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(dataBlock_t *blocks, s
 				}
 			} while (true);
 
-			syslog(LOG_INFO, "%zu bytes in %zu blocks left", totalBytesRemaining, blockCount);
+			//syslog(LOG_INFO, "%zu bytes in %zu blocks left", totalBytesRemaining, blockCount);
 			retVal = waitForWritable(m_event, -1);
 			if (retVal!=1) {
 				return -1;
@@ -412,7 +412,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 
 	while (BytesLeft > 0) {
 		numBytes = ::send(m_event, pDat, BytesLeft, flags);
-		if(numBytes>0) {
+		if (numBytes>0) {
 			pDat += numBytes;
 			BytesLeft -= static_cast < size_t > (numBytes);
 		} else if(numBytes==0) {
