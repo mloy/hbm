@@ -33,6 +33,21 @@
 const time_t TIMEOUT_CONNECT_S = 5;
 
 
+static int waitForWritable(int fd, int timeoutMilliSeconds)
+{
+	struct pollfd pfd;
+	pfd.fd = fd;
+	pfd.events = POLLOUT;
+
+	int err;
+	// wait for socket to become writable.
+	do {
+		err = poll(&pfd, 1, timeoutMilliSeconds);
+	} while((err==-1) && (errno==EINTR));
+
+	return err;
+}
+
 hbm::communication::SocketNonblocking::SocketNonblocking(sys::EventLoop &eventLoop)
 	: m_event(-1)
 	, m_bufferedReader()
@@ -206,13 +221,8 @@ int hbm::communication::SocketNonblocking::connect(int domain, const struct sock
 			syslog(LOG_ERR, "failed to connect socket (errno=%d '%s')", errno, strerror(errno));
 			return -1;
 		}
-		struct pollfd pfd;
-		pfd.fd = m_event;
-		pfd.events = POLLOUT;
-		do {
-			err = poll(&pfd, 1, TIMEOUT_CONNECT_S*1000);
-		} while((err==-1) && (errno==EINTR) );
-		if(err!=1) {
+		err = waitForWritable(m_event, TIMEOUT_CONNECT_S*1000);
+		if (err!=1) {
 			return -1;
 		}
 
@@ -266,86 +276,96 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 }
 
 
-ssize_t hbm::communication::SocketNonblocking::sendBlocks(const dataBlock_t *blocks, size_t blockCount, bool more)
+ssize_t hbm::communication::SocketNonblocking::sendBlocks(dataBlock_t *blocks, size_t blockCount, bool more)
 {
 	size_t completeLength = 0;
-
+	size_t bytesRemaining;
+	
 	for(size_t blockIndex = 0; blockIndex<blockCount; ++blockIndex) {
 		completeLength += blocks[blockIndex].size;
 	}
-
+	bytesRemaining = completeLength;
+	
+	dataBlock_t *pBlockPos;
+	pBlockPos = blocks;
+	
 	ssize_t retVal;
+	do {
 #ifdef WRITEV_TEST
-	// for testing reasons, we want to send a part only. The rest is to be processed afterwards!
-	ssize_t internelRetVal;
-	size_t blockIndex;
-	retVal = 0;
-	for (blockIndex = 0; blockIndex<blockCount/2; ++blockIndex) {
-		internelRetVal = sendBlock (blocks[blockIndex].pData, blocks[blockIndex].size, more);
+		// for testing reasons, we want to send a part only. The rest is to be processed afterwards!
+		ssize_t internelRetVal;
+		size_t blockIndex;
+		retVal = 0;
+		for (blockIndex = 0; blockIndex<blockCount/2; ++blockIndex) {
+			internelRetVal = sendBlock (blocks[blockIndex].pData, blocks[blockIndex].size, more);
+			if (internelRetVal<=0) {
+				return 0;
+			} else {
+				retVal += internelRetVal;
+			}
+		}
+		internelRetVal = sendBlock (blocks[blockIndex].pData, blocks[blockIndex].size/2, more);
 		if (internelRetVal<=0) {
 			return 0;
 		} else {
 			retVal += internelRetVal;
 		}
-	}
-	internelRetVal = sendBlock (blocks[blockIndex].pData, blocks[blockIndex].size/2, more);
-	if (internelRetVal<=0) {
-		return 0;
-	} else {
-		retVal += internelRetVal;
-	}
 #else
-	if (more) {
-		// we use sendmsg instead of writev because we want to set the flag parameter
-		msghdr msgHdr;
-		memset(&msgHdr, 0, sizeof(msgHdr));
-		msgHdr.msg_iov = const_cast < iovec * > (reinterpret_cast < const iovec * > (blocks));
-		msgHdr.msg_iovlen = blockCount;
-		retVal = sendmsg(m_event, &msgHdr, MSG_MORE);
-	} else {
-		retVal = writev(m_event, reinterpret_cast < const iovec* > (blocks), static_cast < int > (blockCount));
-	}
-#endif
-
-	size_t bytesWritten;
-	if (retVal==0) {
-		return retVal;
-	} else if (retVal==-1) {
-		if ((errno!=EWOULDBLOCK) && (errno!=EAGAIN) && (errno!=EINTR) ) {
-			syslog (LOG_ERR, "writev() failed: '%s'", strerror(errno));
-			return retVal;
+		if (more) {
+			// we use sendmsg instead of writev because we want to set the flag parameter
+			msghdr msgHdr;
+			memset(&msgHdr, 0, sizeof(msgHdr));
+			msgHdr.msg_iov = const_cast < iovec * > (reinterpret_cast < const iovec * > (pBlockPos));
+			msgHdr.msg_iovlen = blockCount;
+			retVal = sendmsg(m_event, &msgHdr, MSG_MORE);
+		} else {
+			retVal = writev(m_event, reinterpret_cast < const iovec* > (blocks), static_cast < int > (blockCount));
 		}
-		bytesWritten = 0;
-	} else {
-		bytesWritten = static_cast < size_t >(retVal);
-	}
-
-	if (bytesWritten==completeLength) {
-		// we are done!
-		return static_cast < ssize_t > (bytesWritten);
-	} else {
-		// in this case we might have written nothing at all or only a part
-		size_t blockSum = 0;
-		ssize_t bytesRemaining;
-
-		for( size_t index=0; index<blockCount; ++index) {
-			blockSum += blocks[index].size;
-			bytesRemaining = blockSum-bytesWritten;
-			if (bytesRemaining>0) {
-				// this block was not send completely
-				size_t start = blocks[index].size-bytesRemaining;
-				retVal = sendBlock (static_cast < const unsigned char* > (blocks[index].pData)+start, bytesRemaining, more);
-				if (retVal>0) {
-					bytesWritten += static_cast < size_t > (retVal);
+#endif
+		size_t bytesWritten;
+		if (retVal==0) {
+			return retVal;
+		} else if (retVal==-1) {
+			if ((errno!=EWOULDBLOCK) && (errno!=EAGAIN) && (errno!=EINTR) ) {
+				syslog (LOG_ERR, "writev() failed: '%s'", strerror(errno));
+				return retVal;
+			}
+			bytesWritten = 0;
+		} else {
+			bytesWritten = static_cast < size_t >(retVal);
+		}
+		
+		if (bytesWritten==bytesRemaining) {
+			// we are done!
+			return static_cast < ssize_t > (completeLength);
+		} else {
+			// in this case we might have written nothing at all or only a part
+			// reorganize buffer and wirte again...
+			
+			size_t remainingOffset = bytesWritten;
+			size_t byteOffset = 0;
+			size_t indexOffset = 0;
+			for (size_t index=0; index<blockCount; ++index) {
+				if (remainingOffset>=blocks[index].size) {
+					remainingOffset -= blocks[index].size;
+					pBlockPos++;
+					indexOffset++;
 				} else {
-					syslog (LOG_ERR, "Failed to send remaining data of writev: %d '%s'", errno, strerror(errno));
-					return -1;
+					pBlockPos->size -= remainingOffset;
+					pBlockPos->pData = reinterpret_cast < const uint8_t* > (pBlockPos->pData) + remainingOffset;
+					byteOffset = remainingOffset;
+					break;
 				}
 			}
+			bytesRemaining -= bytesWritten;
+			syslog(LOG_INFO, "%zu blocks and %zu bytes processed, %zu bytes left", indexOffset, byteOffset, bytesRemaining);
+			retVal = waitForWritable(m_event, -1);
+			if (retVal!=1) {
+				return -1;
+			}
 		}
-	}
-
-	return static_cast < ssize_t > (bytesWritten);
+	} while(bytesRemaining);
+	return static_cast < ssize_t > (completeLength);
 }
 
 
@@ -373,10 +393,6 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 	ssize_t numBytes;
 	ssize_t retVal = static_cast < ssize_t > (size);
 
-	struct pollfd pfd;
-	pfd.fd = m_event;
-	pfd.events = POLLOUT;
-
 	int flags = 0;
 	if(more) {
 		flags |= MSG_MORE;
@@ -396,10 +412,8 @@ ssize_t hbm::communication::SocketNonblocking::sendBlock(const void* pBlock, siz
 			// <0
 			if(errno==EWOULDBLOCK || errno==EAGAIN) {
 				// wait for socket to become writable.
-				do {
-					err = poll(&pfd, 1, -1);
-				} while((err==-1) && (errno==EINTR));
-				if(err!=1) {
+				err = waitForWritable(m_event, -1);
+				if (err!=1) {
 					BytesLeft = 0;
 					retVal = -1;
 				}

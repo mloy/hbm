@@ -106,7 +106,7 @@ namespace hbm
 			/// send everything or until connection closes
 			/// uses gather mechanism to send several memory areas
 			/// \warning waits until requested amount of data is processed or an error happened, hence it might block the eventloop if called from within a callback function
-			ssize_t sendBlocks(const dataBlock_t *blocks, size_t blockCount, bool more=0);
+			ssize_t sendBlocks(dataBlock_t* blocks, size_t blockCount, bool more=0);
 
 			/// send everything or until connection closes
 			/// \warning waits until requested amount of data is processed or an error happened, hence it might block the eventloop if called from within a callback function
