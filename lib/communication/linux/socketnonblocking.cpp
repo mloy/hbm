@@ -30,7 +30,7 @@
 static const time_t TIMEOUT_CONNECT_S = 5;
 
 
-#define WRITEV_TEST
+//#define WRITEV_TEST
 #ifdef WRITEV_TEST
 static const size_t MAX_BYTES_TO_PROCESS = 7000;
 
@@ -355,7 +355,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(dataBlock_t *blocks, s
 			return static_cast < ssize_t > (totalLength);
 		} else {
 			// in this case we might have written nothing at all or only a part
-			// reorganize buffer and wirte again...
+			// reorganize buffer and write again...
 			size_t remainingOffset = bytesWritten;
 			do {
 				if (remainingOffset>=pBlockPos->size) {
