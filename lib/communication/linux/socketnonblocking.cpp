@@ -327,6 +327,7 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(dataBlock_t *blocks, s
 	dataBlock_t *pBlockPos = blocks;
 	
 	ssize_t retVal;
+	size_t bytesWritten;
 	do {
 		// we use sendmsg instead of writev because we want to set the flag parameter
 		msgHdr.msg_iov = const_cast < iovec * > (reinterpret_cast < const iovec * > (pBlockPos));
@@ -336,7 +337,6 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(dataBlock_t *blocks, s
 #else
 		retVal = sendmsg(m_event, &msgHdr, flags);
 #endif
-		size_t bytesWritten;
 		if (retVal==0) {
 			return retVal;
 		} else if (retVal==-1) {
