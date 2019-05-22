@@ -26,11 +26,42 @@
 
 #include "hbm/communication/socketnonblocking.h"
 
-
-//#define WRITEV_TEST
-
 /// Maximum time to wait for connecting
-const time_t TIMEOUT_CONNECT_S = 5;
+static const time_t TIMEOUT_CONNECT_S = 5;
+
+
+#define WRITEV_TEST
+#ifdef WRITEV_TEST
+static const size_t MAX_BYTES_TO_PROCESS = 7000;
+
+/// for testing reasons, we want to send a part only. The rest is to be processed afterwards!
+static ssize_t sendmsgFake(hbm::communication::SocketNonblocking& instance, const struct msghdr *msg, int flags)
+{
+
+	size_t remaining = MAX_BYTES_TO_PROCESS;
+	size_t bytesToSend;
+	ssize_t bytesSend = 0;
+
+	for (size_t blockIndex = 0; blockIndex<msg->msg_iovlen; ++blockIndex) {
+		size_t blockSize = msg->msg_iov[blockIndex].iov_len;
+		if (blockSize<remaining) {
+			bytesToSend = blockSize;
+		} else {
+			bytesToSend = remaining;
+		}
+		ssize_t result = instance.sendBlock(msg->msg_iov[blockIndex].iov_base, bytesToSend, flags);
+		if (result<=0) {
+			return result;
+		}
+		bytesSend += result;
+		remaining -= static_cast < size_t > (result);
+		if (remaining==0) {
+			return bytesSend;
+		}
+	}
+	return bytesSend;
+}
+#endif
 
 
 static int waitForWritable(int fd, int timeoutMilliSeconds)
@@ -278,49 +309,32 @@ ssize_t hbm::communication::SocketNonblocking::receiveComplete(void* pBlock, siz
 
 ssize_t hbm::communication::SocketNonblocking::sendBlocks(dataBlock_t *blocks, size_t blockCount, bool more)
 {
-	size_t completeLength = 0;
-	size_t bytesRemaining;
-	
-	for(size_t blockIndex = 0; blockIndex<blockCount; ++blockIndex) {
-		completeLength += blocks[blockIndex].size;
+	msghdr msgHdr;
+	memset(&msgHdr, 0, sizeof(msgHdr));
+
+	size_t totalLength = 0;
+	size_t totalBytesRemaining;
+
+	int flags = 0;
+	if (more) {
+		flags = MSG_MORE;
 	}
-	bytesRemaining = completeLength;
+	for(size_t blockIndex = 0; blockIndex<blockCount; ++blockIndex) {
+		totalLength += blocks[blockIndex].size;
+	}
+	totalBytesRemaining = totalLength;
 	
-	dataBlock_t *pBlockPos;
-	pBlockPos = blocks;
+	dataBlock_t *pBlockPos = blocks;
 	
 	ssize_t retVal;
 	do {
+		// we use sendmsg instead of writev because we want to set the flag parameter
+		msgHdr.msg_iov = const_cast < iovec * > (reinterpret_cast < const iovec * > (pBlockPos));
+		msgHdr.msg_iovlen = blockCount;
 #ifdef WRITEV_TEST
-		// for testing reasons, we want to send a part only. The rest is to be processed afterwards!
-		ssize_t internelRetVal;
-		size_t blockIndex;
-		retVal = 0;
-		for (blockIndex = 0; blockIndex<blockCount/2; ++blockIndex) {
-			internelRetVal = sendBlock (blocks[blockIndex].pData, blocks[blockIndex].size, more);
-			if (internelRetVal<=0) {
-				return 0;
-			} else {
-				retVal += internelRetVal;
-			}
-		}
-		internelRetVal = sendBlock (blocks[blockIndex].pData, blocks[blockIndex].size/2, more);
-		if (internelRetVal<=0) {
-			return 0;
-		} else {
-			retVal += internelRetVal;
-		}
+		retVal = sendmsgFake(*this, &msgHdr, flags);
 #else
-		if (more) {
-			// we use sendmsg instead of writev because we want to set the flag parameter
-			msghdr msgHdr;
-			memset(&msgHdr, 0, sizeof(msgHdr));
-			msgHdr.msg_iov = const_cast < iovec * > (reinterpret_cast < const iovec * > (pBlockPos));
-			msgHdr.msg_iovlen = blockCount;
-			retVal = sendmsg(m_event, &msgHdr, MSG_MORE);
-		} else {
-			retVal = writev(m_event, reinterpret_cast < const iovec* > (blocks), static_cast < int > (blockCount));
-		}
+		retVal = sendmsg(m_event, &msgHdr, flags);
 #endif
 		size_t bytesWritten;
 		if (retVal==0) {
@@ -335,37 +349,34 @@ ssize_t hbm::communication::SocketNonblocking::sendBlocks(dataBlock_t *blocks, s
 			bytesWritten = static_cast < size_t >(retVal);
 		}
 		
-		if (bytesWritten==bytesRemaining) {
+		totalBytesRemaining -= bytesWritten;
+		if (totalBytesRemaining==0) {
 			// we are done!
-			return static_cast < ssize_t > (completeLength);
+			return static_cast < ssize_t > (totalLength);
 		} else {
 			// in this case we might have written nothing at all or only a part
 			// reorganize buffer and wirte again...
-			
 			size_t remainingOffset = bytesWritten;
-			size_t byteOffset = 0;
-			size_t indexOffset = 0;
-			for (size_t index=0; index<blockCount; ++index) {
-				if (remainingOffset>=blocks[index].size) {
-					remainingOffset -= blocks[index].size;
+			do {
+				if (remainingOffset>=pBlockPos->size) {
+					remainingOffset -= pBlockPos->size;
 					pBlockPos++;
-					indexOffset++;
+					blockCount--;
 				} else {
 					pBlockPos->size -= remainingOffset;
 					pBlockPos->pData = reinterpret_cast < const uint8_t* > (pBlockPos->pData) + remainingOffset;
-					byteOffset = remainingOffset;
 					break;
 				}
-			}
-			bytesRemaining -= bytesWritten;
-			syslog(LOG_INFO, "%zu blocks and %zu bytes processed, %zu bytes left", indexOffset, byteOffset, bytesRemaining);
+			} while (true);
+
+			syslog(LOG_INFO, "%zu bytes in %zu blocks left", totalBytesRemaining, blockCount);
 			retVal = waitForWritable(m_event, -1);
 			if (retVal!=1) {
 				return -1;
 			}
 		}
-	} while(bytesRemaining);
-	return static_cast < ssize_t > (completeLength);
+	} while(totalBytesRemaining);
+	return static_cast < ssize_t > (totalLength);
 }
 
 
