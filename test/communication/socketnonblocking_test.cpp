@@ -506,7 +506,7 @@ namespace hbm {
 
 			BOOST_AUTO_TEST_CASE(writev_test_list)
 			{
-				int result;
+				ssize_t result;
 				static const size_t bufferSize = 100000;
 				static const size_t blockCount = 10;
 				static const size_t blockSize = bufferSize/blockCount;
