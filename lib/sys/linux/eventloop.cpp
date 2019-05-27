@@ -245,7 +245,10 @@ namespace hbm {
 											// we are done with this event
 											m_events[n].events &= ~EPOLLIN;
 										}
+									} catch (const std::exception& e) {
+										syslog(LOG_ERR, "Event loop caught exception from callback method: '%s'", e.what());
 									} catch (...) {
+										syslog(LOG_ERR, "Event loop caught exception from callback method");
 										// ignore
 									}
 								}
