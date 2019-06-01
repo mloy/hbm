@@ -77,7 +77,7 @@ namespace hbm {
 					m_serverWorker.join();
 				}
 			}
-			
+
 
 			void serverFixture::acceptCb(clientSocket_t worker)
 			{
@@ -626,27 +626,32 @@ namespace hbm {
 				len = sizeof(sendBufferSize);
 				getsockopt(client.getEvent(), SOL_SOCKET, SO_SNDBUF, &sendBufferSize, &len);
 				
-				ssize_t sendResult;
-				// send until send buffer is full
-				do {
+				static const unsigned int CYCLECOUNT = 10;
+				for (unsigned int cycleIndex=0; cycleIndex<CYCLECOUNT; ++cycleIndex) {
+					notifiyCount = 0;
+					ssize_t sendResult;
+					// send until send buffer is full
+					do {
+						sendResult = client.send(data, sizeof(data), false);
+						bytesSend += static_cast < size_t > (sendResult);
+					} while (sendResult>0);
+					BOOST_CHECK_GE(bytesSend, sendBufferSize);
+					BOOST_CHECK_EQUAL(errno, EWOULDBLOCK);
+					
+					// server is not receiving, hence socket won't become writable and callback function is not being called.
+					BOOST_CHECK_EQUAL(notifiyCount, 0);
+					start();
+					// server is receiving. As a result socket becomes wriable again. Callback function is called!
+					std::this_thread::sleep_for(std::chrono::milliseconds(100));
+					
+					BOOST_CHECK_EQUAL(notifiyCount, 1);
+					
+					// We should be able to send again
 					sendResult = client.send(data, sizeof(data), false);
-					bytesSend += sendResult;
-				} while (sendResult>0);
-				BOOST_CHECK_GE(bytesSend, sendBufferSize);
-				BOOST_CHECK_EQUAL(errno, EWOULDBLOCK);
-
-				// server is not receiving, hence socket won't become writable and callback function is not being called.
-				BOOST_CHECK_EQUAL(notifiyCount, 1);
-				start();
-				// server is receiving. As a result socket becomes wriable again. Callback function is called!
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+					BOOST_CHECK_GT(bytesSend, 0);
+					stop();
+				}
 				
-				BOOST_CHECK_EQUAL(notifiyCount, 2);
-				
-				// We should be able to send again
-				sendResult = client.send(data, sizeof(data), false);
-				BOOST_CHECK_GT(bytesSend, 0);
-				stop();
 			}
 #endif
 
