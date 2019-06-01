@@ -146,6 +146,7 @@ namespace hbm {
 		{
 			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 			int ret;
+			uint32_t removedEvents;
 			eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
 			if (eventsIter==m_eventInfos.end()) {
 				return -1;
@@ -153,25 +154,31 @@ namespace hbm {
 			EventsHandlers_t &eventHandlers = eventsIter->second;
 			if (eventHandlers.outEvent) {
 				// keep the existing EPOLLOUT event
+				removedEvents = EPOLLIN;
+				eventHandlers.inEvent = nullptr;
 				struct epoll_event ev;
 				memset(&ev, 0, sizeof(ev));
 				ev.events = EPOLLOUT | EPOLLET;
 				ev.data.ptr = &eventHandlers;
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
+				removedEvents = EPOLLIN | EPOLLOUT;
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
-
-				for (int eventIndex = 0; eventIndex<m_eventCount; ++eventIndex) {
-					if (m_events[eventIndex].data.ptr==&eventsIter->second) {
-						// Turn all events off so that no handlers callback function will be called from
-						// pending events afterwards!
-						// This is important so that entry can savely be erased from m_eventInfos
-						m_events[eventIndex].events = 0;
-						break;
-					}
-				}
 				m_eventInfos.erase(eventsIter);
 			}
+
+			for (int eventIndex = 0; eventIndex<m_eventCount; ++eventIndex) {
+				if (m_events[eventIndex].data.ptr==&eventsIter->second) {
+					// Turn all removed events off so that no handlers callback function will be called from
+					// pending events afterwards!
+					// This is important so that:
+					// - entry can safely be erased from m_eventInfos
+					// - callback methods can safely be removed.
+					m_events[eventIndex].events &= ~removedEvents;
+					break;
+				}
+			}
+
 			return ret;
 		}
 
@@ -179,6 +186,7 @@ namespace hbm {
 		{
 			std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 			int ret;
+			uint32_t removedEvents;
 			eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
 			if (eventsIter==m_eventInfos.end()) {
 				return -1;
@@ -186,25 +194,31 @@ namespace hbm {
 			EventsHandlers_t &eventHandlers = eventsIter->second;
 			if (eventHandlers.inEvent) {
 				// keep the existing EPOLLIN event
+				removedEvents = EPOLLOUT;
+				eventHandlers.outEvent = nullptr;
 				struct epoll_event ev;
 				memset(&ev, 0, sizeof(ev));
 				ev.events = EPOLLIN | EPOLLET;
 				ev.data.ptr = &eventHandlers;
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_MOD, fd, &ev);
 			} else {
+				removedEvents = EPOLLIN | EPOLLOUT;
 				ret = epoll_ctl(m_epollfd, EPOLL_CTL_DEL, fd, nullptr);
-
-				for (int eventIndex = 0; eventIndex<m_eventCount; ++eventIndex) {
-					if (m_events[eventIndex].data.ptr==&eventsIter->second) {
-						// Turn all events off so that no handlers callback function will be called from
-						// pending events afterwards!
-						// This is important so that entry can savely be erased from m_eventInfos
-						m_events[eventIndex].events = 0;
-						break;
-					}
-				}
 				m_eventInfos.erase(eventsIter);
 			}
+
+			for (int eventIndex = 0; eventIndex<m_eventCount; ++eventIndex) {
+				if (m_events[eventIndex].data.ptr==&eventsIter->second) {
+					// Turn all removed events off so that no handlers callback function will be called from
+					// pending events afterwards!
+					// This is important so that:
+					// - entry can safely be erased from m_eventInfos
+					// - callback methods can safely be removed.
+					m_events[eventIndex].events &= ~removedEvents;
+					break;
+				}
+			}
+
 			return ret;
 		}
 		
