@@ -492,21 +492,55 @@ BOOST_AUTO_TEST_CASE(retrigger_timer_test)
 	worker.join();
 }
 
-BOOST_AUTO_TEST_CASE(add_and_remove_events_test)
+BOOST_AUTO_TEST_CASE(add_and_remove_event_test)
+{
+	hbm::sys::EventLoop eventLoop;
+	int result;
+
+	result = eventLoop.addEvent(1, &dummyCb);
+	BOOST_CHECK_EQUAL(result, 0);
+	// overwriting existing is allowed
+	result = eventLoop.addEvent(1, &dummyCb);
+	BOOST_CHECK_EQUAL(result, 0);
+	result = eventLoop.eraseEvent(1);
+	BOOST_CHECK_EQUAL(result, 0);
+	// removing non existent should fail
+	result = eventLoop.eraseEvent(1);
+	BOOST_CHECK_EQUAL(result, -1);
+
+	// there was a bug were input event was not removed if input event and output event were set!
+	result = eventLoop.addEvent(1, &dummyCb);
+	result = eventLoop.addOutEvent(1, &dummyCb);
+	result = eventLoop.eraseEvent(1);
+	BOOST_CHECK_EQUAL(result, 0);
+	// removing non existent should fail
+	result = eventLoop.eraseEvent(1);
+	BOOST_CHECK_EQUAL(result, -1);
+
+	// the same with trying to erase the output event
+	result = eventLoop.addEvent(1, &dummyCb);
+	result = eventLoop.addOutEvent(1, &dummyCb);
+	result = eventLoop.eraseOutEvent(1);
+	BOOST_CHECK_EQUAL(result, 0);
+	// removing non existent should fail
+	result = eventLoop.eraseOutEvent(1);
+	BOOST_CHECK_EQUAL(result, -1);
+}
+BOOST_AUTO_TEST_CASE(add_and_remove_many_events_test)
 {
 	typedef std::vector < std::unique_ptr < hbm::sys::Notifier > > Notifiers;
 	static const unsigned int cycleCount = 10;
-	static const unsigned int eventCount = 1000;
+	static const unsigned int notifierCount = 1000;
 	hbm::sys::EventLoop eventLoop;
 
 
 	Notifiers notifiers;
 
-	incrementLimit = eventCount;
+	incrementLimit = notifierCount;
 	bool signaled;
 
 #ifndef _WIN32
-	//under windows, the 1st parameter is a complex parameter
+	// under windows, the 1st parameter is a complex parameter
 	// invalid function pointer
 	int result = eventLoop.addEvent(0, nullptr);
 	BOOST_CHECK_EQUAL(result, -1);
@@ -521,12 +555,12 @@ BOOST_AUTO_TEST_CASE(add_and_remove_events_test)
 
 	for (unsigned int cycle = 0; cycle < cycleCount; ++cycle) {
 		incrementCount = 0;
-		for (unsigned int i = 0; i < eventCount; ++i) {
+		for (unsigned int i = 0; i < notifierCount; ++i) {
 			std::unique_ptr < hbm::sys::Notifier >notifier(new hbm::sys::Notifier(eventLoop));
 			notifier->set(std::bind(&notifierIncrementCheckLimit));
 			notifiers.push_back(std::move(notifier));
 		}
-		for (unsigned int i = 0; i < eventCount; ++i) {
+		for (unsigned int i = 0; i < notifierCount; ++i) {
 			notifiers[i]->notify();
 		}
 		
@@ -535,7 +569,7 @@ BOOST_AUTO_TEST_CASE(add_and_remove_events_test)
 			signaled = incrementLimitCnd.wait_for(lock, std::chrono::milliseconds(100), getLimitReached);
 		}
 		BOOST_CHECK_EQUAL(signaled, true);
-		BOOST_CHECK_EQUAL(incrementCount, eventCount);
+		BOOST_CHECK_EQUAL(incrementCount, notifierCount);
 
 		notifiers.clear();
 	}
