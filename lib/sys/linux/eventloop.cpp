@@ -149,13 +149,11 @@ namespace hbm {
 			uint32_t removedEvents;
 			eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
 			if (eventsIter==m_eventInfos.end()) {
-				syslog(LOG_ERR, "No event handler registered for fd %d", fd);
 				return -1;
 			}
 
 			EventsHandlers_t &eventHandlers = eventsIter->second;
 			if (eventHandlers.inEvent==nullptr) {
-				syslog(LOG_ERR, "No input event handler registered for fd %d", fd);
 				return -1;
 			}
 
@@ -196,12 +194,10 @@ namespace hbm {
 			uint32_t removedEvents;
 			eventInfos_t::iterator eventsIter = m_eventInfos.find(fd);
 			if (eventsIter==m_eventInfos.end()) {
-				syslog(LOG_ERR, "No event handler registered for fd %d", fd);
 				return -1;
 			}
 			EventsHandlers_t &eventHandlers = eventsIter->second;
 			if (eventHandlers.outEvent==nullptr) {
-				syslog(LOG_ERR, "No output event handler registered for fd %d", fd);
 				return -1;
 			}
 			
