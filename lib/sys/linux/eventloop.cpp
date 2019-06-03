@@ -67,6 +67,7 @@ namespace hbm {
 					eventsIter = result.first;
 					mode = EPOLL_CTL_ADD;
 				} else {
+					// output event is already registered for this fd
 					EventsHandlers_t &eventHandlers = eventsIter->second;
 					if (eventHandlers.outEvent) {
 						ev.events |= EPOLLOUT;
@@ -115,6 +116,7 @@ namespace hbm {
 					eventsIter = result.first;
 					mode = EPOLL_CTL_ADD;
 				} else {
+					// input event is already registered for this fd
 					EventsHandlers_t &eventHandlers = eventsIter->second;
 					if (eventHandlers.inEvent) {
 						ev.events |= EPOLLIN;
@@ -250,7 +252,7 @@ namespace hbm {
 				{
 					std::lock_guard < std::recursive_mutex > lock(m_eventInfosMtx);
 					// We are working edge triggered, hence we need to process everything that is available for each event.
-					// To be fair, the callback of each signaled event is called only once. 
+					// To be fair, the callback of each signaled event is called only once.
 					// After all the callbacks of all signaled events were called, we start from the beginning until no signaled event is left.
 					do {
 						eventsLeft = 0;
@@ -269,9 +271,9 @@ namespace hbm {
 											m_events[n].events &= ~EPOLLIN;
 										}
 									} catch (const std::exception& e) {
-										syslog(LOG_ERR, "Event loop caught exception from callback method: '%s'", e.what());
+										syslog(LOG_ERR, "Event loop caught exception from input event callback method: '%s'", e.what());
 									} catch (...) {
-										syslog(LOG_ERR, "Event loop caught exception from callback method");
+										syslog(LOG_ERR, "Event loop caught exception from input event callback method");
 										// ignore
 									}
 								}
@@ -285,7 +287,10 @@ namespace hbm {
 											// we are done with this event
 											m_events[n].events &= ~EPOLLOUT;
 										}
+									} catch (const std::exception& e) {
+										syslog(LOG_ERR, "Event loop caught exception from output event callback method: '%s'", e.what());
 									} catch (...) {
+										syslog(LOG_ERR, "Event loop caught exception from output event callback method");
 										// ignore
 									}
 								}
