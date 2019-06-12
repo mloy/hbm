@@ -26,9 +26,9 @@ namespace hbm {
 		/// \param text  the string to split
 		/// \param separator  the string to search for in the text
 		/// \return vector of all pieces of text resulted by chopping it at each separator.
-		tokens split(std::string text, const std::string& separator);
+		tokens split(const std::string& text, const std::string& separator);
 
-		tokens split(std::string text, char separator);
+		tokens split(const std::string& text, char separator);
 	}
 }
 

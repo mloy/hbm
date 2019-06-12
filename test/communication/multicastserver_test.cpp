@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE(check_leak)
 		hbm::communication::MulticastServer mcs(adapterlist, eventloop);
 		executionTimer.set(waitDuration, false, std::bind(&executionTimerCb, std::placeholders::_1, std::ref(eventloop)));
 		eventloop.execute();
-		
+
 		mcs.stop();
 	}
 	

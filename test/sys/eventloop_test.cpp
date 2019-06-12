@@ -29,6 +29,7 @@
 
 static unsigned int incrementCount = 0;
 static unsigned int incrementLimit = 0;
+
 static std::mutex incrementLimitMtx;
 static std::condition_variable incrementLimitCnd;
 

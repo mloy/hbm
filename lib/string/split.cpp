@@ -9,14 +9,13 @@
 namespace hbm {
 	namespace string {
 
-		tokens split(std::string text, char separator)
+		tokens split(const std::string& text, char separator)
 		{
 			tokens result;
 
 			size_t pos_start=0;
 
-			while(1)
-			{
+			while(1) {
 				size_t pos_end = text.find(separator, pos_start);
 				std::string token = text.substr(pos_start, pos_end-pos_start);
 				result.push_back(token);
@@ -26,7 +25,7 @@ namespace hbm {
 			return result;
 		}
 
-		tokens split(std::string text, const std::string& separator)
+		tokens split(const std::string& text, const std::string& separator)
 		{
 			tokens result;
 
@@ -38,8 +37,7 @@ namespace hbm {
 
 			size_t pos_start=0;
 
-			while(1)
-			{
+			while(1) {
 				size_t pos_end = text.find(separator, pos_start);
 				std::string token = text.substr(pos_start, pos_end-pos_start);
 				result.push_back(token);
