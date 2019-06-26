@@ -212,7 +212,7 @@ namespace hbm {
 					return -1;
 				}
 			}
-			return prefix;
+			return static_cast < int > (prefix);
 		}
 
 		bool Ipv4Address::operator == (const Ipv4Address& op) const

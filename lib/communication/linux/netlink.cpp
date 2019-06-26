@@ -105,13 +105,13 @@ namespace hbm {
 								if (pifinfomsg->ifi_change) {
 									if (IFF_UP & pifinfomsg->ifi_flags) {
 										if (m_interfaceAddressEventHandler) {
-											m_interfaceAddressEventHandler(LINK_ADDED, pifinfomsg->ifi_index, "");
+											m_interfaceAddressEventHandler(LINK_ADDED, static_cast < unsigned int > (pifinfomsg->ifi_index), "");
 										}
 									} else {
 										// strange, but this might happen if device went down!
 										syslog(LOG_INFO, "LINK_REMOVED by RTM_NEWLINK with IFF_UP = 0");
 										if (m_interfaceAddressEventHandler) {
-											m_interfaceAddressEventHandler(LINK_REMOVED, pifinfomsg->ifi_index, "");
+											m_interfaceAddressEventHandler(LINK_REMOVED, static_cast < unsigned int > (pifinfomsg->ifi_index), "");
 										}
 									}
 								}
@@ -122,7 +122,7 @@ namespace hbm {
 								struct ifinfomsg *pifinfomsg = reinterpret_cast <struct ifinfomsg*> (NLMSG_DATA(nh));
 								if ((IFF_UP & pifinfomsg->ifi_flags)==0) {
 									if (m_interfaceAddressEventHandler) {
-										m_interfaceAddressEventHandler(LINK_REMOVED, pifinfomsg->ifi_index, "");
+										m_interfaceAddressEventHandler(LINK_REMOVED, static_cast < unsigned int > (pifinfomsg->ifi_index), "");
 									}
 								}
 							}
