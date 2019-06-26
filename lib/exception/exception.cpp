@@ -15,7 +15,7 @@ namespace hbm {
 			output.append(hbm::debug::fill_stack_trace());
 		}
 
-		exception::~exception()
+		exception::~exception() noexcept
 		{
 		}
 
