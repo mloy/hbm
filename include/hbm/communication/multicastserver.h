@@ -60,7 +60,7 @@ namespace hbm {
 
 			/// Add interface to multicast group. Interface will receive from this multicast group.
 			/// \return 1 if interface was added succesfully, 0 interface already member of multicast group, -1 error
-			int addInterface(int interfaceIndex);
+			int addInterface(unsigned int interfaceIndex);
 
 			/// all interfaces known to the internal netadapter list are added as receiving interfaces.
 			void addAllInterfaces();
@@ -71,7 +71,7 @@ namespace hbm {
 
 			/// Drop interface from multicast group. Interface will no longer receive from this multicast group.
 			/// \return 1 if interface was dropped succesfully, 0 interface not member of multicast group, -1 error
-			int dropInterface(int interfaceIndex);
+			int dropInterface(unsigned int interfaceIndex);
 
 			/// all interfaces known to the internal netadapter list are dropped as receiving interfaces.
 			void dropAllInterfaces();
@@ -168,7 +168,7 @@ namespace hbm {
 			int setupReceiveSocket();
 
 			int dropOrAddInterface(const std::string& interfaceAddress, bool add);
-			int dropOrAddInterface(int interfaceIndex, bool add);
+			int dropOrAddInterface(unsigned int interfaceIndex, bool add);
 
 			/// called by eventloop
 			int process();

@@ -160,7 +160,7 @@ namespace hbm {
 			return dropOrAddInterface(interfaceAddress, false);
 		}
 
-		int MulticastServer::dropInterface(int interfaceIndex)
+		int MulticastServer::dropInterface(unsigned int interfaceIndex)
 		{
 			return dropOrAddInterface(interfaceIndex, false);
 		}
@@ -170,7 +170,7 @@ namespace hbm {
 			return dropOrAddInterface(interfaceAddress, true);
 		}
 
-		int MulticastServer::addInterface(int interfaceIndex)
+		int MulticastServer::addInterface(unsigned int interfaceIndex)
 		{
 			return dropOrAddInterface(interfaceIndex, true);
 		}
@@ -267,7 +267,7 @@ namespace hbm {
 			}
 		}
 
-		int MulticastServer::dropOrAddInterface(int interfaceIndex, bool add)
+		int MulticastServer::dropOrAddInterface(unsigned int interfaceIndex, bool add)
 		{
 			int retVal = 0;
 			struct addrinfo hints;
