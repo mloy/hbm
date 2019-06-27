@@ -13,10 +13,8 @@
 
 #include <chrono>
 #include <functional>
+#include <future>
 #include <iostream>
-#include <thread>
-#include <condition_variable>
-#include <mutex>
 
 #include <boost/test/unit_test.hpp>
 
@@ -28,16 +26,7 @@
 #include "hbm/sys/timer.h"
 
 
-static std::string received;
-static std::mutex receivedMtx;
-static std::condition_variable receivedCnd;
-
-static bool checkReceived()
-{
-	return !received.empty();
-}
-
-static int receiveAndKeep(hbm::communication::MulticastServer& mcs)
+static int receiveAndKeep(hbm::communication::MulticastServer& mcs, std::promise < std::string >& received)
 {
 	ssize_t result;
 	do {
@@ -46,13 +35,10 @@ static int receiveAndKeep(hbm::communication::MulticastServer& mcs)
 		int ttl;
 		result = mcs.receiveTelegram(buf, sizeof(buf), adapterIndex, ttl);
 		if (result>0) {
-			{
-				std::unique_lock < std::mutex > lock(receivedMtx);
-				// we may receive the same message several times because there might be several interfaces used for sending
-				received = std::string(buf, result);
-			}
-			receivedCnd.notify_one();
-			std::cout << __FUNCTION__ << " '" << received << "'" <<std::endl;
+			// we may receive the same message several times because there might be several interfaces used for sending
+			std::string receivedData(buf, static_cast< size_t >(result));
+			received.set_value(receivedData);
+			std::cout << __FUNCTION__ << " '" << receivedData << "'" <<std::endl;
 		}
 	} while(result>=0);
 	return 0;
@@ -153,10 +139,10 @@ BOOST_AUTO_TEST_CASE(start_send_stop_test)
 
 	static const std::string MSG = "test1test2";
 	int result;
-	bool signaled;
+
 
 	hbm::sys::EventLoop eventloop;
-	std::thread worker(std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventloop))));
+	std::future < int > workerResult = std::async(std::launch::async, std::bind(&hbm::sys::EventLoop::execute, std::ref(eventloop)));
 	hbm::communication::NetadapterList adapters;
 	hbm::communication::MulticastServer mcsReceiver(adapters, eventloop);
 	hbm::communication::MulticastServer mcsSender(adapters, eventloop);
@@ -167,20 +153,18 @@ BOOST_AUTO_TEST_CASE(start_send_stop_test)
 
 	mcsSender.setMulticastLoop(true);
 	for (unsigned int i=0; i<CYCLECOUNT; ++i) {
-		result = mcsReceiver.start(MULTICASTGROUP, UDP_PORT, std::bind(&receiveAndKeep, std::placeholders::_1));
+		std::promise < std::string > received;
+		std::future < std::string > f = received.get_future();
+
+		result = mcsReceiver.start(MULTICASTGROUP, UDP_PORT, std::bind(&receiveAndKeep, std::placeholders::_1, std::ref(received)));
 		BOOST_CHECK_EQUAL(result, 0);
 		mcsReceiver.addAllInterfaces();
-		received.clear();
 		mcsSender.send(MSG.c_str(), MSG.length());
 
-		{
-			std::unique_lock < std::mutex > lock(receivedMtx);
-			signaled = receivedCnd.wait_for(lock, std::chrono::milliseconds(100), checkReceived);
-		}
-
-		BOOST_CHECK_EQUAL(signaled, true);
+		std::future_status fStatus = f.wait_for(std::chrono::milliseconds(100));
+		BOOST_CHECK(fStatus == std::future_status::ready);
 		mcsReceiver.stop();
-		BOOST_CHECK_EQUAL(MSG, received);
+		BOOST_CHECK_EQUAL(MSG, f.get());
 
 		std::cout << __FUNCTION__ << " " << i << std::endl;
 	}
@@ -188,7 +172,7 @@ BOOST_AUTO_TEST_CASE(start_send_stop_test)
 	mcsSender.stop();
 
 	eventloop.stop();
-	worker.join();
+	workerResult.wait();
 
 	std::cout << __FUNCTION__ << " done" << std::endl;
 }
