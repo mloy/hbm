@@ -258,7 +258,7 @@ namespace hbm {
 				std::vector < std::unique_ptr < hbm::communication::SocketNonblocking > > clients;
 
 				for (size_t clientIndex = 0; clientIndex < CLIENT_COUNT; ++clientIndex) {
-					clients.push_back(std::unique_ptr < hbm::communication::SocketNonblocking >(new hbm::communication::SocketNonblocking(m_eventloop)));
+					clients.emplace_back(std::make_unique < hbm::communication::SocketNonblocking >(m_eventloop));
 				}
 
 				for (unsigned int cycleIndex = 0; cycleIndex < CYCLE_COUNT; ++cycleIndex) {
@@ -409,7 +409,7 @@ namespace hbm {
 				std::vector < std::unique_ptr < hbm::communication::SocketNonblocking > > clients;
 				
 				for (size_t clientIndex=0; clientIndex<clientCount; ++clientIndex) {
-					clients.push_back( std::unique_ptr < hbm::communication::SocketNonblocking >(new hbm::communication::SocketNonblocking(m_eventloop)));
+					clients.emplace_back( std::make_unique < hbm::communication::SocketNonblocking> (m_eventloop));
 				}
 				
 				unsigned int index = 0;
