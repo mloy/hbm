@@ -12,8 +12,7 @@
 
 #include <iostream>
 #include <chrono>
-#include <mutex>
-#include <condition_variable>
+#include <future>
 #include <thread>
 #include <functional>
 #include <vector>
@@ -26,12 +25,6 @@
 #include "hbm/sys/executecommand.h"
 #include "hbm/exception/exception.hpp"
 
-
-static unsigned int incrementCount = 0;
-static unsigned int incrementLimit = 0;
-
-static std::mutex incrementLimitMtx;
-static std::condition_variable incrementLimitCnd;
 
 static int dummyCb()
 {
@@ -72,17 +65,12 @@ static void recursiveNotifierIncrement(hbm::sys::Notifier& notifier, unsigned in
 	notifier.notify();
 }
 
-static void notifierIncrementCheckLimit()
+static void decrementCounter(unsigned int &counter, std::promise <void > &notifier)
 {
-	++incrementCount;
-	if (incrementCount==incrementLimit) {
-		incrementLimitCnd.notify_one();
+	--counter;
+	if (counter==0) {
+		notifier.set_value();
 	}
-}
-
-static bool getLimitReached()
-{
-	return incrementCount>=incrementLimit;
 }
 
 
@@ -537,8 +525,6 @@ BOOST_AUTO_TEST_CASE(add_and_remove_many_events_test)
 
 	Notifiers notifiers;
 
-	incrementLimit = notifierCount;
-	bool signaled;
 
 #ifndef _WIN32
 	// under windows, the 1st parameter is a complex parameter
@@ -552,26 +538,22 @@ BOOST_AUTO_TEST_CASE(add_and_remove_many_events_test)
 #endif
 
 	std::thread worker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(eventLoop)));
+	unsigned int counter = notifierCount;
+	std::promise < void > promise;
+	auto f = promise.get_future();
 
 
 	for (unsigned int cycle = 0; cycle < cycleCount; ++cycle) {
-		incrementCount = 0;
 		for (unsigned int i = 0; i < notifierCount; ++i) {
 			std::unique_ptr < hbm::sys::Notifier >notifier(new hbm::sys::Notifier(eventLoop));
-			notifier->set(std::bind(&notifierIncrementCheckLimit));
+			notifier->set(std::bind(&decrementCounter, std::ref(counter), std::ref(promise)));
 			notifiers.push_back(std::move(notifier));
 		}
 		for (unsigned int i = 0; i < notifierCount; ++i) {
 			notifiers[i]->notify();
 		}
-		
-		{
-			std::unique_lock < std::mutex > lock(incrementLimitMtx);
-			signaled = incrementLimitCnd.wait_for(lock, std::chrono::milliseconds(100), getLimitReached);
-		}
-		BOOST_CHECK_EQUAL(signaled, true);
-		BOOST_CHECK_EQUAL(incrementCount, notifierCount);
-
+		std::future_status status = f.wait_for(std::chrono::milliseconds(100));
+		BOOST_CHECK(status==std::future_status::ready);
 		notifiers.clear();
 	}
 
