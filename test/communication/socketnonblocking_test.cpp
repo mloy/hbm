@@ -13,7 +13,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include <string>
-#include <thread>
 #include <functional>
 #include <memory>
 
@@ -67,15 +66,17 @@ namespace hbm {
 			
 			void serverFixture::start()
 			{
-				m_serverWorker = std::thread(std::bind(&hbm::sys::EventLoop::execute, std::ref(m_eventloop)));
+				m_serverWorker = std::async(std::launch::async, std::bind(&hbm::sys::EventLoop::execute, std::ref(m_eventloop)));
 			}
 
 			void serverFixture::stop()
 			{
 				m_eventloop.stop();
-				if (m_serverWorker.joinable()) {
-					m_serverWorker.join();
+				try {
+					m_serverWorker.wait();
+				} catch (...) {
 				}
+
 			}
 
 

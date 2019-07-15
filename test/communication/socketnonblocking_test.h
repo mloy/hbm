@@ -5,7 +5,7 @@
 #ifndef __HBM__COMMUNICATION_SOCKETTEST_H
 #define __HBM__COMMUNICATION_SOCKETTEST_H
 
-#include <thread>
+#include <future>
 #include <map>
 
 #include "hbm/communication/socketnonblocking.h"
@@ -46,7 +46,7 @@ namespace hbm {
 				}
 
 			private:
-				std::thread m_serverWorker;
+				std::future < int > m_serverWorker;
 
 				std::map < int, clientSocket_t> m_workers;
 				TcpServer m_server;
