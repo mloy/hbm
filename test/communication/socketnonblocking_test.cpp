@@ -132,13 +132,6 @@ namespace hbm {
 				return result;
 			}
 
-			int serverFixture::clientNotify(unsigned int &count)
-			{
-				++count;
-				return 0;
-			}
-			
-			
 			int serverFixture::clientReceiveTarget(hbm::communication::SocketNonblocking& socket, std::string& target)
 			{
 				char buffer[1024];
@@ -616,9 +609,15 @@ namespace hbm {
 				char data[1000000] = { 0 };
 				hbm::communication::SocketNonblocking client(m_eventloop);
 				client.connect(server, std::to_string(PORT));
-				
 				unsigned int notifiyCount = 0;
-				client.setOutDataCb(std::bind(&serverFixture::clientNotify, this, std::ref(notifiyCount)));
+
+				auto lambda = [&notifiyCount](hbm::communication::SocketNonblocking&)
+				{
+					++notifiyCount;
+					return 0;
+				};
+
+				client.setOutDataCb(lambda);
 				// callback function gets called once to check for pending work...
 				BOOST_CHECK_EQUAL(notifiyCount, 1);
 				
