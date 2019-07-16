@@ -289,10 +289,10 @@ BOOST_AUTO_TEST_CASE(multiple_event_test)
 
 	std::vector < std::unique_ptr < hbm::sys::Notifier > > notifiers;
 	for (unsigned int i=0; i<NOTIFIER_COUNT; ++i) {
-		std::unique_ptr < hbm::sys::Notifier >notifier(new hbm::sys::Notifier(eventLoop));
+		auto notifier = std::make_unique < hbm::sys::Notifier > (eventLoop);
 		notifier->set(std::bind(&notifierIncrement, std::ref(notificationCount)));
 		notifier->notify();
-		notifiers.push_back(std::move(notifier));
+		notifiers.emplace_back(std::move(notifier));
 	}
 
 	BOOST_CHECK_EQUAL(notificationCount, 0);
@@ -545,9 +545,9 @@ BOOST_AUTO_TEST_CASE(add_and_remove_many_events_test)
 
 	for (unsigned int cycle = 0; cycle < cycleCount; ++cycle) {
 		for (unsigned int i = 0; i < notifierCount; ++i) {
-			std::unique_ptr < hbm::sys::Notifier >notifier(new hbm::sys::Notifier(eventLoop));
+			auto notifier = std::make_unique < hbm::sys::Notifier > (eventLoop);
 			notifier->set(std::bind(&decrementCounter, std::ref(counter), std::ref(promise)));
-			notifiers.push_back(std::move(notifier));
+			notifiers.emplace_back(std::move(notifier));
 		}
 		for (unsigned int i = 0; i < notifierCount; ++i) {
 			notifiers[i]->notify();
