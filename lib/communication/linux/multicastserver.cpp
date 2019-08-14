@@ -77,9 +77,9 @@ namespace hbm {
 				}
 
 				memset(&m_receiveAddr, 0, sizeof(m_receiveAddr));
-				m_receiveAddr.sin_family = pResult->ai_family;
+				m_receiveAddr.sin_family = static_cast < sa_family_t > (pResult->ai_family);
 				m_receiveAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-				m_receiveAddr.sin_port = htons(m_port);
+				m_receiveAddr.sin_port = htons(static_cast < uint16_t > (m_port));
 
 				freeaddrinfo(pResult);
 			}
@@ -297,7 +297,7 @@ namespace hbm {
 	
 			memset(&im, 0, sizeof(im));
 			im.imr_multiaddr = address.sin_addr;
-			im.imr_ifindex = interfaceIndex;
+			im.imr_ifindex = static_cast < int > (interfaceIndex);
 
 			freeaddrinfo(pResult);
 
@@ -399,7 +399,7 @@ namespace hbm {
 					if (pcmsghdr->cmsg_type == IP_PKTINFO) {
 						struct in_pktinfo pktinfo;
 						std::memcpy(&pktinfo, CMSG_DATA(pcmsghdr), sizeof(pktinfo));
-						adapterIndex = pktinfo.ipi_ifindex;
+						adapterIndex = static_cast < unsigned int > (pktinfo.ipi_ifindex);
 					} else if(pcmsghdr->cmsg_type == IP_TTL) {
 						// returns the ttl from the received ip header (the value set by the last sender(router))
 						std::memcpy(&ttl, CMSG_DATA(pcmsghdr), sizeof(ttl));
@@ -439,7 +439,7 @@ namespace hbm {
 			return sendOverInterfaceByIndex(adapter.getIndex(), data, ttl);
 		}
 
-		int MulticastServer::sendOverInterface(int interfaceIndex, const std::string& data, unsigned int ttl) const
+		int MulticastServer::sendOverInterface(unsigned int interfaceIndex, const std::string& data, unsigned int ttl) const
 		{
 			if (data.empty()) {
 				return 0;
@@ -456,7 +456,7 @@ namespace hbm {
 			return retVal;
 		}
 
-		int MulticastServer::sendOverInterface(int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
+		int MulticastServer::sendOverInterface(unsigned int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
 		{
 			if (pData == nullptr) {
 				return 0;
@@ -538,7 +538,7 @@ namespace hbm {
 			struct sockaddr_in sendAddr;
 			memset(&sendAddr, 0, sizeof(sendAddr));
 			sendAddr.sin_family = AF_INET;
-			sendAddr.sin_port = htons(m_port);
+			sendAddr.sin_port = htons(static_cast < uint16_t > (m_port));
 
 			if (inet_aton(m_mutlicastgroup.c_str(), &sendAddr.sin_addr) == 0) {
 				::syslog(LOG_ERR, "Not a valid multicast IP address!");
@@ -555,7 +555,7 @@ namespace hbm {
 			return ERR_SUCCESS;
 		}
 	
-		int MulticastServer::sendOverInterfaceByIndex(int interfaceIndex, const std::string& data, unsigned int ttl) const
+		int MulticastServer::sendOverInterfaceByIndex(unsigned int interfaceIndex, const std::string& data, unsigned int ttl) const
 		{
 			if(data.empty()) {
 				return ERR_SUCCESS;
@@ -564,7 +564,7 @@ namespace hbm {
 			return sendOverInterfaceByIndex(interfaceIndex, data.c_str(), data.length(), ttl);
 		}
 
-		int MulticastServer::sendOverInterfaceByIndex(int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
+		int MulticastServer::sendOverInterfaceByIndex(unsigned int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
 		{
 			if (pData==nullptr) {
 				if(length>0) {
@@ -576,7 +576,7 @@ namespace hbm {
 
 			struct ip_mreqn req;
 			memset(&req, 0, sizeof(req));
-			req.imr_ifindex = interfaceIndex;
+			req.imr_ifindex = static_cast < int > (interfaceIndex);
 			if (setsockopt(m_sendEvent, IPPROTO_IP, IP_MULTICAST_IF, &req, sizeof(req))) {
 				::syslog(LOG_ERR, "Error setsockopt IP_MULTICAST_IF for interface %d!", interfaceIndex);
 				return ERR_INVALIDADAPTER;
@@ -590,7 +590,7 @@ namespace hbm {
 			struct sockaddr_in sendAddr;
 			memset(&sendAddr, 0, sizeof(sendAddr));
 			sendAddr.sin_family = AF_INET;
-			sendAddr.sin_port = htons(m_port);
+			sendAddr.sin_port = htons(static_cast < uint16_t > (m_port));
 
 			if (inet_aton(m_mutlicastgroup.c_str(), &sendAddr.sin_addr) == 0) {
 				::syslog(LOG_ERR, "Not a valid multicast IP address!");

@@ -113,12 +113,12 @@ namespace hbm {
 			/// @param interfaceIndex interface to use
 			/// @param data to send
 			/// @param ttl number of hops which means number of routers to pass
-			int sendOverInterface(int interfaceIndex, const std::string& data, unsigned int ttl=1) const;
+			int sendOverInterface(unsigned int interfaceIndex, const std::string& data, unsigned int ttl=1) const;
 			/// @param interfaceIndex interface to use
 			/// @param pData buffer to send
 			/// @param length size of buffer to send
 			/// @param ttl number of hops which means number of routers to pass
-			int sendOverInterface(int interfaceIndex, const void* pData, size_t length, unsigned int ttl=1) const;
+			int sendOverInterface(unsigned int interfaceIndex, const void* pData, size_t length, unsigned int ttl=1) const;
 
 
 			/// send over specific interface.
@@ -135,10 +135,10 @@ namespace hbm {
 			int sendOverInterfaceByAddress(const std::string& interfaceIp, const void* pData, size_t length, unsigned int ttl=1) const;
 
 			/// send over specific interface.
-			int sendOverInterfaceByIndex(int interfaceIndex, const std::string& data, unsigned int ttl=1) const;
+			int sendOverInterfaceByIndex(unsigned int interfaceIndex, const std::string& data, unsigned int ttl=1) const;
 
 			/// send over specific interface.
-			int sendOverInterfaceByIndex(int interfaceIndex, const void* pData, size_t length, unsigned int ttl=1) const;
+			int sendOverInterfaceByIndex(unsigned int interfaceIndex, const void* pData, size_t length, unsigned int ttl=1) const;
 
 			/// \param msgbuf Buffer for data to receive
 			/// \param len Size of buffer for data to receive
