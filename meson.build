@@ -1,6 +1,10 @@
 project('hbm', 'cpp',
 	version: '1.0.33',
-  default_options : ['warning_level=3', 'cpp_std=c++11'])
+	default_options : ['warning_level=3',
+			   'cpp_std=c++11',
+			   'prefix=/usr',
+			  ])
+
 
 version_array = meson.project_version().split('.')
 
@@ -13,7 +17,8 @@ version_h = configure_file(input : 'lib/version.h.in',
                output : 'version.h',
                configuration : conf_data)
 
-configuration_inc = include_directories('.')
+#include_dirs = include_directories('.')
+include_dirs = include_directories('include')
 
 install_headers(version_h, subdir : 'hbm')
 
@@ -50,33 +55,101 @@ endif
 #
 #  ]
 
-
 shlib = shared_library('hbm', lib_src,
   install : true,
   cpp_args : lib_args,
-  gnu_symbol_visibility : 'hidden',
+  include_directories: include_dirs,
+  build_options: [
+    'strip=true',
+    'werror=true',
+    'warning_level=3',
+    'optimization=s',
+    'unity=on',
+    'debug=false',
+    'buildtype=minsize',
+    'b_coverage=true',
+    'b_lto=true',
+    'b_sanitize=address'
+  ]
+#  gnu_symbol_visibility : 'hidden',
 )
-
-multicast_test_exe = executable('multicast_test', 'test/communication/multicastserver_test.cpp',
-  link_with : shlib)
-test('multicast server', multicast_test_exe)
-
-nonblock_socket_test_exe = executable('socket_non_blocking_test', 'test/communication/socketnonblocking_test.cpp',
-  link_with : shlib)
-test('socket non-blocking', nonblock_socket_test_exe)
-
-
-netadapter_test_exe = executable('netadapter_test', 'test/communication/netadapter_test.cpp',
-  link_with : shlib)
-test('netadapter server', netadapter_test_exe)
-
-
 
 # Make this library usable as a Meson subproject.
 hbm_dep = declare_dependency(
-  include_directories: include_directories('./include'),
+  include_directories: include_dirs,
   link_with : shlib)
 
+jsoncpp_dep = dependency('jsoncpp')
+
+executable('netadapterview','tool/communication/netadapterview.cpp', dependencies: [hbm_dep,jsoncpp_dep], install:true )
+
+executable('netlinkview','tool/communication/netlinkview.cpp', dependencies: [hbm_dep,jsoncpp_dep],install:true  )
+
+executable('server','tool/communication/Server.cpp', dependencies: [hbm_dep,jsoncpp_dep],install:true  )
+
+executable('client','tool/communication/Client.cpp', dependencies: [hbm_dep,jsoncpp_dep],install:true  )
+
+executable('eventloopperformance','tool/sys/eventloopperformance.cpp', dependencies: hbm_dep,install:true  )
+
+
+
+
+################################################
+## Tests
+################################################
+
+boost_dep = dependency('boost', modules : ['unit_test_framework'])
+thread_dep = dependency('threads')
+
+multicast_test_exe = executable('multicast_test',
+				'test/communication/multicastserver_test.cpp',
+				dependencies: [ boost_dep,thread_dep,hbm_dep],
+				link_with : shlib
+			       )
+test('multicast server', multicast_test_exe)
+
+nonblock_socket_test_exe = executable('socket_non_blocking_test',
+				      'test/communication/socketnonblocking_test.cpp',
+				      dependencies: [ boost_dep, thread_dep,hbm_dep ],
+				      link_with : shlib)
+test('socket non-blocking', nonblock_socket_test_exe)
+
+
+netadapter_test_exe = executable('netadapter_test',
+				 'test/communication/netadapter_test.cpp',
+				dependencies: [ boost_dep, thread_dep,hbm_dep],
+				 link_with : shlib)
+test('netadapter', netadapter_test_exe)
+
+
+
+replace_test_exe = executable('replace_test',
+				 'test/string/replacetest.cpp',
+				dependencies: [ boost_dep, thread_dep,hbm_dep],
+				 link_with : shlib)
+test('replacetest', replace_test_exe)
+
+
+
+split_test_exe = executable('split_test',
+				 'test/string/splittest.cpp',
+				dependencies: [ boost_dep, thread_dep,hbm_dep],
+				 link_with : shlib)
+test('splittest', split_test_exe)
+
+
+trim_test_exe = executable('trim_test',
+				 'test/string/trimtest.cpp',
+				dependencies: [ boost_dep, thread_dep,hbm_dep],
+				 link_with : shlib)
+test('trimtest', trim_test_exe)
+
+
+execute_test_exe = executable('execute_test',
+				 'test/sys/executecommand_test.cpp',
+				dependencies: [ boost_dep, thread_dep,hbm_dep],
+				 link_with : shlib)
+test('executetest', execute_test_exe)
 
 
 #################################################
