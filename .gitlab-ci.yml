@@ -7,6 +7,14 @@ ci_build_and_test_linux:
     - mkdir build && cd build && cmake .. -DFEATURE_POST_BUILD_UNITTEST=ON && make && make test
   tags:
     - linux
+
+ci_build_and_test_linux_meson:
+  stage: build
+  script:
+    - meson build ; ninja -C build ; ninja -C build test
+  tags:
+    - linux
+
     
 #ci_build_and_test_windows:
 #  stage: build
