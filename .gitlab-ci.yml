@@ -8,10 +8,30 @@ ci_build_and_test_linux:
   tags:
     - linux
 
-ci_build_and_test_linux_meson:
+meson_cpp11:
   stage: build
   script:
-    - meson build -Db_coverage=true
+    - meson build -Db_coverage=true -Dcpp_std=c++11
+    - ninja -C build -v 
+    - ninja -C build test
+    - ninja -C build coverage-text
+  tags:
+    - linux
+
+meson_cpp14:
+  stage: build
+  script:
+    - meson build -Db_coverage=true -Dcpp_std=c++14
+    - ninja -C build -v 
+    - ninja -C build test
+    - ninja -C build coverage-text
+  tags:
+    - linux
+
+meson_cpp17:
+  stage: build
+  script:
+    - meson build -Db_coverage=true -Dcpp_std=c++17
     - ninja -C build -v 
     - ninja -C build test
     - ninja -C build coverage-text
