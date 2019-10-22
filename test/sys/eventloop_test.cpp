@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(check_leak)
 	pipe = popen(cmd.c_str(), "r");
 	char* pResultString = fgets(readBuffer, sizeof(readBuffer), pipe);
 	BOOST_CHECK(pResultString);
-	fdCountBefore = std::stoul(readBuffer);
+	fdCountBefore = static_cast < unsigned int > (std::stoul(readBuffer));
 	fclose(pipe);
 #endif
 
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(check_leak)
 	pipe = popen(cmd.c_str(), "r");
 	pResultString = fgets(readBuffer, sizeof(readBuffer), pipe);
 	BOOST_CHECK(pResultString);
-	fdCountAfter = std::stoul(readBuffer);
+	fdCountAfter = static_cast < unsigned int > (std::stoul(readBuffer));
 	fclose(pipe);
 #endif
 
