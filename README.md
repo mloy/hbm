@@ -43,4 +43,12 @@ to build all libraries and executables. Finally execute `sudo make install` in o
 #### Windows
 A solution for MSVC2012 is provided.
 
+## Test Coverage
 
+- Perform test coverage analysis by anabling the `GCOV` cmake feature.
+- run: `make -j && make test`
+- gather information: `lcov --directory . --capture --output-file libhbm.cov`
+- make it human readable: `genhtml --output-directory coverage   --demangle-cpp --num-spaces 2 --sort   --title "libhbm"   --function-coverage --branch-coverage --legend   libhbm.cov`
+- view readable result with web browser: `firefox coverage/index.html`
+
+Do not forget to disable `GCOV` feature again before doing another release build!
