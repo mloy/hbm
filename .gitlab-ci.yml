@@ -8,8 +8,17 @@ ci_build_and_test_linux:
   script:
     - mkdir build && cd build && cmake .. -DFEATURE_POST_BUILD_UNITTEST=ON && make && make test
   tags:
+    - docker
     - linux
-    
+
+ci_build_and_test_linux_on_willi:
+  stage: build
+  script:
+    - mkdir build && cd build && cmake .. -DFEATURE_POST_BUILD_UNITTEST=ON && make && make test
+  tags:
+    - non-docker
+    - linux
+
 #ci_build_and_test_windows:
 #  stage: build
 #  script:
