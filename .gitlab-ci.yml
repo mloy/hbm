@@ -1,3 +1,5 @@
+image: gitlab.hbm.com:5555/quantumx/quantumx:latest
+
 stages:
   - build
 
