@@ -26,7 +26,7 @@ endif(Boost_FOUND)
 include_directories(../../include)
 
 set(SOURCES_SPLITTEST
-    splittest.cpp
+  splittest.cpp
 )
 
 add_executable( splittest ${SOURCES_SPLITTEST} )
@@ -39,16 +39,16 @@ set_target_properties(
 
 
 target_link_libraries( splittest
-    hbm
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  hbm
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
 enable_testing()
 add_test(splittest splittest
-    --report_level=no
-    --log_level=all
-#    --output_format=xml
-#    --log_sink=${CMAKE_BINARY_DIR}/splittest.xml
+  --report_level=no
+  --log_level=all
+#  --output_format=xml
+#  --log_sink=${CMAKE_BINARY_DIR}/splittest.xml
 )
 
 set(SOURCES_REPLACETEST
@@ -65,21 +65,21 @@ set_target_properties(
 
 
 target_link_libraries( replacetest
-    hbm
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  hbm
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 #    gcov
 )
 
 enable_testing()
 add_test(replacetest replacetest
-    --report_level=no
-    --log_level=all
-#    --output_format=xml
-#    --log_sink=${CMAKE_BINARY_DIR}/replacetest.xml
+  --report_level=no
+  --log_level=all
+#  --output_format=xml
+#  --log_sink=${CMAKE_BINARY_DIR}/replacetest.xml
 )
 
 set(SOURCES_TRIMTEST
-    trimtest.cpp
+  trimtest.cpp
 )
 
 add_executable( trimtest ${SOURCES_TRIMTEST} )
@@ -92,15 +92,15 @@ set_target_properties(
 
 
 target_link_libraries( trimtest
-    hbm
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  hbm
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 #    gcov
 )
 
 enable_testing()
 add_test(trimtest trimtest
-    --report_level=no
-    --log_level=all
-#    --output_format=xml
-#    --log_sink=${CMAKE_BINARY_DIR}/trimtest.xml
+  --report_level=no
+  --log_level=all
+#  --output_format=xml
+#  --log_sink=${CMAKE_BINARY_DIR}/trimtest.xml
 )
