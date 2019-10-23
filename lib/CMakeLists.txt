@@ -3,6 +3,14 @@ project("hbm_lib" CXX)
 cmake_minimum_required(VERSION 2.8)
 
 option(FEATURE_GCOV         "Use gcov" OFF)
+option(FEATURE_HBM_HARDWARE "Building for hardware target" ON)
+
+if(FEATURE_HBM_HARDWARE)
+  add_definitions(-D_HBM_HARDWARE)
+else()
+  add_definitions(-D_STANDARD_HARDWARE)
+endif()
+
 
 set( INTERFACE_INCLUDE_DIR ../include/hbm)
 include_directories(../include)
