@@ -2,6 +2,8 @@ project("hbm_lib" CXX)
 
 cmake_minimum_required(VERSION 2.8)
 
+option(FEATURE_GCOV         "Use gcov" ON)
+
 set( INTERFACE_INCLUDE_DIR ../include/hbm)
 include_directories(../include)
 
@@ -12,7 +14,13 @@ if(ROOT_SEARCH_PATH)
 endif()
 
 
-SET(EXTRA_FLAGS "-std=c++11 -fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
+SET(EXTRA_CXX_FLAGS "-std=c++11 -fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic ${CMAKE_CXX_FLAGS}")
+
+if(FEATURE_GCOV)
+    SET(EXTRA_CXX_FLAGS "-ftest-coverage and -fprofile-arcs ${EXTRA_CXX_FLAGS}")
+    SET(EXTRA_LINK_FLAGS "-fprofile-arcs")
+endif()
+
 
 SET( HBMLIB_INTERFACE_HEADERS
     ${INTERFACE_INCLUDE_DIR}/communication/ipv4address.h
@@ -64,7 +72,7 @@ set(HBMLIB_SOURCES
   sys/pidfile.cpp
 )
 
-set_source_files_properties(${HBMLIB_SOURCES} PROPERTIES COMPILE_FLAGS "${EXTRA_FLAGS}")
+set_source_files_properties(${HBMLIB_SOURCES} PROPERTIES COMPILE_FLAGS "${EXTRA_CXX_FLAGS}" LINK_FLAGS "${EXTRA_LINK_FLAGS}")
 
 add_library(hbm SHARED ${HBMLIB_SOURCES})
 #add_library(hbm-static STATIC ${HBMLIB_SOURCES})
