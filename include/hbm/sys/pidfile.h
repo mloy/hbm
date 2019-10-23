@@ -14,9 +14,9 @@ namespace hbm {
 		class PidFile
 		{
 		public:
-			/// @param[in, out] name may be manipulated!
 			/// \throws hbm::exception
-			PidFile(char *name);
+			PidFile(const char* name);
+			std::string name();
 			virtual ~PidFile();
 
 		private:
