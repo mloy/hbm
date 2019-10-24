@@ -1,3 +1,6 @@
+[![pipeline status](http://gitlab.hbm.com/share/hbm/badges/master/pipeline.svg)](http://gitlab.hbm.com/hbm/koffer/commits/master)
+[![coverage report](http://gitlab.hbm.com/share/koffer/badges/hbm/coverage.svg)](http://gitlab.hbm.com/hbm/koffer/commits/master)
+
 # What is it for?
 
 The library contains
