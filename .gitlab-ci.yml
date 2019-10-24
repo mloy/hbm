@@ -1,10 +1,18 @@
 stages:
   - build
+  
+ci_build_release_linux:
+  stage: build
+  script:
+    - mkdir build && cd build && cmake .. && make
+  tags:
+    - linux
+    - non-docker
 
 ci_build_and_test_linux:
   stage: build
   script:
-    - mkdir build && cd build && cmake .. -DFEATURE_POST_BUILD_UNITTEST=ON -DFEATURE_HBM_HARDWARE=OFF && make && make test
+    - mkdir build && cd build && cmake .. -DFEATURE_POST_BUILD_UNITTEST=ON -DFEATURE_HBM_HARDWARE=OFF -DFEATURE_GCOV=ON && make && make test
   tags:
     - linux
     - non-docker
