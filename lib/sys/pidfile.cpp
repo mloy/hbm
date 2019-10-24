@@ -6,6 +6,8 @@
 #include <cstdio>
 #include <cstring>
 
+#include <stdexcept>
+
 #ifdef _WIN32
 #include <process.h>
 #define getpid _getpid
@@ -16,7 +18,6 @@
 #include <libgen.h>
 #endif
 
-#include "hbm/exception/exception.hpp"
 
 #include "hbm/sys/pidfile.h"
 
@@ -42,14 +43,15 @@ namespace hbm {
 				std::string msg;
 				msg = "could not create pid file ";
 				msg += m_pidFileName;
-				throw hbm::exception::exception(msg);
+				msg += std::string(" '") +strerror(errno) + "'";
+				throw std::runtime_error(msg);
 			} else {
 				::fprintf(pidFile, "%d\n", getpid());
 				::fclose(pidFile);
 			}
 		}
 
-		std::string PidFile::name()
+		std::string PidFile::path()
 		{
 			return m_pidFileName;
 		}

@@ -16,6 +16,7 @@
 #include "hbm/communication/netadapterlist.h"
 
 #include "hbm/string/split.h"
+#include "hbm/sys/executecommand.h"
 
 BOOST_AUTO_TEST_CASE(check_valid_ipaddresses_test)
 {
@@ -213,5 +214,18 @@ BOOST_AUTO_TEST_CASE(check_occupied_subnet)
 	
 	occupyingInterfaceName = netadapterList.checkSubnet(interfaceName, localHostAddress);
 	BOOST_CHECK_EQUAL(occupyingInterfaceName, "");
+}
 
+BOOST_AUTO_TEST_CASE(check_ipv4_gateway)
+{
+	static const std::string cmd = "ip route | grep default";
+	std::string gateway = hbm::communication::Netadapter::getIpv4DefaultGateway();
+
+	std::string result = hbm::sys::executeCommand(cmd);
+	hbm::string::tokens tokens = hbm::string::split(result, ' ');
+	BOOST_CHECK(tokens.size()>=3);
+	if (tokens.size()>=3) {
+		std::string gateway2 = tokens[2];
+		BOOST_CHECK_EQUAL(gateway, gateway2);
+	}
 }

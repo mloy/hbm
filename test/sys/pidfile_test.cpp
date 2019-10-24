@@ -3,6 +3,8 @@
 // See file LICENSE provided
 
 
+#include <sys/stat.h>
+
 
 #ifndef _WIN32
 #define BOOST_TEST_DYN_LINK
@@ -18,18 +20,28 @@
 namespace hbm {
 	namespace sys {
 		namespace test {
-			BOOST_AUTO_TEST_CASE( check_creation_and_removal )
-			{
-				std::string name;
+		BOOST_AUTO_TEST_CASE( check_creation_and_removal )
+		{
+				std::string path;
 				{
 					hbm::sys::PidFile pidFile("fritz");
-					name = pidFile.name();
-					int result = access(name.c_str(), F_OK);
+					path = pidFile.path();
+					int result = access(path.c_str(), F_OK);
 					BOOST_CHECK(result==0);
 				}
-				int result = access(name.c_str(), F_OK);
+				int result = access(path.c_str(), F_OK);
 				BOOST_CHECK(result!=0);
 			}
 		}
+
+		BOOST_AUTO_TEST_CASE( check_invalid_path )
+		{
+			char baseName[] = "fritz";
+			hbm::sys::PidFile pidFile(baseName);
+			std::string path = pidFile.path();
+			chmod(path.c_str(), 0); // protect file from being overwritten!
+			BOOST_CHECK_THROW(hbm::sys::PidFile pidFile2(baseName), std::runtime_error);
+		}
+
 	}
 }

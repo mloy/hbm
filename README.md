@@ -46,6 +46,7 @@ A solution for MSVC2012 is provided.
 ## Test Coverage
 
 - Perform test coverage analysis by anabling the `GCOV` cmake feature.
+- clear previous information: `lcov --directory . --zerocounters`
 - run: `make -j && make test`
 - gather information: `lcov --directory . --capture --output-file libhbm.cov`
 - make it human readable: `genhtml --output-directory coverage   --demangle-cpp --num-spaces 2 --sort   --title "libhbm"   --function-coverage --branch-coverage --legend   libhbm.cov`
