@@ -14,9 +14,10 @@ namespace hbm {
 		class PidFile
 		{
 		public:
-			/// @param[in, out] name may be manipulated!
 			/// \throws hbm::exception
-			PidFile(char *name);
+			PidFile(const char* name);
+			/// \return absolute path of the pid file
+			std::string name();
 			virtual ~PidFile();
 
 		private:

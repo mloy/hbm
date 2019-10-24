@@ -4,6 +4,7 @@
 
 
 #include <cstdio>
+#include <cstring>
 
 #ifdef _WIN32
 #include <process.h>
@@ -19,12 +20,21 @@
 
 #include "hbm/sys/pidfile.h"
 
+#ifdef _STANDARD_HARDWARE
+	// use current directory on pc because we hopefully have write access here.
+	const char BasePath[] = "";
+#else
+	const char BasePath[] = "/var/run/";
+#endif
+
 namespace hbm {
 	namespace sys {
-		PidFile::PidFile(char* name)
-			: m_pidFileName("/var/run/")
+		PidFile::PidFile(const char* name)
+			: m_pidFileName(BasePath)
 		{
-			m_pidFileName += basename(name);
+			char* pNameCopy = strdup(name);
+			m_pidFileName += basename(pNameCopy);
+			free(pNameCopy);
 			m_pidFileName += ".pid";
 			FILE* pidFile = ::fopen(m_pidFileName.c_str(), "w");
 
@@ -37,6 +47,11 @@ namespace hbm {
 				::fprintf(pidFile, "%d\n", getpid());
 				::fclose(pidFile);
 			}
+		}
+
+		std::string PidFile::name()
+		{
+			return m_pidFileName;
 		}
 
 		PidFile::~PidFile()

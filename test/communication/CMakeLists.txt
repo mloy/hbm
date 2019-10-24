@@ -10,6 +10,11 @@ enable_testing()
 SET(CMAKE_CXX_FLAGS "-std=c++14 -fno-common -Wall -Werror -Wshadow -Wextra -Winit-self -Wstrict-overflow=5 -Wunused-result -Wcast-qual -Wcast-align -Wpointer-arith -Wformat=2 -Wwrite-strings -Wmissing-declarations -pedantic")
 
 
+if(FEATURE_GCOV)
+    SET(CMAKE_CXX_FLAGS "-ftest-coverage -fprofile-arcs ${CMAKE_CXX_FLAGS}")
+    SET(EXTRA_LINK_FLAGS "-fprofile-arcs")
+endif()
+
 #find_package(Boost ${QX_BOOST_VERSION}  COMPONENTS unit_test_framework)
 find_package(Boost COMPONENTS unit_test_framework)
 IF(Boost_FOUND)
@@ -24,6 +29,13 @@ add_executable(
     multicastserver.test
     ${MULTICASTSERVER_TEST}
 )
+
+set_target_properties(
+  multicastserver.test
+  PROPERTIES
+  LINK_FLAGS "${EXTRA_LINK_FLAGS}"
+)
+
 
 target_link_libraries (multicastserver.test
     -pthread
@@ -49,6 +61,12 @@ set_source_files_properties(
 add_executable(
     socketnonblocking.test
     ${SOCKETNONBLOCKING_TEST}
+)
+
+set_target_properties(
+  socketnonblocking.test
+  PROPERTIES
+  LINK_FLAGS "${EXTRA_LINK_FLAGS}"
 )
 
 target_link_libraries (
@@ -79,6 +97,13 @@ add_executable(
     netadapter.test
     ${NETADAPTER_TEST}
 )
+
+set_target_properties(
+  netadapter.test
+  PROPERTIES
+  LINK_FLAGS "${EXTRA_LINK_FLAGS}"
+)
+
 
 target_link_libraries (
     netadapter.test
