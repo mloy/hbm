@@ -84,7 +84,7 @@ add_test(eventloop_test eventloop.test
 )
 
 
-if (!FEATURE_HBM_HARDWARE)
+if (NOT FEATURE_HBM_HARDWARE)
   # needs to be compiled for standard hardware for unit test
   SET(PIDFILE_TEST
     pidfile_test.cpp
