@@ -19,6 +19,7 @@ ci_build_and_test_linux:
     - make && make test
     - lcov --directory . --capture --output-file libhbm.cov
     - lcov --list libhbm.cov
+  coverage: '/(?m)\bOverall\D+(\d+[.]\d\%)/'
   tags:
     - linux
     - non-docker
