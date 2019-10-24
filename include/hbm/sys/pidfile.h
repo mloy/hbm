@@ -15,9 +15,9 @@ namespace hbm {
 		{
 		public:
 			/// \throws hbm::exception
-			PidFile(const char* name);
+			PidFile(const char* path);
 			/// \return absolute path of the pid file
-			std::string name();
+			std::string path();
 			virtual ~PidFile();
 
 		private:
