@@ -83,31 +83,35 @@ add_test(eventloop_test eventloop.test
 #--log_sink=${CMAKE_BINARY_DIR}/eventloop_test.xml
 )
 
-SET(PIDFILE_TEST
-  pidfile_test.cpp
-)
 
-add_executable(
-  pidfile.test
-  ${PIDFILE_TEST}
-)
+if (!FEATURE_HBM_HARDWARE)
+  # needs to be compiled for standard hardware for unit test
+  SET(PIDFILE_TEST
+    pidfile_test.cpp
+  )
 
-set_target_properties(
-  pidfile.test
-  PROPERTIES
-  LINK_FLAGS "${EXTRA_LINK_FLAGS}"
-)
+  add_executable(
+    pidfile.test
+    ${PIDFILE_TEST}
+  )
+
+  set_target_properties(
+    pidfile.test
+    PROPERTIES
+    LINK_FLAGS "${EXTRA_LINK_FLAGS}"
+  )
 
 
-target_link_libraries (
-  pidfile.test
-  hbm
-  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-)
+  target_link_libraries (
+    pidfile.test
+    hbm
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  )
 
-add_test(pidfile_test pidfile.test
---report_level=no
---log_level=all
-#--output_format=xml
-#--log_sink=${CMAKE_BINARY_DIR}/eventloop_test.xml
-)
+  add_test(pidfile_test pidfile.test
+  --report_level=no
+  --log_level=all
+  #--output_format=xml
+  #--log_sink=${CMAKE_BINARY_DIR}/eventloop_test.xml
+  )
+endif()
