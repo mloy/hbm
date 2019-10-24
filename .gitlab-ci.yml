@@ -17,6 +17,8 @@ ci_build_and_test_linux:
     - mkdir build && cd build
     - cmake .. -DFEATURE_POST_BUILD_UNITTEST=ON -DFEATURE_HBM_HARDWARE=OFF -DFEATURE_GCOV=ON
     - make && make test
+    - lcov --directory . --capture --output-file libhbm.cov
+    - lcov --list libhbm.cov
   tags:
     - linux
     - non-docker
