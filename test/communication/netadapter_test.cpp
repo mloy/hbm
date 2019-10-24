@@ -195,6 +195,10 @@ BOOST_AUTO_TEST_CASE(check_occupied_subnet)
 		return;
 	}
 
+
+	hbm::communication::NetadapterList::AdapterArray adapterArray = netadapterList.getArray();
+	BOOST_CHECK_EQUAL(adapter.getIndex(), adapterArray[0].getIndex());
+
 	hbm::communication::Ipv4Address firstAddress = *addresses.begin();
 	interfaceName = adapter.getName();
 	

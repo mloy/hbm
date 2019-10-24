@@ -82,13 +82,9 @@ namespace hbm {
 				text = " ";
 				hbm::string::trim_right(text);
 				BOOST_CHECK_EQUAL(text, "");
-				
-				text = " h ";
-				hbm::string::trim_right_if(text, ' ');
-				BOOST_CHECK_EQUAL(text, " h");
 			}
 			
-			BOOST_AUTO_TEST_CASE( test_case_right_if )
+			BOOST_AUTO_TEST_CASE( test_case_xxx_if )
 			{
 				std::string text = " ";
 				hbm::string::trim_right_if(text, ' ');
@@ -97,6 +93,18 @@ namespace hbm {
 				text = " h ";
 				hbm::string::trim_right_if(text, ' ');
 				BOOST_CHECK_EQUAL(text, " h");
+
+				text = " h ";
+				hbm::string::trim_right_if(text, 'a');
+				BOOST_CHECK_EQUAL(text, " h ");
+
+				text = " h ";
+				hbm::string::trim_left_if(text, ' ');
+				BOOST_CHECK_EQUAL(text, "h ");
+
+				text = " h ";
+				hbm::string::trim_left_if(text, 'a');
+				BOOST_CHECK_EQUAL(text, " h ");
 			}
 
 			BOOST_AUTO_TEST_CASE( test_case_left )
