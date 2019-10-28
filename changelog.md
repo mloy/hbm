@@ -2,6 +2,8 @@
 
 ## v1.0.37
  - Suport cmake find-package
+ - More C++11 for efficiency
+ - Increased test coverage
 
 ## v1.0.34
  - Linux: More efficient eventloop handling
