@@ -96,10 +96,12 @@ set(exec_prefix "\${prefix}")
 set(libdir "\${exec_prefix}/lib")
 set(includedir "\${prefix}/include")
 configure_file("${PROJECT_SOURCE_DIR}/pkg-config/hbm.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/cmake/hbm-config.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake/hbm-config.cmake" @ONLY)
 configure_file("${PROJECT_SOURCE_DIR}/version.h.in" "${PROJECT_BINARY_DIR}/version.h")
 
 
 INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" DESTINATION lib/pkgconfig)
+INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/hbm-config.cmake" DESTINATION lib/cmake/hbm)
 
 install(TARGETS hbm LIBRARY DESTINATION lib)
 #install(TARGETS hbm-static ARCHIVE DESTINATION lib)
