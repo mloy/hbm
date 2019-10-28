@@ -5,7 +5,7 @@ ci_build_linux:
   stage: build
   script:
     - mkdir build && cd build
-    - cmake ..
+    - cmake -DFEATURE_POST_BUILD_UNITTEST=ON -DFEATURE_HBM_HARDWARE=OFF -DFEATURE_TOOLS=ON ..
     - make
     - make test
   tags:
