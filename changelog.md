@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.37
+ - Suport cmake find-package
+
 ## v1.0.34
  - Linux: More efficient eventloop handling
  - Linux: Minor optimization of timer and notifier
