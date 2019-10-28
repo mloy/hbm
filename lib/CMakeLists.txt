@@ -79,7 +79,7 @@ add_library(hbm SHARED ${HBMLIB_SOURCES})
 
 SET( HBM_MAJOR_VERSION 1)
 SET( HBM_MINOR_VERSION 0)
-SET( HBM_TAG_NUMBER 36)
+SET( HBM_TAG_NUMBER 37)
 
 SET( HBM_VERSION ${HBM_MAJOR_VERSION}.${HBM_MINOR_VERSION}.${HBM_TAG_NUMBER} )
 
@@ -96,10 +96,14 @@ set(exec_prefix "\${prefix}")
 set(libdir "\${exec_prefix}/lib")
 set(includedir "\${prefix}/include")
 configure_file("${PROJECT_SOURCE_DIR}/pkg-config/hbm.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/cmake/hbm-config.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake/hbm-config.cmake" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/cmake/hbm-config-version.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake/hbm-config-version.cmake" @ONLY)
 configure_file("${PROJECT_SOURCE_DIR}/version.h.in" "${PROJECT_BINARY_DIR}/version.h")
 
 
 INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" DESTINATION lib/pkgconfig)
+INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/hbm-config.cmake" DESTINATION lib/cmake/hbm)
+INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/hbm-config-version.cmake" DESTINATION lib/cmake/hbm)
 
 install(TARGETS hbm LIBRARY DESTINATION lib)
 #install(TARGETS hbm-static ARCHIVE DESTINATION lib)

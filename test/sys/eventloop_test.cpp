@@ -484,19 +484,25 @@ BOOST_AUTO_TEST_CASE(retrigger_timer_test)
 BOOST_AUTO_TEST_CASE(add_and_remove_event_test)
 {
 	hbm::sys::EventLoop eventLoop;
+#ifdef _WIN32
+	static const hbm::sys::event event;
+#else
+	static const hbm::sys::event event = 1;
+#endif
 	int result;
 
-	result = eventLoop.addEvent(1, &dummyCb);
+	result = eventLoop.addEvent(event, &dummyCb);
 	BOOST_CHECK_EQUAL(result, 0);
 	// overwriting existing is allowed
-	result = eventLoop.addEvent(1, &dummyCb);
+	result = eventLoop.addEvent(event, &dummyCb);
 	BOOST_CHECK_EQUAL(result, 0);
-	result = eventLoop.eraseEvent(1);
+	result = eventLoop.eraseEvent(event);
 	BOOST_CHECK_EQUAL(result, 0);
 	// removing non existent should fail
-	result = eventLoop.eraseEvent(1);
+	result = eventLoop.eraseEvent(event);
 	BOOST_CHECK_EQUAL(result, -1);
 
+#ifndef _WIN32
 	// there was a bug were input event was not removed if input event and output event were set!
 	result = eventLoop.addEvent(1, &dummyCb);
 	result = eventLoop.addOutEvent(1, &dummyCb);
@@ -514,6 +520,7 @@ BOOST_AUTO_TEST_CASE(add_and_remove_event_test)
 	// removing non existent should fail
 	result = eventLoop.eraseOutEvent(1);
 	BOOST_CHECK_EQUAL(result, -1);
+#endif
 }
 BOOST_AUTO_TEST_CASE(add_and_remove_many_events_test)
 {
