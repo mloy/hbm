@@ -1,3 +1,5 @@
+image: gitlab.hbm.com:5555/quantumx/quantumx:latest
+
 stages:
   - build
   
@@ -9,8 +11,7 @@ ci_build_linux:
     - make
     - make test
   tags:
-    - linux
-    - non-docker
+    - docker
 
 #ci_build_and_test_windows:
 #  stage: build
