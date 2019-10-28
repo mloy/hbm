@@ -33,7 +33,11 @@ namespace hbm {
 		PidFile::PidFile(const char* name)
 			: m_pidFileName(BasePath)
 		{
+#ifdef _WIN32
+			char* pNameCopy = _strdup(name);
+#else
 			char* pNameCopy = strdup(name);
+#endif
 			m_pidFileName += basename(pNameCopy);
 			free(pNameCopy);
 			m_pidFileName += ".pid";

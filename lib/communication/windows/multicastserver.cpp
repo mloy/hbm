@@ -172,7 +172,7 @@ namespace hbm {
 			return dropOrAddInterface(interfaceAddress, false);
 		}
 
-		int MulticastServer::dropInterface(int interfaceIndex)
+		int MulticastServer::dropInterface(unsigned int interfaceIndex)
 		{
 			return dropOrAddInterface(interfaceIndex, false);
 		}
@@ -182,7 +182,7 @@ namespace hbm {
 			return dropOrAddInterface(interfaceAddress, true);
 		}
 
-		int MulticastServer::addInterface(int interfaceIndex)
+		int MulticastServer::addInterface(unsigned int interfaceIndex)
 		{
 			return dropOrAddInterface(interfaceIndex, true);
 		}
@@ -268,7 +268,7 @@ namespace hbm {
 			}
 		}
 
-		int MulticastServer::dropOrAddInterface(int interfaceIndex, bool add)
+		int MulticastServer::dropOrAddInterface(unsigned int interfaceIndex, bool add)
 		{
 			int retVal = 0;
 			struct addrinfo hints;
@@ -449,7 +449,7 @@ namespace hbm {
 			return retVal;
 		}
 
-		int MulticastServer::sendOverInterface(int interfaceIndex, const std::string& data, unsigned int ttl) const
+		int MulticastServer::sendOverInterface(unsigned int interfaceIndex, const std::string& data, unsigned int ttl) const
 		{
 			if (data.empty()) {
 				return 0;
@@ -466,7 +466,7 @@ namespace hbm {
 			return retVal;
 		}
 
-		int MulticastServer::sendOverInterface(int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
+		int MulticastServer::sendOverInterface(unsigned int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
 		{
 			if (pData == NULL) {
 				if (length > 0) {
@@ -593,7 +593,7 @@ namespace hbm {
 			return ERR_SUCCESS;
 		}
 
-		int MulticastServer::sendOverInterfaceByIndex(int interfaceIndex, const std::string& data, unsigned int ttl) const
+		int MulticastServer::sendOverInterfaceByIndex(unsigned int interfaceIndex, const std::string& data, unsigned int ttl) const
 		{
 			if (data.empty()) {
 				return ERR_SUCCESS;
@@ -602,7 +602,7 @@ namespace hbm {
 			return sendOverInterfaceByIndex(interfaceIndex, data.c_str(), data.length(), ttl);
 		}
 
-		int MulticastServer::sendOverInterfaceByIndex(int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
+		int MulticastServer::sendOverInterfaceByIndex(unsigned int interfaceIndex, const void* pData, size_t length, unsigned int ttl) const
 		{
 			if (pData == NULL) {
 				if (length>0) {
