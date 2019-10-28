@@ -63,7 +63,7 @@ namespace hbm {
 			}
 
 			/// \return interface index
-			unsigned unsigned int getIndex() const
+			unsigned int getIndex() const
 			{
 				return m_index;
 			}
