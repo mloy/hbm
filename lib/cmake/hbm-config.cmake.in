@@ -1,4 +1,4 @@
 set(PREFIX @prefix@)
 
-set(foo_INCLUDE_DIRS ${PREFIX}/include/hbm)
-set(foo_LIBRARY ${PREFIX}/lib/libhbm.so)
+set(HBM_INCLUDE_DIRS ${PREFIX}/include/hbm)
+set(HBM_LIBRARIES ${PREFIX}/lib/libhbm.so)
