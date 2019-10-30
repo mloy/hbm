@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.38
+ - Fix and simplify cmake find-package support
+
 ## v1.0.37
  - Suport cmake find-package
  - More C++11 for efficiency
