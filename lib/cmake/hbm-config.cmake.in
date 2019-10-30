@@ -1,4 +1,4 @@
-set(PREFIX @prefix@)
+set(PREFIX @CMAKE_INSTALL_PREFIX@)
 
 set(HBM_INCLUDE_DIRS ${PREFIX}/include/hbm)
 set(HBM_LIBRARIES ${PREFIX}/lib/libhbm.so)
