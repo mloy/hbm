@@ -8,8 +8,8 @@ ci_build_linux:
   script:
     - mkdir build && cd build
     - cmake -DFEATURE_POST_BUILD_UNITTEST=ON -DFEATURE_HBM_HARDWARE=OFF -DFEATURE_TOOLS=ON ..
-    - make
-    - make test
+    - make -j
+    - ctest --verbose
   tags:
     - docker
 
