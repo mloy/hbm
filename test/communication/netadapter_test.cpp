@@ -227,9 +227,13 @@ BOOST_AUTO_TEST_CASE(check_ipv4_gateway)
 
 	std::string result = hbm::sys::executeCommand(cmd);
 	hbm::string::tokens tokens = hbm::string::split(result, ' ');
-	BOOST_CHECK(tokens.size()>=3);
-	if (tokens.size()>=3) {
-		std::string gateway2 = tokens[2];
-		BOOST_CHECK_EQUAL(gateway, gateway2);
+	if (gateway.empty() && tokens.empty()) {
+		// there is no default gateway!
+	} else {
+		BOOST_CHECK(tokens.size()>=3);
+		if (tokens.size()>=3) {
+			std::string gateway2 = tokens[2];
+			BOOST_CHECK_EQUAL(gateway, gateway2);
+		}
 	}
 }
