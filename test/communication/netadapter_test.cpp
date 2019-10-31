@@ -2,6 +2,7 @@
 // Distributed under MIT license
 // See file LICENSE provided
 
+#include <iostream>
 
 #ifndef _WIN32
 #define BOOST_TEST_DYN_LINK
@@ -226,6 +227,8 @@ BOOST_AUTO_TEST_CASE(check_ipv4_gateway)
 	std::string gateway = hbm::communication::Netadapter::getIpv4DefaultGateway();
 
 	std::string result = hbm::sys::executeCommand(cmd);
+	std::cout << "--------------" << result << std::endl;
+	std::cout << "--------------" << gateway << std::endl;
 	hbm::string::tokens tokens = hbm::string::split(result, ' ');
 	if (gateway.empty() && tokens.empty()) {
 		// there is no default gateway!
