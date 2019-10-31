@@ -9,7 +9,7 @@ ci_build_linux:
     - mkdir build && cd build
     - cmake -DFEATURE_POST_BUILD_UNITTEST=ON -DFEATURE_HBM_HARDWARE=OFF -DFEATURE_TOOLS=ON ..
     - make -j
-    - ctest --verbose
+    - ctest --output-on-failure
   tags:
     - docker
 
