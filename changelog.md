@@ -1,5 +1,8 @@
 # Changelog for hbm
 
+## v1.0.39
+ - hbm::communication::Netadapter::getIpv4DefaultGateway() returns an empty string when there is no default gateway
+
 ## v1.0.38
  - Fix and simplify cmake find-package support
 

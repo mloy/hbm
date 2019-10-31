@@ -23,7 +23,7 @@ namespace hbm {
 
 		std::string Netadapter::getIpv4DefaultGateway()
 		{
-			std::string gatewayString("0.0.0.0");
+			std::string gatewayString;
 
 			FILE* fp = ::fopen("/proc/net/route", "r");
 
