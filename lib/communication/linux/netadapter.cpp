@@ -53,7 +53,7 @@ namespace hbm {
 							((flags & ROUTE_UP) != 0)) { // route is up
 								if (destination == INADDR_ANY) { // default gateway
 									struct sockaddr_in s_in;
-									s_in.sin_addr.s_addr = gateway;
+									s_in.sin_addr.s_addr = static_cast < in_addr_t > (gateway);
 									gatewayString = ::inet_ntoa(s_in.sin_addr);
 									break;
 								}
