@@ -220,21 +220,20 @@ BOOST_AUTO_TEST_CASE(check_occupied_subnet)
 	BOOST_CHECK_EQUAL(occupyingInterfaceName, "");
 }
 
-// Test does not work withing docker image. Command "ip" not available
-//BOOST_AUTO_TEST_CASE(check_ipv4_gateway)
-//{
-//	static const std::string cmd = "ip route | grep default";
-//	std::string gateway = hbm::communication::Netadapter::getIpv4DefaultGateway();
+BOOST_AUTO_TEST_CASE(check_ipv4_gateway)
+{
+	static const std::string cmd = "ip route | grep default";
+	std::string gateway = hbm::communication::Netadapter::getIpv4DefaultGateway();
 
-//	std::string result = hbm::sys::executeCommand(cmd);
-//	hbm::string::tokens tokens = hbm::string::split(result, ' ');
-//	if (gateway.empty() && tokens.empty()) {
-//		// there is no default gateway!
-//	} else {
-//		BOOST_CHECK(tokens.size()>=3);
-//		if (tokens.size()>=3) {
-//			std::string gateway2 = tokens[2];
-//			BOOST_CHECK_EQUAL(gateway, gateway2);
-//		}
-//	}
-//}
+	std::string result = hbm::sys::executeCommand(cmd);
+	hbm::string::tokens tokens = hbm::string::split(result, ' ');
+	if (gateway.empty() && tokens.empty()) {
+		// there is no default gateway!
+	} else {
+		BOOST_CHECK(tokens.size()>=3);
+		if (tokens.size()>=3) {
+			std::string gateway2 = tokens[2];
+			BOOST_CHECK_EQUAL(gateway, gateway2);
+		}
+	}
+}
