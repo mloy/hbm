@@ -20,8 +20,8 @@
 namespace hbm {
 	namespace sys {
 		namespace test {
-		BOOST_AUTO_TEST_CASE( check_creation_and_removal )
-		{
+			BOOST_AUTO_TEST_CASE( check_creation_and_removal )
+			{
 				std::string path;
 				{
 					hbm::sys::PidFile pidFile("fritz");
@@ -33,15 +33,5 @@ namespace hbm {
 				BOOST_CHECK(result!=0);
 			}
 		}
-
-		BOOST_AUTO_TEST_CASE( check_invalid_path )
-		{
-			char baseName[] = "fritz";
-			hbm::sys::PidFile pidFile(baseName);
-			std::string path = pidFile.path();
-			chmod(path.c_str(), 0); // protect file from being overwritten!
-			BOOST_CHECK_THROW(hbm::sys::PidFile pidFile2(baseName), std::runtime_error);
-		}
-
 	}
 }
