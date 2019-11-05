@@ -1,4 +1,4 @@
-image: gitlab.hbm.com:5555/quantumx/quantumx:latest
+image: gitlab.hbm.com:5555/docker/simulation:latest
 
 stages:
   - build
