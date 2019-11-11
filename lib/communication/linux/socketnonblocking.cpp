@@ -199,6 +199,7 @@ int hbm::communication::SocketNonblocking::connect(const std::string &address, c
 	hints.ai_protocol = 6; // Ip V6!
 
 	if( getaddrinfo(address.c_str(), port.c_str(), &hints, &pResult)!=0 ) {
+		syslog(LOG_ERR, "could not get address information from '%s:%s': '%s'", address.c_str(), port.c_str(), strerror(errno));
 		return -1;
 	}
 	int retVal = connect(pResult->ai_family, pResult->ai_addr, pResult->ai_addrlen);
