@@ -1,0 +1,16 @@
+language: cpp
+
+git:
+  depth: 3
+
+compiler:
+  - g++
+
+#addons:
+#  apt:
+#    packages:
+#    - cmake
+#    - doxygen
+#    - libboost-test-dev
+    
+#dist: bionic
