@@ -91,7 +91,6 @@ set_target_properties(
   VERSION ${HBM_VERSION}
   )
 
-set(prefix ${CMAKE_INSTALL_PREFIX})
 configure_file("${PROJECT_SOURCE_DIR}/pkg-config/hbm.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/pkg-config/hbm.pc" @ONLY)
 configure_file("${PROJECT_SOURCE_DIR}/cmake/hbm-config.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake/hbm-config.cmake" @ONLY)
 configure_file("${PROJECT_SOURCE_DIR}/cmake/hbm-config-version.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake/hbm-config-version.cmake" @ONLY)
